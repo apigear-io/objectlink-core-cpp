@@ -36,20 +36,27 @@ T getSafeValue(json j)
     return ( j.is_object() || j.is_array()) ? j.get<T>() : T();
 }
 
-Protocol::Protocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log)
+ObjectLinkProtocol::ObjectLinkProtocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log)
     : m_listener(listener)
     , m_writer(writer)
     , m_format(format)
     , m_log(log)
+    , m_nextId(0)
 {
     assert(m_writer);
     assert(m_log);
     assert(m_listener);
 }
 
+int ObjectLinkProtocol::nextId()
+{
+    m_nextId++;
+    return m_nextId;
+}
 
 
-void Protocol::handleMessage(std::string message)
+
+void ObjectLinkProtocol::handleMessage(std::string message)
 {
     json j = fromString(message);
     m_log->debug("handle message: " +  j.dump());
@@ -119,7 +126,7 @@ void Protocol::handleMessage(std::string message)
     }
 }
 
-void Protocol::writeMessage(json j)
+void ObjectLinkProtocol::writeMessage(json j)
 {
     assert(m_writer);
     string message = toString(j);
@@ -131,15 +138,72 @@ void Protocol::writeMessage(json j)
     }
 }
 
-IProtocolListener *Protocol::listener() const
+IProtocolListener *ObjectLinkProtocol::listener() const
 {
     assert(m_listener);
     return m_listener;
 }
 
+void ObjectLinkProtocol::writeLink(std::string name)
+{
+    json msg = Message::linkMessage(name);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeUnlink(std::string name)
+{
+    json msg = Message::unlinkMessage(name);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeInit(std::string name, json props)
+{
+    json msg = Message::initMessage(name, props);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeSetProperty(std::string name, json value)
+{
+    json msg = Message::setPropertyMessage(name, value);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writePropertyChange(std::string name, json value)
+{
+    json msg = Message::propertyChangeMessage(name, value);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeInvoke(std::string name, json args)
+{
+    int requestId = nextId();
+    json msg = Message::invokeMessage(requestId, name, args);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeInvokeReply(int requestId, std::string name, json value)
+{
+    json msg = Message::invokeReplyMessage(requestId, name, value);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeSignal(std::string name, json args)
+{
+    json msg = Message::signalMessage(name, args);
+    writeMessage(msg);
+}
+
+void ObjectLinkProtocol::writeError(int msgType, int requestId, std::string name)
+{
+    json msg = Message::errorMessage(msgType, requestId, name);
+    writeMessage(msg);
+}
 
 
-json Protocol::fromString(string message)
+
+
+
+json ObjectLinkProtocol::fromString(string message)
 {
     switch(m_format) {
     case MessageFormat::JSON:
@@ -155,7 +219,7 @@ json Protocol::fromString(string message)
     return json();
 }
 
-string Protocol::toString(json j)
+string ObjectLinkProtocol::toString(json j)
 {
     vector<uint8_t> v;
     switch(m_format) {

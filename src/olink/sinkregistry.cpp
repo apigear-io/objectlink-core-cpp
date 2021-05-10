@@ -23,24 +23,25 @@
 */
 
 #include "sinkregistry.h"
+#include "core/messages.h"
 
 namespace ApiGear { namespace ObjectLink {
 
 void ObjectLinkSinkRegistry::addObjectSink(std::string name, IObjectLinkSink *handler)
 {
-    std::string resource = name.substr(0, name.find("/"));
+    std::string resource = Message::resourceFromName(name);
     m_sinks[resource] = handler;
 }
 
 void ObjectLinkSinkRegistry::removeObjectSink(std::string name)
 {
-    std::string resource = name.substr(0, name.find("/"));
+    std::string resource = Message::resourceFromName(name);
     m_sinks.erase(resource);
 }
 
 IObjectLinkSink *ObjectLinkSinkRegistry::objectSink(std::string name)
 {
-    std::string resource = name.substr(0, name.find("/"));
+    std::string resource = Message::resourceFromName(name);
     return m_sinks[resource];
 }
 

@@ -30,48 +30,48 @@ namespace ApiGear { namespace ObjectLink {
 
 void EmptyProtocolListener::handleLink(std::string name)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
 void EmptyProtocolListener::handleUnlink(std::string name)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
 void EmptyProtocolListener::handleInvoke(int requestId, std::string name, json args)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << requestId << name << args.dump() << std::endl;
 }
 
 void EmptyProtocolListener::handleSetProperty(std::string name, json value)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
 
 void EmptyProtocolListener::handleInit(std::string name, json props)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << props.dump() << std::endl;
 }
 
 void EmptyProtocolListener::handleInvokeReply(int requestId, std::string name, json value)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << requestId << name << value.dump() << std::endl;
 }
 
 void EmptyProtocolListener::handleSignal(std::string name, json args)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << args.dump()  << std::endl;
 }
 
 void EmptyProtocolListener::handlePropertyChange(std::string name, json value)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
 void EmptyProtocolListener::handleError(int msgType, int requestId, std::string error)
 {
-    std::cout << "not implemented " << __func__ << std::endl;
+    std::cout << "not implemented " << __func__ << msgType << requestId << error << std::endl;
 }
 
 } } // ApiGear::ObjectLink

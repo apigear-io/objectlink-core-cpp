@@ -24,18 +24,15 @@
 
 #pragma once
 
-#include <string>
+#include "core/types.h"
 
-#include "nlohmann/json.hpp"
 
 namespace ApiGear { namespace ObjectLink {
-
-using json = nlohmann::json;
 
 class IObjectLinkSink
 {
 public:
-    virtual ~IObjectLinkSink() {}
+    virtual ~IObjectLinkSink();
     virtual void onSignal(std::string name, json args) = 0;
     virtual void onPropertyChanged(std::string name, json value) = 0;
     virtual void onInit(std::string name, json props) = 0;
@@ -43,10 +40,9 @@ public:
 
 class IObjectLinkClient {
 public:
-    ~IObjectLinkClient() {}
+    virtual ~IObjectLinkClient();
     virtual void invoke(std::string name, json args) = 0;
-    virtual void link(std::string name) = 0;
-    virtual void unlink(std::string name) = 0;
+    virtual void setProperty(std::string name, json value) = 0;
 };
 
 } } // Apigear::ObjectLink

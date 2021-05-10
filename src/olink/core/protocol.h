@@ -34,20 +34,32 @@ namespace ApiGear { namespace ObjectLink {
 using json = nlohmann::json;
 
 
-class Protocol : public IMessageHandler
+class ObjectLinkProtocol : public IMessageHandler
 {
 public:
-    Protocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log);
+    ObjectLinkProtocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log);
+    int nextId();
     void handleMessage(std::string message) override;
     void writeMessage(json j);
     json fromString(std::string message);
     std::string toString(json j);
     IProtocolListener *listener() const;
+    void writeLink(std::string name);
+    void writeUnlink(std::string name);
+    void writeInit(std::string name, json props);
+    void writeSetProperty(std::string name, json value);
+    void writePropertyChange(std::string name, json value);
+    void writeInvoke(std::string name, json args);
+    void writeInvokeReply(int requestId, std::string name, json value);
+    void writeSignal(std::string name, json args);
+    void writeError(int msgType, int requestId, std::string name);
+
 private:
     IProtocolListener *m_listener;
     IMessageWriter *m_writer;
     MessageFormat m_format;
     ILogger *m_log;
+    int m_nextId;
 };
 
 } } // ApiGear::ObjectLink

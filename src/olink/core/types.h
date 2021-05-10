@@ -31,9 +31,10 @@
 
 #include "nlohmann/json.hpp"
 
-using json = nlohmann::json;
 
 namespace ApiGear { namespace ObjectLink {
+
+using json = nlohmann::json;
 
 typedef unsigned long long Id;
 

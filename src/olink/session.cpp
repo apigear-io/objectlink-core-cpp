@@ -25,6 +25,8 @@
 #include "session.h"
 #include "sourceregistry.h"
 #include "sinkregistry.h"
+#include "core/messages.h"
+#include "core/types.h"
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {
@@ -33,7 +35,7 @@ namespace ApiGear { namespace ObjectLink {
 ObjectLinkSession::ObjectLinkSession(IMessageWriter *writer, MessageFormat format, ILogger *log)
     : m_sourceRegistry(new ObjectLinkSourceRegistry())
     , m_sinkRegistry(new ObjectLinkSinkRegistry())
-    , m_protocol(new Protocol(this, writer, format, log))
+    , m_protocol(new ObjectLinkProtocol(this, writer, format, log))
     , m_log(log)
 {
 }
@@ -41,6 +43,11 @@ ObjectLinkSession::ObjectLinkSession(IMessageWriter *writer, MessageFormat forma
 ObjectLinkSession::~ObjectLinkSession()
 {
     delete m_sourceRegistry;
+    m_sourceRegistry = nullptr;
+    delete m_sinkRegistry;
+    m_sinkRegistry = nullptr;
+    delete m_protocol;
+    m_protocol = nullptr;
 }
 
 void ObjectLinkSession::addObjectSource(std::string name, IObjectLinkSource *listener)
@@ -76,41 +83,66 @@ IObjectLinkSink *ObjectLinkSession::objectSink(std::string name)
     return m_sinkRegistry->objectSink(name);
 }
 
+ObjectLinkProtocol *ObjectLinkSession::protocol() const
+{
+    return m_protocol;
+}
+
+ObjectLinkSourceRegistry *ObjectLinkSession::sourceRegistry() const
+{
+    return m_sourceRegistry;
+}
+
+ObjectLinkSinkRegistry *ObjectLinkSession::sinkRegistry() const
+{
+    return m_sinkRegistry;
+}
+
 void ObjectLinkSession::invoke(std::string name, json args)
 {
-
+    protocol()->writeInvoke(name, args);
 }
 
-void ObjectLinkSession::link(std::string name)
+void ObjectLinkSession::setProperty(std::string name, json value)
 {
-
+    protocol()->writeSetProperty(name, value);
 }
-
-void ObjectLinkSession::unlink(std::string name)
-{
-
-}
-
 
 void ObjectLinkSession::handleLink(std::string name)
 {
+    m_sourceRegistry->linkSource(name, this);
+    IObjectLinkSource* s = objectSource(name);
+    if(s) {
+        s->linked(name, this);
+        json props = s->collectProperties();
+        protocol()->writeInit(name, props);
+    }
 }
 
 void ObjectLinkSession::handleUnlink(std::string name)
 {
+    IObjectLinkSource* s = objectSource(name);
+    if(s) {
+        s->unlinked(name);
+    }
+    m_sourceRegistry->unlinkSource(name, this);
 }
 
 void ObjectLinkSession::handleInit(std::string name, json props)
 {
-    IObjectLinkSink *l = objectSink(name);
-    if(l) {
-        l->onInit(name, props);
+    IObjectLinkSink *s = objectSink(name);
+    if(s) {
+        s->onInit(name, props);
     }
 }
 
 void ObjectLinkSession::handleSetProperty(std::string name, json value)
 {
-}
+    IObjectLinkSource* s = objectSource(name);
+    if(s) {
+        s->setProperty(name, value);
+    }
+ }
 
 void ObjectLinkSession::handlePropertyChange(std::string name, json value)
 {
@@ -122,18 +154,23 @@ void ObjectLinkSession::handlePropertyChange(std::string name, json value)
 
 void ObjectLinkSession::handleInvoke(int requestId, std::string name, json args)
 {
+    IObjectLinkSource* s = objectSource(name);
+    if(s) {
+        json value = s->invoke(name, args);
+        protocol()->writeInvokeReply(requestId, name, value);
+    }
 }
 
 void ObjectLinkSession::handleInvokeReply(int requestId, std::string name, json value)
 {
-    std::cout << __func__ << "not implemented" << name << value;
+    std::cout << __func__ << "not implemented" << requestId << name << value;
 }
 
 void ObjectLinkSession::handleSignal(std::string name, json args)
 {
-    IObjectLinkSink *l = objectSink(name);
-    if(l) {
-        l->onSignal(name, args);
+    IObjectLinkSink *s = objectSink(name);
+    if(s) {
+        s->onSignal(name, args);
     }
 }
 
@@ -144,12 +181,18 @@ void ObjectLinkSession::handleError(int msgType, int requestId, std::string erro
 
 void ObjectLinkSession::notifyPropertyChange(std::string name, json value)
 {
-    return m_sourceRegistry->notifyPropertyChange(name, value);
+    std::list<ObjectLinkSession *> sessions = m_sourceRegistry->objectServices(name);
+    for(const ObjectLinkSession* session: sessions) {
+        session->protocol()->writePropertyChange(name, value);
+    }
 }
 
 void ObjectLinkSession::notifySignal(std::string name, json args)
 {
-    return m_sourceRegistry->notifySignal(name, args);
+    std::list<ObjectLinkSession *> sessions = m_sourceRegistry->objectServices(name);
+    for(const ObjectLinkSession* session: sessions) {
+        session->protocol()->writeSignal(name, args);
+    }
 }
 
 

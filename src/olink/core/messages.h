@@ -31,6 +31,8 @@ class Message
 {
 public:
     Message();
+    static std::string resourceFromName(std::string name);
+    static std::string pathFromName(std::string name);
     // lifecycle
     static json linkMessage(std::string name);
     static json unlinkMessage(std::string name);

@@ -31,6 +31,7 @@
 
 namespace ApiGear { namespace ObjectLink {
 
+class ObjectLinkProtocol;
 class ObjectLinkSession;
 class ObjectLinkSourceRegistry;
 class ObjectLinkSinkRegistry;
@@ -53,11 +54,10 @@ public:
     // IObjectLinkClient interface
 public:
     void invoke(std::string name, json args) override;
-    void link(std::string name) override;
-    void unlink(std::string name) override;
+    void setProperty(std::string name, json value) override;
 
     // IProtocolListener interface
-public:
+private:
     void handleLink(std::string name) override;
     void handleUnlink(std::string name) override;
     void handleInit(std::string name, json props) override;
@@ -67,15 +67,18 @@ public:
     void handleInvokeReply(int requestId, std::string name, json value) override;
     void handleSignal(std::string name, json args) override;
     void handleError(int msgType, int requestId, std::string error) override;
-    // IServiceObjectNotifier
+    // IObjectLinkService
 public:
     void notifyPropertyChange(std::string name, json value) override;
     void notifySignal(std::string name, json args) override;
-
+private:
+    ObjectLinkProtocol *protocol() const;
+    ObjectLinkSourceRegistry *sourceRegistry() const;
+    ObjectLinkSinkRegistry *sinkRegistry() const;
 private:
     ObjectLinkSourceRegistry* m_sourceRegistry;
     ObjectLinkSinkRegistry *m_sinkRegistry;
-    Protocol *m_protocol;
+    ObjectLinkProtocol *m_protocol;
     ILogger *m_log;
 };
 

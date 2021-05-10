@@ -88,14 +88,17 @@ private:
 
 class CalcSource: public IObjectLinkSource {
 public:
-    CalcSource(IObjectLinkService *service)
-        : m_service(service)
+    CalcSource()
+        : m_service(nullptr)
         , m_total(0)
     {
     }
     virtual ~CalcSource() override {}
 
     int add(int value) {
+        if(!m_service) {
+            return 0;
+        }
         m_total += value;
         m_service->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/add", value });
@@ -108,6 +111,9 @@ public:
     }
 
     int sub(int value) {
+        if(!m_service) {
+            return 0;
+        }
         m_total -= value;
         m_service->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/sub", value });
@@ -118,11 +124,6 @@ public:
         }
         return m_total;
     }
-private:
-    IObjectLinkService* m_service;
-    int m_total;
-    std::vector<json> m_events;
-
     // IServiceObjectListener interface
 public:
     string getObjectName() override {
@@ -135,9 +136,9 @@ public:
     void setProperty(string name, json value) override {
         std::cout << __func__ << name << value.dump();
     }
-    void linked(string name, IObjectLinkService *notifier) override {
+    void linked(string name, IObjectLinkService *service) override {
         std::cout << __func__ << name;
-        m_service = notifier;
+        m_service = service;
     }
     void unlinked(string name) override
     {
@@ -148,6 +149,10 @@ public:
     {
         return {{ "total", m_total }};
     }
+private:
+    IObjectLinkService* m_service;
+    int m_total;
+    std::vector<json> m_events;
 };
 
 
@@ -159,7 +164,7 @@ TEST_CASE("client")
     CalcSink co(&client);
 
     ObjectLinkSession service(&writer, MessageFormat::JSON, &log);
-    CalcSource so(&service);
+    CalcSource so;
     service.addObjectSource("demo.Calc", &so);
 
 
