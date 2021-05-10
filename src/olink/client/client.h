@@ -23,9 +23,12 @@
 */
 #pragma once
 
-#include "types.h"
-#include "listeners.h"
 #include "nlohmann/json.hpp"
+#include "olink/shared/types.h"
+#include "olink/shared/protocol.h"
+#include "olink/shared/listeners.h"
+#include "clienttypes.h"
+#include "clientregistry.h"
 
 
 namespace ApiGear { namespace ObjectLink {
@@ -35,37 +38,27 @@ using json = nlohmann::json;
 
 class Protocol;
 
-class IClientObjectListener
-{
-public:
-    virtual ~IClientObjectListener() {}
-    virtual void onSignal(std::string name, json args) = 0;
-    virtual void onPropertyChanged(std::string name, json value) = 0;
-    virtual void onInit(std::string name, json props) = 0;
-};
 
-class ObjectLinkClientRegistry
-{
+class IObjectLinkClient {
 public:
-    void addObject(std::string name, IClientObjectListener* handler);
-    void removeObject(std::string name);
-    IClientObjectListener* objectListener(std::string name);
-private:
-    std::map<std::string, IClientObjectListener*> m_objects;
+    ~IObjectLinkClient() {}
+    virtual void invoke(std::string name, json args) = 0;
+    virtual void link(std::string name) = 0;
+    virtual void unlink(std::string name) = 0;
 };
 
 
-class ObjectLinkClient: public IProtocolListener, public IMessageHandler
+class ObjectLinkClient: public IProtocolListener, public IMessageHandler, public IObjectLinkClient
 {
 public:
-    ObjectLinkClient(IMessageWriter *writer, ILogger *log, MessageFormat format);
+    ObjectLinkClient(IMessageWriter *writer, MessageFormat format, ILogger *log);
     virtual ~ObjectLinkClient();
-    void addObject(std::string name, IClientObjectListener* handler);
-    void removeObject(std::string name);
-    IClientObjectListener* objectListener(std::string name);
-    void invoke(std::string name, json args);
-    void link(std::string name);
-    void unlink(std::string name);
+    void addObjectSink(std::string name, IObjectLinkSink* handler);
+    void removeObjectSink(std::string name);
+    IObjectLinkSink* objectSink(std::string name);
+    void invoke(std::string name, json args) override;
+    void link(std::string name) override;
+    void unlink(std::string name) override;
 
 
     // IProtocolListener interface
@@ -85,10 +78,8 @@ public:
     void handleMessage(std::string message) override;
 private:
     Protocol* m_protocol;
-    ObjectLinkClientRegistry *m_registry;
+    ObjectLinkSinkRegistry *m_sinkRegistry;
     ILogger *m_log;
-    int m_nextId;
-
 };
 
 } } // Apigear::ObjectLink

@@ -23,35 +23,16 @@
 */
 
 #include "client.h"
+#include "olink/shared/protocol.h"
 
-#include "protocol.h"
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {
 
-void ObjectLinkClientRegistry::addObject(std::string name, IClientObjectListener *handler)
-{
-    std::string resource = name.substr(0, name.find("/"));
-    m_objects[resource] = handler;
-}
-
-void ObjectLinkClientRegistry::removeObject(std::string name)
-{
-    std::string resource = name.substr(0, name.find("/"));
-    m_objects.erase(resource);
-}
-
-IClientObjectListener *ObjectLinkClientRegistry::objectListener(std::string name)
-{
-    std::string resource = name.substr(0, name.find("/"));
-    return m_objects[resource];
-}
-
-ObjectLinkClient::ObjectLinkClient(IMessageWriter *writer, ILogger *log, MessageFormat format)
+ObjectLinkClient::ObjectLinkClient(IMessageWriter *writer, MessageFormat format, ILogger *log)
     : m_protocol(new Protocol(this, writer, format, log))
-    , m_registry(new ObjectLinkClientRegistry())
+    , m_sinkRegistry(new ObjectLinkSinkRegistry())
     , m_log(log)
-    , m_nextId(0)
 {
 }
 
@@ -59,19 +40,34 @@ ObjectLinkClient::~ObjectLinkClient()
 {
 }
 
-void ObjectLinkClient::addObject(std::string name, IClientObjectListener *handler)
+void ObjectLinkClient::addObjectSink(std::string name, IObjectLinkSink *handler)
 {
-    m_registry->addObject(name, handler);
+    m_sinkRegistry->addObjectSink(name, handler);
 }
 
-void ObjectLinkClient::removeObject(std::string name)
+void ObjectLinkClient::removeObjectSink(std::string name)
 {
-    m_registry->removeObject(name);
+    m_sinkRegistry->removeObjectSink(name);
 }
 
-IClientObjectListener *ObjectLinkClient::objectListener(std::string name)
+IObjectLinkSink *ObjectLinkClient::objectSink(std::string name)
 {
-    return m_registry->objectListener(name);
+    return m_sinkRegistry->objectSink(name);
+}
+
+void ObjectLinkClient::invoke(std::string name, json args)
+{
+
+}
+
+void ObjectLinkClient::link(std::string name)
+{
+
+}
+
+void ObjectLinkClient::unlink(std::string name)
+{
+
 }
 
 
@@ -87,7 +83,7 @@ void ObjectLinkClient::handleUnlink(std::string name)
 
 void ObjectLinkClient::handleInit(std::string name, json props)
 {
-    IClientObjectListener *l = objectListener(name);
+    IObjectLinkSink *l = objectSink(name);
     if(l) {
         l->onInit(name, props);
     }
@@ -100,7 +96,7 @@ void ObjectLinkClient::handleSetProperty(std::string name, json value)
 
 void ObjectLinkClient::handlePropertyChange(std::string name, json value)
 {
-    IClientObjectListener *l = objectListener(name);
+    IObjectLinkSink *l = objectSink(name);
     if(l) {
         l->onPropertyChanged(name, value);
     }
@@ -118,7 +114,7 @@ void ObjectLinkClient::handleInvokeReply(int requestId, std::string name, json v
 
 void ObjectLinkClient::handleSignal(std::string name, json args)
 {
-    IClientObjectListener *l = objectListener(name);
+    IObjectLinkSink *l = objectSink(name);
     if(l) {
         l->onSignal(name, args);
     }

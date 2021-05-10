@@ -21,33 +21,27 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include "types.h"
 
-#include <string>
-#include <map>
+#include "sinkregistry.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-std::string toString(MessageType type) {
-    static std::map<MessageType, std::string> typeNames = {
-        { MessageType::LINK, "link" },
-        { MessageType::UNLINK, "unlink" },
-        { MessageType::INIT, "init" },
-        { MessageType::SET_PROPERTY, "property_change" },
-        { MessageType::PROPERTY_CHANGE, "signal_property_change" },
-        { MessageType::INVOKE, "invole" },
-        { MessageType::INVOKE_REPLY, "invoke_reply" },
-        { MessageType::SIGNAL, "signal" },
-        { MessageType::ERROR, "error" },
-    };
-    auto result = typeNames.find(type);
-    if (result == typeNames.end()) {
-        return std::string("unknown");
-    }
-
-    return result->second;
+void ObjectLinkSinkRegistry::addObjectSink(std::string name, IObjectLinkSink *handler)
+{
+    std::string resource = name.substr(0, name.find("/"));
+    m_sinks[resource] = handler;
 }
 
+void ObjectLinkSinkRegistry::removeObjectSink(std::string name)
+{
+    std::string resource = name.substr(0, name.find("/"));
+    m_sinks.erase(resource);
+}
 
-} } // ApiGear::ObjectLink
+IObjectLinkSink *ObjectLinkSinkRegistry::objectSink(std::string name)
+{
+    std::string resource = name.substr(0, name.find("/"));
+    return m_sinks[resource];
+}
 
+} } // Apigear::ObjectLink

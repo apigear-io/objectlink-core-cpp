@@ -23,92 +23,63 @@
 */
 #pragma once
 
-#include "types.h"
-#include "listeners.h"
-
-#include "nlohmann/json.hpp"
-#include <queue>
-
-using json = nlohmann::json;
+#include "olink/core/types.h"
+#include "olink/core/protocol.h"
+#include "olink/core/listeners.h"
+#include "sourcetypes.h"
+#include "sinktypes.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class Protocol;
+class ObjectLinkSession;
+class ObjectLinkSourceRegistry;
+class ObjectLinkSinkRegistry;
 
-class Session : public EmptyProtocolListener, public IMessageHandler
-{
+// main handler of protocol messages
+// created for each connection
+class ObjectLinkSession : public IProtocolListener, public IObjectLinkService, public IObjectLinkClient {
 public:
-    Session(ISessionListener* listener, IMessageWriter *writer, ILogger *log, MessageFormat format);
-    void init(std::string realm);
-    void shutdown(std::string message);
-public: // session
-    void handleWelcome(Id sessionId, Details details) override;
-    void handleGoodbye(Details details, std::string reason) override;
-public: // pubsub
-    void doPublish(std::string topic, Arguments arguments, ArgumentsKw argumentsKw);
-    void doSubscribe(std::string topic, EventFunc &func);
-    void doUnsubscribe(std::string topic);
+    ObjectLinkSession(IMessageWriter *writer, MessageFormat format, ILogger *log);
+    virtual ~ObjectLinkSession() override;
+    // source registry
+    void addObjectSource(std::string name, IObjectLinkSource* listener);
+    void removeObjectSource(std::string name);
+    IObjectLinkSource* objectSource(std::string name);
+    // sink registry
+    void addObjectSink(std::string name, IObjectLinkSink* handler);
+    void removeObjectSink(std::string name);
+    IObjectLinkSink* objectSink(std::string name);
 
-public: // pubsub handler
-    void handleEvent(Id subscriptionId, Id publicationId, Details details, Arguments arguments, ArgumentsKw argumentsKw) override;
-    void handleSubscribed(Id requestId, Id subscriptionId) override;
-    void handleSubscribeError(Id requestId, Details details, std::string error) override;
-    void handleUnsubscribed(Id requestId) override;
-    void handleUnsubscribeError(Id requestId, Details details, std::string error) override;
-    void handlePublished(Id requestId, Id publicationId) override;
-    void handlePublishError(Id requestId, Details details, std::string error) override;
-public: // rpc calls
-    void doCall(std::string procedure, Arguments arguments, ArgumentsKw argumentsKw, ResponseFunc& func);
-    void doYield(Id requestId, Arguments arguments, ArgumentsKw argumentsKw);
-    void doRegister(std::string procedure, ProcedureFunc& func);
-    void doUnregister(std::string procedure);
-public: // rpc handling
-    void handleResult(Id requestId, Details details, Arguments arguments, ArgumentsKw argumentsKw) override;
-    void handleCallError(Id requestId, Details details, std::string error) override;
-    void handleInvocation(Id requestId, Id registrationId, Details details, Arguments arguments, ArgumentsKw argumentsKw) override;
-    void handleRegistered(Id requestId, Id registrationId) override;
-    void handleRegisterError(Id requestId, Details details, std::string error) override;
-    void handleUnregistered(Id requestId) override;
-    void handleUnregisterError(Id requestId, Details details, std::string error) override;
-public: // utils
-    void handleMessage(std::string message) override;
-    Id nextRequestId();
-    void writeMessage(json j);
-    bool hasJoined() const;
-    void processMessageQueue();
+    // IObjectLinkClient interface
+public:
+    void invoke(std::string name, json args) override;
+    void link(std::string name) override;
+    void unlink(std::string name) override;
+
+    // IProtocolListener interface
+public:
+    void handleLink(std::string name) override;
+    void handleUnlink(std::string name) override;
+    void handleInit(std::string name, json props) override;
+    void handleSetProperty(std::string name, json value) override;
+    void handlePropertyChange(std::string name, json value) override;
+    void handleInvoke(int requestId, std::string name, json args) override;
+    void handleInvokeReply(int requestId, std::string name, json value) override;
+    void handleSignal(std::string name, json args) override;
+    void handleError(int msgType, int requestId, std::string error) override;
+    // IServiceObjectNotifier
+public:
+    void notifyPropertyChange(std::string name, json value) override;
+    void notifySignal(std::string name, json args) override;
+
 private:
-    ISessionListener *m_listener;
-    Protocol* m_protocol;
+    ObjectLinkSourceRegistry* m_sourceRegistry;
+    ObjectLinkSinkRegistry *m_sinkRegistry;
+    Protocol *m_protocol;
     ILogger *m_log;
-    Id m_nextId;
-    Id m_sessionId;
-private: // rpc
-    // pending hello request
-    std::map<MessageType, bool> m_sessionStatePending;
-    // doCall -> handleInvocation
-    std::map<Id,ResponseFunc> m_callsPending;
-    // rpc registry
-    // lookup of procedure func by register id
-    // doRegister -> handleRegistered
-    std::map<Id, std::pair<ProcedureFunc, std::string> > m_registryPending;
-    // lookup for registrationId by procedure URI
-    std::map<std::string, Id> m_registryIds;
-    // lookup procedure fnuc by registrationId
-    // ProcedureFunc by registrationId see handleInvocation
-    std::map<Id, std::pair<ProcedureFunc, std::string> > m_registryFuncs;
-
-private: // pubsub
-
-    // lookup topic by subscriptionId
-    std::map<Id, std::pair<EventFunc, std::string> > m_subscriptions;
-    // lookup topic by subscriptionId
-    std::map<std::string, Id> m_subscriptionIds;
-    // lookup of topic func by request id
-    std::map<Id, std::pair<EventFunc, std::string> > m_subscriptionsPending;
-    // queue used when we are not joined yet
-    std::queue<json> m_messageQueue;
-
 };
 
+} } // Apigear::ObjectLink
 
-} } // ApiGear::WAMP
+
+

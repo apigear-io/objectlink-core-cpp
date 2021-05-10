@@ -22,19 +22,21 @@
 * SOFTWARE.
 */
 
-#include "service.h"
+#pragma once
+
+#include <string>
+#include "sinktypes.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-ObjectLinkService::ObjectLinkService()
+class ObjectLinkSinkRegistry
 {
-}
-
-ObjectLinkService::~ObjectLinkService()
-{
-}
+public:
+    void addObjectSink(std::string name, IObjectLinkSink* handler);
+    void removeObjectSink(std::string name);
+    IObjectLinkSink* objectSink(std::string name);
+private:
+    std::map<std::string, IObjectLinkSink*> m_sinks;
+};
 
 } } // Apigear::ObjectLink
-
-
-

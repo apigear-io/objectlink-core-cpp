@@ -21,34 +21,22 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
+
 #pragma once
 
-#include "types.h"
-#include "listeners.h"
 #include <string>
-#include "nlohmann/json.hpp"
-
+#include "clienttypes.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-using json = nlohmann::json;
-
-
-class Protocol : public IMessageHandler
+class ObjectLinkSinkRegistry
 {
 public:
-    Protocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log);
-    void handleMessage(std::string message) override;
-    void writeMessage(json j);
-    json fromString(std::string message);
-    std::string toString(json j);
-    IProtocolListener *listener() const;
+    void addObjectSink(std::string name, IObjectLinkSink* handler);
+    void removeObjectSink(std::string name);
+    IObjectLinkSink* objectSink(std::string name);
 private:
-    IMessageWriter *m_writer;
-    ILogger *m_log;
-    MessageFormat m_format;
-    IProtocolListener *m_listener;
+    std::map<std::string, IObjectLinkSink*> m_sinks;
 };
 
-} } // ApiGear::ObjectLink
-
+} } // Apigear::ObjectLink

@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
+#include <list>
 
 #include "nlohmann/json.hpp"
 
@@ -74,16 +75,6 @@ public:
     virtual ~IMessageHandler() {}
     virtual void handleMessage(std::string message) = 0;
 };
-
-class IClientListener {
-    virtual ~IClientListener() {}
-
-};
-
-class IServiceListener {
-    virtual ~IServiceListener() {}
-};
-
 
 class ILogger
 {

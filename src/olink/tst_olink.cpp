@@ -2,12 +2,11 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "olink/messages.h"
-#include "olink/protocol.h"
-#include "olink/types.h"
-#include "olink/client.h"
-#include "olink/service.h"
-#include "olink/stdoutlogger.h"
+#include "olink/core/messages.h"
+#include "olink/core/protocol.h"
+#include "olink/core/types.h"
+#include "olink/core/stdoutlogger.h"
+#include "olink/session.h"
 
 
 #include "nlohmann/json.hpp"
@@ -33,22 +32,16 @@ private:
     IMessageHandler *m_handler;
 };
 
-class IObjectNotifier {
-public:
-    virtual ~IObjectNotifier() {}
-    virtual void notifySignal(std::string name, json args) = 0;
-    virtual void notifyPropertyChange(std::string name, json value) = 0;
-};
 
-class CalcClientObject: public IClientObjectListener {
+class CalcSink: public IObjectLinkSink {
 public:
-    CalcClientObject(ObjectLinkClient *m_client)
+    CalcSink(IObjectLinkClient *m_client)
         : m_client(m_client)
         , m_total(0)
         , m_isReady(false)
     {
     }
-    virtual ~CalcClientObject() override {}
+    virtual ~CalcSink() override {}
     int add(int a) {
         m_client->invoke("demo.Calc/add", { a });
         return -1;
@@ -87,28 +80,28 @@ public:
         }
     }
 private:
-    ObjectLinkClient *m_client;
+    IObjectLinkClient *m_client;
     int m_total;
     bool m_isReady;
 
 };
 
-class CalcServiceObject: public IClientObjectListener {
+class CalcSource: public IObjectLinkSource {
 public:
-    CalcServiceObject(IObjectNotifier *notifier)
-        : m_notifier(notifier)
+    CalcSource(IObjectLinkService *service)
+        : m_service(service)
         , m_total(0)
     {
     }
-    virtual ~CalcServiceObject() override {}
+    virtual ~CalcSource() override {}
 
     int add(int value) {
         m_total += value;
-        m_notifier->notifyPropertyChange("demo.Calc/total", m_total);
+        m_service->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/add", value });
         m_events.push_back({ "demo.Calc/total", m_total });
         if(m_total >= 10) {
-            m_notifier->notifySignal("demo.Calc/hitUpper", { 10 });
+            m_service->notifySignal("demo.Calc/hitUpper", { 10 });
             m_events.push_back({ "demo.Calc/hitUpper", 10 });
         }
         return m_total;
@@ -116,20 +109,45 @@ public:
 
     int sub(int value) {
         m_total -= value;
-        m_notifier->notifyPropertyChange("demo.Calc/total", m_total);
+        m_service->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/sub", value });
         m_events.push_back({ "demo.Calc/total", m_total });
         if(m_total <= 0) {
-            m_notifier->notifySignal("demo.Calc/hitLower", { 0 });
+            m_service->notifySignal("demo.Calc/hitLower", { 0 });
             m_events.push_back({ "demo.Calc/hitLower", 0 });
         }
         return m_total;
     }
 private:
+    IObjectLinkService* m_service;
     int m_total;
-    IObjectNotifier* m_notifier;
     std::vector<json> m_events;
 
+    // IServiceObjectListener interface
+public:
+    string getObjectName() override {
+        return "demo.Calc";
+    }
+    json invoke(string name, json args) override {
+        std::cout << __func__ << name << args.dump();
+        return "hello";
+    }
+    void setProperty(string name, json value) override {
+        std::cout << __func__ << name << value.dump();
+    }
+    void linked(string name, IObjectLinkService *notifier) override {
+        std::cout << __func__ << name;
+        m_service = notifier;
+    }
+    void unlinked(string name) override
+    {
+        std::cout << __func__ << name;
+        m_service = nullptr;
+    }
+    json collectProperties() override
+    {
+        return {{ "total", m_total }};
+    }
 };
 
 
@@ -137,12 +155,17 @@ TEST_CASE("client")
 {
     StdoutLogger log;
     LoopbackWriter writer;
-    ObjectLinkClient client(&writer, &log, MessageFormat::JSON);
-    CalcClientObject obj(&client);
+    ObjectLinkSession client(&writer, MessageFormat::JSON, &log);
+    CalcSink co(&client);
+
+    ObjectLinkSession service(&writer, MessageFormat::JSON, &log);
+    CalcSource so(&service);
+    service.addObjectSource("demo.Calc", &so);
+
 
     SECTION("link ->, <- init") {
-        client.addObject("demo.Calc", &obj);
-        REQUIRE( obj.isReady() == true );
+        client.addObjectSink("demo.Calc", &co);
+        REQUIRE( co.isReady() == true );
     }
 //    obj.add(4);
 //    obj.sub(5);
