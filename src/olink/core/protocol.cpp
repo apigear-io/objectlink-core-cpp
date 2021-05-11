@@ -23,10 +23,9 @@
 */
 #include "protocol.h"
 #include "messages.h"
-
-#include <vector>
-
-using namespace std;
+#include "types.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/fmt.h>
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -55,61 +54,63 @@ int ObjectLinkProtocol::nextId()
 }
 
 
-
 void ObjectLinkProtocol::handleMessage(std::string message)
 {
+    SPDLOG_TRACE(message);
     json j = fromString(message);
-    m_log->debug("handle message: " +  j.dump());
+
+    spdlog::info("handle message: {}", j.dump());
     if(!j.is_array()) {
-        m_log->warning("message must be array");
+        spdlog::warn("message must be array");
         return;
     }
     const int msgType = j[0].get<int>();
     switch(msgType) {
     case int(MessageType::LINK): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         listener()->handleLink(name);
         break;
     }
     case int(MessageType::INIT): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         const json props = j[2].get<json>();
         listener()->handleInit(name, props);
         break;
     }
     case int(MessageType::UNLINK): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         listener()->handleUnlink(name);
         break;
     }
     case int(MessageType::SET_PROPERTY): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         const json value = j[2].get<json>();
         listener()->handleSetProperty(name, value);
         break;
     }
     case int(MessageType::PROPERTY_CHANGE): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         const json value = j[2].get<json>();
         listener()->handlePropertyChange(name, value);
         break;
     }
     case int(MessageType::INVOKE): {
         const int id = j[1].get<int>();
-        const string name = j[2].get<string>();
+        const std::string name = j[2].get<std::string>();
         const json args = j[3].get<json>();
         listener()->handleInvoke(id, name, args);
         break;
     }
     case int(MessageType::INVOKE_REPLY): {
         const int id = j[1].get<int>();
-        const string name = j[2].get<string>();
+        const std::string name = j[2].get<std::string>();
         const json value = j[3].get<json>();
+        handleInvokeReply(id, name, value);
         listener()->handleInvokeReply(id, name, value);
         break;
     }
     case int(MessageType::SIGNAL): {
-        const string name = j[1].get<string>();
+        const std::string name = j[1].get<std::string>();
         const json args = j[2].get<json>();
         listener()->handleSignal(name, args);
         break;
@@ -117,24 +118,24 @@ void ObjectLinkProtocol::handleMessage(std::string message)
     case int(MessageType::ERROR): {
         const int msgType = j[1].get<int>();
         const int requestId = j[2].get<int>();
-        const string error = j[3].get<string>();
+        const std::string error = j[3].get<std::string>();
         listener()->handleError(msgType, requestId, error);
         break;
     }
     default:
-        m_log->warning("message not support " + message);
+        spdlog::warn("message not supported {}", message);
     }
 }
 
 void ObjectLinkProtocol::writeMessage(json j)
 {
     assert(m_writer);
-    string message = toString(j);
-    m_log->debug("write message " + message);
+    std::string message = toString(j);
+    spdlog::debug("writeMessage {}", j.dump());
     if(m_writer) {
         m_writer->writeMessage(message);
     } else {
-        m_log->warning("no write set, can not send");
+        spdlog::warn("no write set, can not send");
     }
 }
 
@@ -174,9 +175,10 @@ void ObjectLinkProtocol::writePropertyChange(std::string name, json value)
     writeMessage(msg);
 }
 
-void ObjectLinkProtocol::writeInvoke(std::string name, json args)
+void ObjectLinkProtocol::writeInvoke(std::string name, json args, InvokeReplyFunc func)
 {
     int requestId = nextId();
+    m_invokesPending[requestId] = func;
     json msg = Message::invokeMessage(requestId, name, args);
     writeMessage(msg);
 }
@@ -193,17 +195,31 @@ void ObjectLinkProtocol::writeSignal(std::string name, json args)
     writeMessage(msg);
 }
 
-void ObjectLinkProtocol::writeError(int msgType, int requestId, std::string name)
+void ObjectLinkProtocol::writeError(MessageType msgType, int requestId, std::string name)
 {
     json msg = Message::errorMessage(msgType, requestId, name);
     writeMessage(msg);
+}
+
+void ObjectLinkProtocol::handleInvokeReply(int requestId, std::string name, json value)
+{
+    spdlog::info("handle invoke reply id:{} name:{} value:{}", requestId, name, value);
+    if(m_invokesPending.count(requestId) == 1) {
+        const InvokeReplyFunc& func = m_invokesPending[requestId];
+        const InvokeReplyArg arg{name, value};
+        func(arg);
+        m_invokesPending.erase(requestId);
+    } else {
+        writeError(MessageType::INVOKE, requestId, fmt::format("no pending invoke {} for {}", name, requestId));
+        spdlog::warn("no pending invoke {} for {}", name, requestId);
+    }
 }
 
 
 
 
 
-json ObjectLinkProtocol::fromString(string message)
+json ObjectLinkProtocol::fromString(std::string message)
 {
     switch(m_format) {
     case MessageFormat::JSON:
@@ -219,24 +235,24 @@ json ObjectLinkProtocol::fromString(string message)
     return json();
 }
 
-string ObjectLinkProtocol::toString(json j)
+std::string ObjectLinkProtocol::toString(json j)
 {
-    vector<uint8_t> v;
+    std::vector<uint8_t> v;
     switch(m_format) {
     case MessageFormat::JSON:
         return j.dump();
     case MessageFormat::BSON:
         v = json::to_bson(j);
-        return string(v.begin(), v.end());
+        return std::string(v.begin(), v.end());
     case MessageFormat::MSGPACK:
         v = json::to_msgpack(j);
-        return string(v.begin(), v.end());
+        return std::string(v.begin(), v.end());
     case MessageFormat::CBOR:
         v = json::to_cbor(j);
-        return string(v.begin(), v.end());
+        return std::string(v.begin(), v.end());
     }
 
-    return string();
+    return std::string();
 }
 
 } } // ApiGear::ObjectLink

@@ -23,25 +23,29 @@
 */
 
 #include "sinkregistry.h"
-#include "core/messages.h"
+#include "spdlog/spdlog.h"
 
 namespace ApiGear { namespace ObjectLink {
 
 void ObjectLinkSinkRegistry::addObjectSink(std::string name, IObjectLinkSink *handler)
 {
-    std::string resource = Message::resourceFromName(name);
+    std::string resource = Name::resourceFromName(name);
     m_sinks[resource] = handler;
 }
 
 void ObjectLinkSinkRegistry::removeObjectSink(std::string name)
 {
-    std::string resource = Message::resourceFromName(name);
+    std::string resource = Name::resourceFromName(name);
     m_sinks.erase(resource);
 }
 
 IObjectLinkSink *ObjectLinkSinkRegistry::objectSink(std::string name)
 {
-    std::string resource = Message::resourceFromName(name);
+    std::string resource = Name::resourceFromName(name);
+    spdlog::info("object sink name={}, resource={}", name, resource);
+    if(m_sinks.count(resource) == 0) {
+        spdlog::warn("sink not added: {}", name);
+    }
     return m_sinks[resource];
 }
 

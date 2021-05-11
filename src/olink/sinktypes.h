@@ -41,7 +41,7 @@ public:
 class IObjectLinkClient {
 public:
     virtual ~IObjectLinkClient();
-    virtual void invoke(std::string name, json args) = 0;
+    virtual void invoke(std::string name, json args, InvokeReplyFunc func) = 0;
     virtual void setProperty(std::string name, json value) = 0;
 };
 

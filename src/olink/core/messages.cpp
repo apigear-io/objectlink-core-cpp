@@ -36,16 +36,6 @@ Message::Message()
 
 }
 
-std::string Message::resourceFromName(std::string name)
-{
-    return name.substr(0, name.find("/"));
-}
-
-std::string Message::pathFromName(std::string name)
-{
-    return name.substr(name.find("/"));
-}
-
 json Message::linkMessage(std::string name)
 {
     return json::array(
@@ -103,7 +93,7 @@ json Message::signalMessage(std::string name, json args)
                 );
 }
 
-json Message::errorMessage(int msgType, int requestId, std::string error)
+json Message::errorMessage(MessageType msgType, int requestId, std::string error)
 {
     return json::array(
                 { MessageType::ERROR, msgType, requestId, error }

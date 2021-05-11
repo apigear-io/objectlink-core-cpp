@@ -27,7 +27,7 @@
 #include "sinkregistry.h"
 #include "core/messages.h"
 #include "core/types.h"
-#include <iostream>
+#include "spdlog/spdlog.h"
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -52,25 +52,27 @@ ObjectLinkSession::~ObjectLinkSession()
 
 void ObjectLinkSession::addObjectSource(std::string name, IObjectLinkSource *listener)
 {
-    std::cout << __func__ << name;
-    return m_sourceRegistry->addObjectSource(name, listener);
+    SPDLOG_DEBUG("session.addObjectSource {}", name);
+    m_sourceRegistry->addObjectSource(name, listener);
 }
 
 void ObjectLinkSession::removeObjectSource(std::string name)
 {
-    std::cout << __func__ << name;
+    SPDLOG_TRACE("{}", name);
     return m_sourceRegistry->removeObjectSource(name);
 }
 
 IObjectLinkSource *ObjectLinkSession::objectSource(std::string name)
 {
-    std::cout << __func__ << "name";
+    SPDLOG_TRACE("{}", name);
     return m_sourceRegistry->objectSource(name);
 }
 
 void ObjectLinkSession::addObjectSink(std::string name, IObjectLinkSink *handler)
 {
+    SPDLOG_DEBUG("session.addObjectSink {}", name);
     m_sinkRegistry->addObjectSink(name, handler);
+    protocol()->writeLink(name);
 }
 
 void ObjectLinkSession::removeObjectSink(std::string name)
@@ -98,9 +100,14 @@ ObjectLinkSinkRegistry *ObjectLinkSession::sinkRegistry() const
     return m_sinkRegistry;
 }
 
-void ObjectLinkSession::invoke(std::string name, json args)
+void ObjectLinkSession::handleMessage(std::string message)
 {
-    protocol()->writeInvoke(name, args);
+    protocol()->handleMessage(message);
+}
+
+void ObjectLinkSession::invoke(std::string name, json args, InvokeReplyFunc func)
+{
+    protocol()->writeInvoke(name, args, func);
 }
 
 void ObjectLinkSession::setProperty(std::string name, json value)
@@ -110,12 +117,15 @@ void ObjectLinkSession::setProperty(std::string name, json value)
 
 void ObjectLinkSession::handleLink(std::string name)
 {
+    spdlog::info("handleLink name: {}", name);
     m_sourceRegistry->linkSource(name, this);
     IObjectLinkSource* s = objectSource(name);
     if(s) {
         s->linked(name, this);
         json props = s->collectProperties();
         protocol()->writeInit(name, props);
+    } else {
+        spdlog::warn("no source to link: ", name);
     }
 }
 
@@ -130,6 +140,7 @@ void ObjectLinkSession::handleUnlink(std::string name)
 
 void ObjectLinkSession::handleInit(std::string name, json props)
 {
+    SPDLOG_TRACE("handle init {} props={}", name, props.dump());
     IObjectLinkSink *s = objectSink(name);
     if(s) {
         s->onInit(name, props);
@@ -163,7 +174,7 @@ void ObjectLinkSession::handleInvoke(int requestId, std::string name, json args)
 
 void ObjectLinkSession::handleInvokeReply(int requestId, std::string name, json value)
 {
-    std::cout << __func__ << "not implemented" << requestId << name << value;
+    SPDLOG_TRACE("not implemented: {} {} {}", requestId, name, value.dump());
 }
 
 void ObjectLinkSession::handleSignal(std::string name, json args)
@@ -176,7 +187,7 @@ void ObjectLinkSession::handleSignal(std::string name, json args)
 
 void ObjectLinkSession::handleError(int msgType, int requestId, std::string error)
 {
-    std::cout << __func__ << "not implemented" << msgType << requestId << error;
+    SPDLOG_TRACE("not implemented: {} {} {}", msgType, requestId, error);
 }
 
 void ObjectLinkSession::notifyPropertyChange(std::string name, json value)
@@ -197,9 +208,4 @@ void ObjectLinkSession::notifySignal(std::string name, json args)
 
 
 } } // Apigear::ObjectLink
-
-
-
-
-
 

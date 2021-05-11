@@ -49,10 +49,11 @@ public:
     void writeInit(std::string name, json props);
     void writeSetProperty(std::string name, json value);
     void writePropertyChange(std::string name, json value);
-    void writeInvoke(std::string name, json args);
+    void writeInvoke(std::string name, json args, InvokeReplyFunc func);
     void writeInvokeReply(int requestId, std::string name, json value);
     void writeSignal(std::string name, json args);
-    void writeError(int msgType, int requestId, std::string name);
+    void writeError(MessageType msgType, int requestId, std::string name);
+    void handleInvokeReply(int requestId, std::string name, json value);
 
 private:
     IProtocolListener *m_listener;
@@ -60,6 +61,7 @@ private:
     MessageFormat m_format;
     ILogger *m_log;
     int m_nextId;
+    std::map<int,InvokeReplyFunc> m_invokesPending;
 };
 
 } } // ApiGear::ObjectLink

@@ -26,8 +26,24 @@
 #include <string>
 #include <map>
 #include <list>
+#include "spdlog/spdlog.h"
 
 namespace ApiGear { namespace ObjectLink {
+
+std::string Name::resourceFromName(std::string name)
+{
+    return name.substr(0, name.find("/"));
+}
+
+std::string Name::pathFromName(std::string name)
+{
+    return name.substr(name.find("/")+1);
+}
+
+bool Name::hasPath(std::string name)
+{
+    return name.find("/") != -1;
+}
 
 std::string toString(MessageType type) {
     static std::map<MessageType, std::string> typeNames = {
@@ -39,7 +55,9 @@ std::string toString(MessageType type) {
         { MessageType::INVOKE, "invole" },
         { MessageType::INVOKE_REPLY, "invoke_reply" },
         { MessageType::SIGNAL, "signal" },
-        { MessageType::ERROR, "error" },
+        { MessageType::ERROR, "error"
+
+        },
     };
     auto result = typeNames.find(type);
     if (result == typeNames.end()) {
@@ -48,6 +66,28 @@ std::string toString(MessageType type) {
 
     return result->second;
 }
+
+IMessageWriter::~IMessageWriter() {}
+IMessageHandler::~IMessageHandler() {}
+ILogger::~ILogger() {}
+
+
+LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
+    : m_handler(handler)
+{
+}
+
+void LoopbackWriter::writeMessage(std::string message) {
+    if(!m_handler) {
+        spdlog::warn("error: LoopBackWriter no handler yet set. skip");
+        return;
+    }
+    SPDLOG_TRACE("handle message {}", message);
+    m_handler->handleMessage(message);
+}
+
+void LoopbackWriter::setHandler(IMessageHandler *handler) { m_handler = handler; }
+
 
 
 } } // ApiGear::ObjectLink

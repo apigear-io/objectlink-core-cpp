@@ -31,12 +31,20 @@
 
 #include "nlohmann/json.hpp"
 
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 
 namespace ApiGear { namespace ObjectLink {
 
 using json = nlohmann::json;
 
 typedef unsigned long long Id;
+
+class Name {
+public:
+    static std::string resourceFromName(std::string name);
+    static std::string pathFromName(std::string name);
+    static bool hasPath(std::string name);
+};
 
 enum class MessageType : int
 {
@@ -65,7 +73,7 @@ enum class MessageFormat : int
 class IMessageWriter
 {
 public:
-    virtual ~IMessageWriter() {}
+    virtual ~IMessageWriter();
     virtual void writeMessage(std::string message) = 0;
 };
 
@@ -73,19 +81,38 @@ public:
 class IMessageHandler
 {
 public:
-    virtual ~IMessageHandler() {}
+    virtual ~IMessageHandler();
     virtual void handleMessage(std::string message) = 0;
 };
 
 class ILogger
 {
 public:
-    virtual ~ILogger() {}
+    virtual ~ILogger();
     virtual void info(std::string message) = 0;
     virtual void debug(std::string message) = 0;
     virtual void warning(std::string message) = 0;
     virtual void error(std::string message) = 0;
 };
+
+
+class LoopbackWriter: public IMessageWriter {
+public:
+    LoopbackWriter(IMessageHandler* handler=nullptr);
+    void writeMessage(std::string message) override;
+    void setHandler(IMessageHandler *handler);
+private:
+    IMessageHandler *m_handler;
+};
+
+
+class InvokeReplyArg {
+public:
+    std::string name;
+    json value;
+};
+
+typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;
 
 
 } } // ApiGear::ObjectLink

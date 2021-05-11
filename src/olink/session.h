@@ -38,7 +38,12 @@ class ObjectLinkSinkRegistry;
 
 // main handler of protocol messages
 // created for each connection
-class ObjectLinkSession : public IProtocolListener, public IObjectLinkService, public IObjectLinkClient {
+class ObjectLinkSession
+        : public IProtocolListener
+        , public IObjectLinkService
+        , public IObjectLinkClient
+        , public IMessageHandler
+{
 public:
     ObjectLinkSession(IMessageWriter *writer, MessageFormat format, ILogger *log);
     virtual ~ObjectLinkSession() override;
@@ -50,10 +55,12 @@ public:
     void addObjectSink(std::string name, IObjectLinkSink* handler);
     void removeObjectSink(std::string name);
     IObjectLinkSink* objectSink(std::string name);
-
+    // IMessageHandler interface
+public:
+    void handleMessage(std::string message) override;
     // IObjectLinkClient interface
 public:
-    void invoke(std::string name, json args) override;
+    void invoke(std::string name, json args, InvokeReplyFunc func) override;
     void setProperty(std::string name, json value) override;
 
     // IProtocolListener interface
