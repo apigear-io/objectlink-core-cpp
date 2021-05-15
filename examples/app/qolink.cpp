@@ -22,105 +22,82 @@
 * SOFTWARE.
 */
 #include "qolink.h"
-#include "wamp/session.h"
-#include "wamp/stdoutlogger.h"
+#include "olink/client.h"
+#include "olink/core/stdoutlogger.h"
 
 using namespace ApiGear::ObjectLink;
 
-
-
-QObjectLink::QObjectLink(QObject *parent)
+QObjectLinkClient::QObjectLinkClient(const QString& name, QWebSocket *socket, QObject *parent)
     : QObject(parent)
-    , m_socket(new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
-    , m_session(new Session(this, this, new StdoutLogger(), MessageFormat::JSON))
+    , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
+    , m_client(name.toStdString())
 {
-    connect(m_socket, &QWebSocket::connected, this, &QObjectLink::onConnected);
-    connect(m_socket, &QWebSocket::disconnected, this, &QObjectLink::onDisconnected);
-    connect(m_socket, &QWebSocket::textMessageReceived, this, &QObjectLink::handleTextMessage);
+    m_client.onLog(m_logger.logFunc());
+    connect(m_socket, &QWebSocket::connected, this, &QObjectLinkClient::onConnected);
+    connect(m_socket, &QWebSocket::disconnected, this, &QObjectLinkClient::onDisconnected);
+    connect(m_socket, &QWebSocket::textMessageReceived, this, &QObjectLinkClient::handleTextMessage);
+    WriteMessageFunc func = [this](std::string msg) {
+        m_messages << msg;
+        processMessages();
+    };
+    m_client.onWrite(func);
 }
 
-QObjectLink::~QObjectLink()
+QObjectLinkClient::~QObjectLinkClient()
 {
-    delete m_session;
 }
 
-void QObjectLink::open(QUrl url)
+
+void QObjectLinkClient::connectToHost(QUrl url)
 {
     m_socket->open(QUrl(url));
 }
 
-void QObjectLink::onConnected()
+SinkRegistry &QObjectLinkClient::registry()
 {
-    qDebug() << "socket connected";
-    m_session->init("realm1");
+    return m_client.registry();
 }
 
-void QObjectLink::onDisconnected()
+Client &QObjectLinkClient::client()
+{
+    return m_client;
+}
+
+
+void QObjectLinkClient::onConnected()
+{
+    qDebug() << "socket connected";
+    processMessages();
+}
+
+void QObjectLinkClient::onDisconnected()
 {
     qDebug() << "socket disconnected";
 }
 
-void QObjectLink::handleTextMessage(const QString &message)
+void QObjectLinkClient::handleTextMessage(const QString &message)
 {
-    m_session->handleMessage(message.toStdString());
-}
-
-void QObjectLink::doCall()
-{
-    ResponseFunc func = [](ResponseArg response) { qDebug() << "response.args"; };
-    m_session->doCall("increment", {}, {{}}, func);
-}
-
-void QObjectLink::doRegister()
-{
-    ProcedureFunc func = [](ProcedureArg arg) { qDebug() << "response.args"; };
-    m_session->doRegister("increment", func);
-}
-
-void QObjectLink::doUnregister()
-{
-    m_session->doUnregister("increment");
-}
-
-void QObjectLink::doPublish()
-{
-    m_session->doPublish("shutdown", {5}, {{}});
-}
-
-void QObjectLink::doSubscribe()
-{
-    EventFunc func = [](EventArg arg) { qDebug() << "event.args"; };
-    m_session->doSubscribe("shutdown", func);
-}
-
-void QObjectLink::doUnSubscribe()
-{
-    m_session->doUnsubscribe("shutdown");
+    m_client.handleMessage(message.toStdString());
 }
 
 
-void QObjectLink::writeMessage(std::string message)
+void QObjectLinkClient::processMessages()
 {
-    qDebug() << "write message to socket" << QString::fromStdString(message);
-    // if we are using JSON we need to use txt message
-    // otherwise binary messages
-    //    m_socket->sendBinaryMessage(QByteArray::fromStdString(message));
-    m_socket->sendTextMessage(QString::fromStdString(message));
+    if (m_socket->state() == QAbstractSocket::ConnectedState) {
+        while(!m_messages.isEmpty()) {
+            // if we are using JSON we need to use txt message
+            // otherwise binary messages
+            //    m_socket->sendBinaryMessage(QByteArray::fromStdString(message));
+            const QString& msg = QString::fromStdString(m_messages.dequeue());
+            qDebug() << "write message to socket" << msg;
+            m_socket->sendTextMessage(msg);
+        }
+    }
+
 }
 
 
-void QObjectLink::onError(std::string error)
+const QString &QObjectLinkClient::name() const
 {
-    qDebug() << "onError"; //  << error;
-}
-
-void QObjectLink::onEvent(std::string topic, Arguments args, ArgumentsKw kwargs)
-{
-    qDebug() << "onEvent"; // << topic; // json(args).dump() << json(kwargs).dump();
-}
-
-
-void QObjectLink::onJoin()
-{
-    qDebug() << "on join";
+    return m_name;
 }

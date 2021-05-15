@@ -21,35 +21,18 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include <QtGui>
-#include <QtQml>
-#include "qolink.h"
-#include "calcsink.h"
+#include <QtCore>
+#include <qolinkserver.h>
+#include "calcsource.h"
 
 int main(int argc, char *argv[])
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
-    QGuiApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
 
+    QObjectLinkServer server("server1");
+    CalcSource source;
+    server.registry().addObjectSource("calc.Demo", &source);
 
-    QObjectLinkClient link("client1");
-    link.connectToHost(QUrl("ws://127.0.0.1:8182"));
-    link.registry().linkSinkToClient("demo.Calc", &link.client());
-
-    qmlRegisterType<CalcSink>("net.olink", 1, 0, "Calculator");
-
-    QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreated,
-        &app, [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
-                QCoreApplication::exit(-1);
-        },
-        Qt::QueuedConnection);
-    engine.load(url);
-
+    server.listen("localhost", 8182);
     return app.exec();
 }

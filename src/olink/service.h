@@ -24,47 +24,27 @@
 #pragma once
 
 #include "olink/core/types.h"
-#include "olink/core/protocol.h"
+#include "olink/core/messages.h"
 #include "olink/core/listeners.h"
+#include "sourceregistry.h"
+#include "sinkregistry.h"
 #include "sourcetypes.h"
 #include "sinktypes.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class ObjectLinkProtocol;
-class ObjectLinkSession;
-class ObjectLinkSourceRegistry;
-class ObjectLinkSinkRegistry;
 
-// main handler of protocol messages
-// created for each connection
-class ObjectLinkSession
-        : public IProtocolListener
-        , public IObjectLinkService
-        , public IObjectLinkClient
-        , public IMessageHandler
-{
+class Service: public IService, public IMessagesListener, public IMessageHandler {
 public:
-    ObjectLinkSession(IMessageWriter *writer, MessageFormat format, ILogger *log);
-    virtual ~ObjectLinkSession() override;
-    // source registry
-    void addObjectSource(std::string name, IObjectLinkSource* listener);
-    void removeObjectSource(std::string name);
-    IObjectLinkSource* objectSource(std::string name);
-    // sink registry
-    void addObjectSink(std::string name, IObjectLinkSink* handler);
-    void removeObjectSink(std::string name);
-    IObjectLinkSink* objectSink(std::string name);
-    // IMessageHandler interface
-public:
-    void handleMessage(std::string message) override;
-    // IObjectLinkClient interface
-public:
-    void invoke(std::string name, json args, InvokeReplyFunc func) override;
-    void setProperty(std::string name, json value) override;
+    Service(SourceRegistry *registry);
+    void onWrite(WriteMessageFunc func);
+    void emitWrite(json j) override;
+    void onLog(LogWriterFunc func);
+    void emitLog(LogLevel level, std::string msg);
+    void writePropertyChange(std::string name, json value);
 
-    // IProtocolListener interface
-private:
+    // IMessagesListener interface
+public:
     void handleLink(std::string name) override;
     void handleUnlink(std::string name) override;
     void handleInit(std::string name, json props) override;
@@ -74,19 +54,19 @@ private:
     void handleInvokeReply(int requestId, std::string name, json value) override;
     void handleSignal(std::string name, json args) override;
     void handleError(int msgType, int requestId, std::string error) override;
-    // IObjectLinkService
+    // IObjectLinkService interface
 public:
     void notifyPropertyChange(std::string name, json value) override;
     void notifySignal(std::string name, json args) override;
+    void handleMessage(std::string data) override;
 private:
-    ObjectLinkProtocol *protocol() const;
-    ObjectLinkSourceRegistry *sourceRegistry() const;
-    ObjectLinkSinkRegistry *sinkRegistry() const;
-private:
-    ObjectLinkSourceRegistry* m_sourceRegistry;
-    ObjectLinkSinkRegistry *m_sinkRegistry;
-    ObjectLinkProtocol *m_protocol;
-    ILogger *m_log;
+    SourceRegistry *m_registry;
+    ILogger* m_log;
+    MessageConverter m_converter;
+    Messages m_messages;
+    WriteMessageFunc m_writeFunc;
+    LogWriterFunc m_logFunc;
+
 };
 
 } } // Apigear::ObjectLink

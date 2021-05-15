@@ -1,16 +1,16 @@
 #pragma once
 
 #include "olink/sinktypes.h"
-#include "spdlog/spdlog.h"
+#include <iostream>
 
 using namespace ApiGear::ObjectLink;
 
 class CalcSink: public IObjectLinkSink {
 public:
-    CalcSink(IObjectLinkClient *m_client)
-        : m_client(m_client)
+    CalcSink()
+        : m_client(nullptr)
         , m_total(0)
-        , m_isReady(false)
+        , m_ready(false)
     {
     }
     virtual ~CalcSink() override {}
@@ -18,35 +18,39 @@ public:
         return m_total;
     }
     void setTotal(int value) {
-        m_client->setProperty("demo.Calc/total", value);
+        client()->setProperty("demo.Calc/total", value);
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            spdlog::info("invoke reply name:{} value:{}", arg.name, arg.value.dump());
+            std::cout << "invoke reply" << arg.name << arg.value.dump();
         };
-        m_client->invoke("demo.Calc/add", { a }, func);
+        client()->invoke("demo.Calc/add", { a }, func);
 
         return -1;
     }
     int sub(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            spdlog::info("invoke reply name:{} value:{}", arg.name, arg.value.dump());
+            std::cout << "invoke reply " << arg.name << arg.value.dump();
         };
-        m_client->invoke("demo.Calc/sub", { a }, func);
+        client()->invoke("demo.Calc/sub", { a }, func);
         return -1;
     }
+    IClient *client() const {
+        assert(m_client);
+        return m_client;
+    }
     bool isReady() const {
-        return m_isReady;
+        return m_ready;
     }
     // IClientObjectHandler interface
 public:
     void onSignal(std::string name, json args) override {
-        SPDLOG_TRACE(name, args.dump());
+        std::cout << "onSignal" << name  << args.dump() << std::endl;
         events.push_back({name, args});
 
     }
     void onPropertyChanged(std::string name, json value) override {
-        SPDLOG_TRACE(name, value.dump());
+        std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::pathFromName(name);
         if(path == "total") {
             int total = value.get<int>();
@@ -56,9 +60,10 @@ public:
         }
 
     }
-    void onInit(std::string name, json props) override {
-        SPDLOG_TRACE("on init {} {}", name, props.dump());
-        m_isReady = true;
+    void onInit(std::string name, json props, IClient *client) override {
+        std::cout << "onInit" << name << props.dump() << std::endl;
+        m_client = client;
+        m_ready = true;
         if(props.contains("total")) {
             int total = props["total"].get<int>();
             if(m_total != total) {
@@ -66,11 +71,15 @@ public:
             }
         }
     }
+    void onRelease() override {
+        m_ready = false;
+        m_client = nullptr;
+    }
 public:
     std::list<json> events;
 private:
-    IObjectLinkClient *m_client;
+    IClient *m_client;
     int m_total;
-    bool m_isReady;
+    bool m_ready;
 
 };

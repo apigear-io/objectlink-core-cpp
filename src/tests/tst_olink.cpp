@@ -6,14 +6,16 @@
 #include "olink/core/protocol.h"
 #include "olink/core/types.h"
 #include "olink/core/stdoutlogger.h"
-#include "olink/session.h"
+#include "olink/client.h"
+#include "olink/service.h"
+#include "olink/sourceregistry.h"
+#include "olink/sinkregistry.h"
 
 
 #include "nlohmann/json.hpp"
 
 #include <list>
 #include <string>
-#include "spdlog/spdlog.h"
 
 #include "sinkobject.hpp"
 #include "sourceobject.hpp"
@@ -21,33 +23,41 @@
 using json = nlohmann::json;
 using namespace ApiGear::ObjectLink;
 
+
 TEST_CASE("link")
 {
-    spdlog::set_level(spdlog::level::trace);
-    StdoutLogger log;
+    ConsoleLogger log;
     // setup service
-    LoopbackWriter serviceWriter;
-    ObjectLinkSession service(&serviceWriter, MessageFormat::JSON, &log);
+    SourceRegistry sourceRegistry("host1");
+    Service service(&sourceRegistry);
+    service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    LoopbackWriter clientWriter;
-    ObjectLinkSession client(&clientWriter, MessageFormat::JSON, &log);
-    CalcSink sink(&client);
+    Client client("client1");
+    client.onLog(log.logFunc());
+    CalcSink sink;
 
+    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
+        service.handleMessage(msg);
+    };
+    client.onWrite(clientWriteFunc);
 
-    clientWriter.setHandler(&service);
-    serviceWriter.setHandler(&client);
+    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
+        client.handleMessage(msg);
+    };
+    service.onWrite(serviceWriteFunc);
+
 
     // register source object
-    service.addObjectSource("demo.Calc", &source);
+    sourceRegistry.addObjectSource("demo.Calc", &source);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
         REQUIRE( sink.isReady() == false );
         REQUIRE( sink.total() == 0);
         // register sink object
-        client.addObjectSink("demo.Calc", &sink);
+        client.registry().addObjectSink("demo.Calc", &sink);
         // initalized sink with total=1
         REQUIRE( sink.isReady() == true );
         REQUIRE( sink.total() == 1);
@@ -56,25 +66,31 @@ TEST_CASE("link")
 
 TEST_CASE("setProperty")
 {
-    spdlog::set_level(spdlog::level::trace);
-    StdoutLogger log;
+    ConsoleLogger log;
     // setup service
-    LoopbackWriter serviceWriter;
-    ObjectLinkSession service(&serviceWriter, MessageFormat::JSON, &log);
+    SourceRegistry sourceRegistry("host1");
+    Service service(&sourceRegistry);
+    service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    LoopbackWriter clientWriter;
-    ObjectLinkSession client(&clientWriter, MessageFormat::JSON, &log);
-    CalcSink sink(&client);
+    Client client("client1");
+    client.onLog(log.logFunc());
+    CalcSink sink;
 
+    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
+        service.handleMessage(msg);
+    };
+    client.onWrite(clientWriteFunc);
 
-    clientWriter.setHandler(&service);
-    serviceWriter.setHandler(&client);
+    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
+        client.handleMessage(msg);
+    };
+    service.onWrite(serviceWriteFunc);
 
     // register source object
-    service.addObjectSource("demo.Calc", &source);
-    client.addObjectSink("demo.Calc", &sink);
+    sourceRegistry.addObjectSource("demo.Calc", &source);
+    client.registry().addObjectSink("demo.Calc", &sink);
 
     REQUIRE( sink.isReady() == true );
     SECTION("set property") {
@@ -88,26 +104,31 @@ TEST_CASE("setProperty")
 
 TEST_CASE("signal")
 {
-    spdlog::set_level(spdlog::level::trace);
-    StdoutLogger log;
+    ConsoleLogger log;
     // setup service
-    LoopbackWriter serviceWriter;
-    ObjectLinkSession service(&serviceWriter, MessageFormat::JSON, &log);
+    SourceRegistry sourceRegistry("host1");
+    Service service(&sourceRegistry);
+    service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    LoopbackWriter clientWriter;
-    ObjectLinkSession client(&clientWriter, MessageFormat::JSON, &log);
-    CalcSink sink(&client);
+    Client client("client1");
+    client.onLog(log.logFunc());
+    CalcSink sink;
 
+    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
+        service.handleMessage(msg);
+    };
+    client.onWrite(clientWriteFunc);
 
-    clientWriter.setHandler(&service);
-    serviceWriter.setHandler(&client);
+    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
+        client.handleMessage(msg);
+    };
+    service.onWrite(serviceWriteFunc);
 
     // register source object
-    service.addObjectSource("demo.Calc", &source);
-    client.addObjectSink("demo.Calc", &sink);
-
+    sourceRegistry.addObjectSource("demo.Calc", &source);
+    client.registry().addObjectSink("demo.Calc", &sink);
     REQUIRE( sink.isReady() == true );
 
     SECTION("signal") {
@@ -120,24 +141,31 @@ TEST_CASE("signal")
 
 TEST_CASE("invoke")
 {
-    spdlog::set_level(spdlog::level::trace);
-    StdoutLogger log;
-    // setup client
-    LoopbackWriter clientWriter;
-    ObjectLinkSession client(&clientWriter, MessageFormat::JSON, &log);
-    CalcSink sink(&client);
-
+    ConsoleLogger log;
     // setup service
-    LoopbackWriter serviceWriter;
-    ObjectLinkSession service(&serviceWriter, MessageFormat::JSON, &log);
+    SourceRegistry sourceRegistry("host1");
+    Service service(&sourceRegistry);
+    service.onLog(log.logFunc());
     CalcSource source;
 
-    clientWriter.setHandler(&service);
-    serviceWriter.setHandler(&client);
+    // setup client
+    Client client("client1");
+    client.onLog(log.logFunc());
+    CalcSink sink;
+
+    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
+        service.handleMessage(msg);
+    };
+    client.onWrite(clientWriteFunc);
+
+    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
+        client.handleMessage(msg);
+    };
+    service.onWrite(serviceWriteFunc);
 
     // register source object
-    service.addObjectSource("demo.Calc", &source);
-    client.addObjectSink("demo.Calc", &sink);
+    sourceRegistry.addObjectSource("demo.Calc", &source);
+    client.registry().addObjectSink("demo.Calc", &sink);
     REQUIRE( sink.isReady() == true );
 
     SECTION("invoke") {

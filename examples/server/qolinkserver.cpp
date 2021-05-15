@@ -21,42 +21,49 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include "stdoutlogger.h"
-#include <iostream>
+#include "qolinkserver.h"
 
-namespace ApiGear { namespace ObjectLink {
+#include "../app/qolink.h"
+#include "qobjectlinkconnection.h"
 
-ConsoleLogger::ConsoleLogger()
+using namespace ApiGear::ObjectLink;
+
+
+
+QObjectLinkServer::QObjectLinkServer(const QString& name, QObject *parent)
+    : QObject(parent)
+    , m_wss(new QWebSocketServer("olink", QWebSocketServer::NonSecureMode, this))
+    , m_registry(name.toStdString())
 {
-    m_func = [this](LogLevel level, std::string msg) {
-        log(level, msg);
-    };
 }
 
-void ConsoleLogger::log(LogLevel level, std::string msg)
+QObjectLinkServer::~QObjectLinkServer()
 {
-    switch(level) {
-    case LogLevel::Info:
-        std::cout << "[info   ] ";
-        break;
-    case LogLevel::Debug:
-        std::cout << "[debug  ] ";
-        break;
-    case LogLevel::Warning:
-        std::cout << "[warning] ";
-        break;
-    case LogLevel::Error:
-        std::cout << "[error  ] ";
-        break;
-    }
-    std::cout << msg << std::endl;
 }
 
-LogWriterFunc &ConsoleLogger::logFunc()
+void QObjectLinkServer::listen(const QString& host, int port)
 {
-    return m_func;
+    qDebug() << "wss.listen()";
+    m_wss->listen(QHostAddress(host), (quint16)port);
+    qDebug() << m_wss->serverAddress() << m_wss->serverPort();
+    connect(m_wss, &QWebSocketServer::newConnection, this, &QObjectLinkServer::onNewConnection);
+    connect(m_wss, &QWebSocketServer::closed, this, &QObjectLinkServer::onClosed);
 }
 
-} } // ApiGear::ObjectLink
+void QObjectLinkServer::onNewConnection()
+{
+    qDebug() << "wss.newConnection()";
+    QWebSocket *ws = m_wss->nextPendingConnection();
+    new QObjectLinkConnection(&m_registry, ws);
+}
 
+void QObjectLinkServer::onClosed()
+{
+    qDebug() << "wss.closed()";
+}
+
+SourceRegistry &QObjectLinkServer::registry()
+{
+    return m_registry;
+}
 

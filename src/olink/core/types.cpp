@@ -26,7 +26,8 @@
 #include <string>
 #include <map>
 #include <list>
-#include "spdlog/spdlog.h"
+#include "iostream"
+
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -42,7 +43,57 @@ std::string Name::pathFromName(std::string name)
 
 bool Name::hasPath(std::string name)
 {
-    return name.find("/") != -1;
+    return name.find("/") != std::string::npos;
+}
+
+std::string Name::createName(std::string resource, std::string path)
+{
+    return resource + "/" + path;
+}
+
+MessageConverter::MessageConverter(MessageFormat format)
+    : m_format(format)
+{
+}
+
+void MessageConverter::setMessageFormat(MessageFormat format)
+{
+    m_format = format;
+}
+
+json MessageConverter::fromString(std::string message)
+{
+    switch(m_format) {
+    case MessageFormat::JSON:
+        return json::parse(message);
+    case MessageFormat::BSON:
+        return json::from_bson(message);
+    case MessageFormat::MSGPACK:
+        return json::from_msgpack(message);
+    case MessageFormat::CBOR:
+        return json::from_cbor(message);
+    }
+
+    return json();
+}
+
+std::string MessageConverter::toString(json j)
+{
+    std::vector<uint8_t> v;
+    switch(m_format) {
+    case MessageFormat::JSON:
+        return j.dump();
+    case MessageFormat::BSON:
+        v = json::to_bson(j);
+        return std::string(v.begin(), v.end());
+    case MessageFormat::MSGPACK:
+        v = json::to_msgpack(j);
+        return std::string(v.begin(), v.end());
+    case MessageFormat::CBOR:
+        v = json::to_cbor(j);
+        return std::string(v.begin(), v.end());
+    }
+    return std::string();
 }
 
 std::string toString(MessageType type) {
@@ -56,7 +107,6 @@ std::string toString(MessageType type) {
         { MessageType::INVOKE_REPLY, "invoke_reply" },
         { MessageType::SIGNAL, "signal" },
         { MessageType::ERROR, "error"
-
         },
     };
     auto result = typeNames.find(type);
@@ -67,26 +117,30 @@ std::string toString(MessageType type) {
     return result->second;
 }
 
-IMessageWriter::~IMessageWriter() {}
 IMessageHandler::~IMessageHandler() {}
 ILogger::~ILogger() {}
 
 
 LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
     : m_handler(handler)
+    , m_converter(MessageFormat::JSON)
 {
+    m_writeFunc = [this](json j) {
+        std::string data = m_converter.toString(j);
+        if(m_handler) {
+            m_handler->handleMessage(data);
+        }
+    };
 }
 
-void LoopbackWriter::writeMessage(std::string message) {
-    if(!m_handler) {
-        spdlog::warn("error: LoopBackWriter no handler yet set. skip");
-        return;
-    }
-    SPDLOG_TRACE("handle message {}", message);
-    m_handler->handleMessage(message);
+void LoopbackWriter::writeMessage(json j) {
+    m_writeFunc(j);
 }
 
-void LoopbackWriter::setHandler(IMessageHandler *handler) { m_handler = handler; }
+WriteMessageFunc& LoopbackWriter::writeFunc() {
+    return m_writeFunc;
+}
+
 
 
 

@@ -44,6 +44,7 @@ public:
     static std::string resourceFromName(std::string name);
     static std::string pathFromName(std::string name);
     static bool hasPath(std::string name);
+    static std::string createName(std::string resource, std::string path);
 };
 
 enum class MessageType : int
@@ -62,7 +63,7 @@ enum class MessageType : int
 std::string toString(MessageType type);
 
 
-enum class MessageFormat : int
+enum MessageFormat
 {
     JSON = 1,
     BSON = 2,
@@ -70,11 +71,14 @@ enum class MessageFormat : int
     CBOR = 4,
 };
 
-class IMessageWriter
-{
+class MessageConverter {
 public:
-    virtual ~IMessageWriter();
-    virtual void writeMessage(std::string message) = 0;
+    MessageConverter(MessageFormat format);
+    void setMessageFormat(MessageFormat format);
+    json fromString(std::string message);
+    std::string toString(json j);
+private:
+    MessageFormat m_format;
 };
 
 
@@ -85,25 +89,36 @@ public:
     virtual void handleMessage(std::string message) = 0;
 };
 
+enum LogLevel {
+    Info,
+    Debug,
+    Warning,
+    Error
+};
+
 class ILogger
 {
 public:
     virtual ~ILogger();
-    virtual void info(std::string message) = 0;
-    virtual void debug(std::string message) = 0;
-    virtual void warning(std::string message) = 0;
-    virtual void error(std::string message) = 0;
+    virtual void log(LogLevel level, std::string message) = 0;
 };
 
+typedef std::function<void(LogLevel level, std::string msg)> LogWriterFunc;
 
-class LoopbackWriter: public IMessageWriter {
+typedef std::function<void(std::string msg)> WriteMessageFunc;
+
+
+class LoopbackWriter {
 public:
     LoopbackWriter(IMessageHandler* handler=nullptr);
-    void writeMessage(std::string message) override;
-    void setHandler(IMessageHandler *handler);
+    void writeMessage(json j);
+    WriteMessageFunc& writeFunc();
 private:
     IMessageHandler *m_handler;
+    MessageConverter m_converter;
+    WriteMessageFunc m_writeFunc;
 };
+
 
 
 class InvokeReplyArg {
@@ -113,6 +128,7 @@ public:
 };
 
 typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;
+
 
 
 } } // ApiGear::ObjectLink

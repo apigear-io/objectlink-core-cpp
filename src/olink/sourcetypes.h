@@ -5,15 +5,14 @@
 namespace ApiGear { namespace ObjectLink {
 
 
-class ObjectLinkSession;
-
 // member of service object
 // distribute signals/propetty changes
-class IObjectLinkService {
+class IService {
 public:
-    virtual ~IObjectLinkService();
+    virtual ~IService();
     virtual void notifyPropertyChange(std::string name, json value) = 0;
     virtual void notifySignal(std::string name, json args) = 0;
+    virtual void emitWrite(json j) = 0;
 
 };
 
@@ -25,17 +24,17 @@ public:
     virtual std::string getObjectName() = 0;
     virtual json invoke(std::string name, json args) = 0;
     virtual void setProperty(std::string name, json value) = 0;
-    virtual void linked(std::string name, IObjectLinkService* notifier) = 0;
+    virtual void linked(std::string name, IService* notifier) = 0;
     virtual void unlinked(std::string name) = 0;
     virtual json collectProperties() = 0;
 };
 
 // links an object to services
-class SourceToSessionLink {
+class SourceToServiceLink {
 public:
-    virtual ~SourceToSessionLink();
+    virtual ~SourceToServiceLink();
     IObjectLinkSource* source;
-    std::list<ObjectLinkSession*> sessions;
+    std::list<IService*> services;
 };
 
 

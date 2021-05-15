@@ -36,11 +36,11 @@ Window {
     }
 
 
-    Wamp {
-        id: wamp
+    Calculator {
+        id: calc
+        onIsReadyChanged: {
+            console.log("isReady=", isReady)
+        }
     }
 
-    Component.onCompleted: {
-        wamp.open("ws://127.0.0.1:8000")
-    }
 }

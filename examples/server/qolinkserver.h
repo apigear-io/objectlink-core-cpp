@@ -21,35 +21,28 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include <QtGui>
-#include <QtQml>
-#include "qolink.h"
-#include "calcsink.h"
+#pragma once
 
-int main(int argc, char *argv[])
+#include <QtCore>
+#include <QtWebSockets>
+#include "olink/core/types.h"
+#include "olink/service.h"
+
+#include "../app/qolink.h"
+
+using namespace ApiGear::ObjectLink;
+
+class QObjectLinkServer :public QObject
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
-    QGuiApplication app(argc, argv);
-
-
-    QObjectLinkClient link("client1");
-    link.connectToHost(QUrl("ws://127.0.0.1:8182"));
-    link.registry().linkSinkToClient("demo.Calc", &link.client());
-
-    qmlRegisterType<CalcSink>("net.olink", 1, 0, "Calculator");
-
-    QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
-    QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreated,
-        &app, [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
-                QCoreApplication::exit(-1);
-        },
-        Qt::QueuedConnection);
-    engine.load(url);
-
-    return app.exec();
-}
+    Q_OBJECT
+public:
+    explicit QObjectLinkServer(const QString &name, QObject *parent=nullptr);
+    virtual ~QObjectLinkServer() override;
+    void listen(const QString& host, int port);
+    void onNewConnection();
+    void onClosed();
+    SourceRegistry &registry();
+private:
+    QWebSocketServer* m_wss;
+    SourceRegistry m_registry;
+};

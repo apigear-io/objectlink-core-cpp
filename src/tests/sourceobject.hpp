@@ -2,7 +2,7 @@
 
 #include "olink/sourcetypes.h"
 #include "olink/core/messages.h"
-#include "spdlog/spdlog.h"
+#include <iostream>
 
 using namespace ApiGear::ObjectLink;
 
@@ -15,7 +15,7 @@ public:
     }
     virtual ~CalcSource() override {}
 
-    IObjectLinkService* service() const {
+    IService* service() const {
         assert(m_service);
         return m_service;
     }
@@ -52,7 +52,7 @@ public:
         return "demo.Calc";
     }
     json invoke(std::string name, json args) override {
-        SPDLOG_TRACE(name, args.dump());
+        std::cout << "invoke" << name << args.dump();
         std::string path = Name::pathFromName(name);
         if(path == "add") {
             int a = args[0].get<int>();
@@ -62,8 +62,8 @@ public:
         return json();
     }
     void setProperty(std::string name, json value) override {
+        std::cout << "setProperty" << name << value.dump();
         std::string path = Name::pathFromName(name);
-        SPDLOG_TRACE("name:{}, path:{}, value:{}", name, path, value.dump());
         if(path == "total") {
             int total = value.get<int>();
             if(m_total != total) {
@@ -72,13 +72,13 @@ public:
             }
         }
     }
-    void linked(std::string name, IObjectLinkService *service) override {
-        SPDLOG_TRACE("linked name:{} service:{:p}", name, (void*)service);
+    void linked(std::string name, IService *service) override {
+        std::cout << "linked" << name;
         m_service = service;
     }
     void unlinked(std::string name) override
     {
-        SPDLOG_TRACE(name);
+        std::cout << "unlinked" << name;
         m_service = nullptr;
     }
     json collectProperties() override
@@ -86,7 +86,7 @@ public:
         return {{ "total", m_total }};
     }
 private:
-    IObjectLinkService* m_service;
+    IService* m_service;
     int m_total;
     std::vector<json> m_events;
 };

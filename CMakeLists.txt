@@ -11,4 +11,5 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory (external)
 add_subdirectory (src)
-#add_subdirectory (examples/app)
+add_subdirectory (examples/app)
+add_subdirectory (examples/server)

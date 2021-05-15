@@ -3,7 +3,7 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-IObjectLinkService::~IObjectLinkService()
+IService::~IService()
 {
 
 }
@@ -13,7 +13,7 @@ IObjectLinkSource::~IObjectLinkSource()
 
 }
 
-SourceToSessionLink::~SourceToSessionLink()
+SourceToServiceLink::~SourceToServiceLink()
 {
 }
 

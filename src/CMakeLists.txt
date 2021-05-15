@@ -11,7 +11,8 @@ set(OLINK_SOURCES
     olink/sinkregistry.cpp
     olink/sourcetypes.cpp
     olink/sourceregistry.cpp
-    olink/session.cpp
+    olink/client.cpp
+    olink/service.cpp
 )
 
 SET(OLINK_HEADERS
@@ -24,14 +25,15 @@ SET(OLINK_HEADERS
     olink/sinkregistry.h
     olink/sourcetypes.h
     olink/sourceregistry.h
-    olink/session.h
+    olink/client.h
+    olink/service.h
 )
 
 
 add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
 
 target_include_directories (olink_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json)
 
 set(TEST_OLINK_SOURCES
     tests/tst_olink.cpp

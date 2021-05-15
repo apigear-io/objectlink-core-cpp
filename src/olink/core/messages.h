@@ -23,14 +23,16 @@
 */
 #pragma once
 
+#include "listeners.h"
 #include "types.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class Message
+
+class Messages
 {
 public:
-    Message();
+    Messages(IMessagesListener *listener);
     // lifecycle
     static json linkMessage(std::string name);
     static json unlinkMessage(std::string name);
@@ -45,6 +47,13 @@ public:
     static json signalMessage(std::string name, json args);
     // error
     static json errorMessage(MessageType msgType, int requestId, std::string error);
+    bool handleMessage(json msg);
+    std::string lastError();
+private:
+    IMessagesListener *listener() const;
+private:
+    IMessagesListener* m_listener;
+    std::string m_lastError;
 };
 
 } } // Apigear::ObjectLink

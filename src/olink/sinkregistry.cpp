@@ -23,30 +23,144 @@
 */
 
 #include "sinkregistry.h"
-#include "spdlog/spdlog.h"
+
+#include "iostream"
 
 namespace ApiGear { namespace ObjectLink {
 
-void ObjectLinkSinkRegistry::addObjectSink(std::string name, IObjectLinkSink *handler)
+SinkRegistry::SinkRegistry(std::string name)
+    : m_name(name)
 {
-    std::string resource = Name::resourceFromName(name);
-    m_sinks[resource] = handler;
+    SinkRegistryManager::get().setRegistry(name, this);
 }
 
-void ObjectLinkSinkRegistry::removeObjectSink(std::string name)
+SinkRegistry::~SinkRegistry()
 {
-    std::string resource = Name::resourceFromName(name);
-    m_sinks.erase(resource);
+    SinkRegistryManager::get().unsetRegistry(name());
 }
 
-IObjectLinkSink *ObjectLinkSinkRegistry::objectSink(std::string name)
+std::string SinkRegistry::name() const
 {
-    std::string resource = Name::resourceFromName(name);
-    spdlog::info("object sink name={}, resource={}", name, resource);
-    if(m_sinks.count(resource) == 0) {
-        spdlog::warn("sink not added: {}", name);
+    return m_name;
+}
+
+void SinkRegistry::unlinkClient(IClient *client)
+{
+    std::list<std::string> resources;
+    for(auto& it : m_links) {
+        if(it.second.client == client) {
+            it.second.client = nullptr;
+        }
     }
-    return m_sinks[resource];
 }
+
+IObjectLinkSink* SinkRegistry::linkSinkToClient(std::string name, IClient *client)
+{
+    std::string resource = Name::resourceFromName(name);
+    std::cout << "ObjectLinkSinkRegistry.linkClientToSink" << resource << ", " << name << std::endl;
+    if(m_links.count(resource) == 0) {
+        std::cout << "new link" << std::endl;
+        SinkToClientLink link;
+        link.sink = nullptr;
+        link.client = client;
+        m_links[resource] = link;
+    } else {
+        std::cout << "update link" << std::endl;
+        SinkToClientLink& link = m_links[resource];
+        link.client = client;
+        return link.sink;
+    }
+    return nullptr;
+}
+
+
+
+IClient* SinkRegistry::addObjectSink(std::string name, IObjectLinkSink *sink)
+{
+    std::string resource = Name::resourceFromName(name);
+    std::cout << "ObjectLinkSinkRegistry.addObjectSink " << resource << ", " << name << std::endl;
+    if(m_links.count(resource) == 0) {
+        std::cout << "new link" << std::endl;
+        SinkToClientLink link;
+        link.sink = sink;
+        link.client = nullptr;
+        m_links[resource] = link;
+    } else {
+        std::cout << "update link" << std::endl;
+        SinkToClientLink& link = m_links[resource];
+        link.sink = sink;
+        return link.client;
+    }
+    return nullptr;
+}
+
+void SinkRegistry::removeObjectSink(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    if(m_links.count(resource) == 0) {
+        const SinkToClientLink& link = m_links[resource];
+        if(link.sink) {
+            link.sink->onRelease();
+        }
+    }
+    m_links.erase(resource);
+}
+
+IObjectLinkSink *SinkRegistry::objectSink(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    std::cout << "object sink " << name << resource;
+    if(m_links.count(resource) == 0) {
+        std::cout << "sink not added: " +  name;
+        return nullptr;
+    }
+    return m_links[resource].sink;
+}
+
+IClient *SinkRegistry::objectClient(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    std::cout << "object sink " << name << resource;
+    if(m_links.count(resource) == 0) {
+        std::cout << "client not linked yet: " +  name;
+        return nullptr;
+    }
+    return m_links[resource].client;
+}
+
+void SinkRegistryManager::setRegistry(std::string name, SinkRegistry *registry)
+{
+    if(m_registries.count(name) == 0) {
+        m_registries[name] = registry;
+    } else {
+        std::cout << "error: " << "registry exits" << name;
+    }
+}
+
+void SinkRegistryManager::unsetRegistry(std::string name)
+{
+    if(m_registries.count(name) == 1) {
+        m_registries.erase(name);
+    } else {
+        std::cout << "error: " << "can not unset registry which does not exits" << name;
+
+    }
+}
+
+SinkRegistryManager &SinkRegistryManager::get()
+{
+    static SinkRegistryManager m;
+    return m;
+}
+
+SinkRegistry *SinkRegistryManager::registry(std::string name)
+{
+    if(m_registries.count(name) == 1) {
+        return m_registries[name];
+    }
+    return nullptr;
+}
+
+
 
 } } // Apigear::ObjectLink

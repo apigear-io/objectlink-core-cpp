@@ -38,12 +38,10 @@ namespace ApiGear { namespace ObjectLink {
 //        <- signal
 
 
-
-
-class IProtocolListener
+class IMessagesListener
 {
 public:
-    virtual ~IProtocolListener() {}
+    virtual ~IMessagesListener();
 
     virtual void handleLink(std::string name) = 0;
     virtual void handleUnlink(std::string name) = 0;
@@ -57,9 +55,9 @@ public:
 };
 
 
-class EmptyProtocolListener : public IProtocolListener {
+class EmptyMessagesListener : public IMessagesListener {
 public:
-    ~EmptyProtocolListener() {}
+    ~EmptyMessagesListener() {}
 public:
     void handleLink(std::string name) override;
     void handleUnlink(std::string name) override;

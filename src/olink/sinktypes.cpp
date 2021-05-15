@@ -7,6 +7,14 @@ IObjectLinkSink::~IObjectLinkSink()
 
 }
 
-IObjectLinkClient::~IObjectLinkClient() {}
+IClient::~IClient()
+{
+
+}
+
+
+SinkToClientLink::~SinkToClientLink()
+{
+}
 
 } } // Apigear::ObjectLink

@@ -34,35 +34,40 @@ namespace ApiGear { namespace ObjectLink {
 using json = nlohmann::json;
 
 
-class ObjectLinkProtocol : public IMessageHandler
-{
-public:
-    ObjectLinkProtocol(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log);
-    int nextId();
-    void handleMessage(std::string message) override;
-    void writeMessage(json j);
-    json fromString(std::string message);
-    std::string toString(json j);
-    IProtocolListener *listener() const;
-    void writeLink(std::string name);
-    void writeUnlink(std::string name);
-    void writeInit(std::string name, json props);
-    void writeSetProperty(std::string name, json value);
-    void writePropertyChange(std::string name, json value);
-    void writeInvoke(std::string name, json args, InvokeReplyFunc func);
-    void writeInvokeReply(int requestId, std::string name, json value);
-    void writeSignal(std::string name, json args);
-    void writeError(MessageType msgType, int requestId, std::string name);
-    void handleInvokeReply(int requestId, std::string name, json value);
+//class Connection : public IMessageHandler
+//{
+//public:
+//    Connection(IProtocolListener *listener, IMessageWriter *writer, MessageFormat format, ILogger *log);
+//    void setListener(IProtocolListener *listener);
+//    void setWriter(IMessageWriter *writer);
+//    void setMessageFormat(MessageFormat format);
+//    int nextId();
+//    void handleMessage(std::string message) override;
+//    void onWrite(WriteMessageFunc func);
+//    void writeMessage(json j);
+//    json fromString(std::string message);
+//    std::string toString(json j);
+//    IProtocolListener *listener() const;
+//    void writeLink(std::string name);
+//    void writeUnlink(std::string name);
+//    void writeInit(std::string name, json props);
+//    void writeSetProperty(std::string name, json value);
+//    void writePropertyChange(std::string name, json value);
+//    void writeInvoke(std::string name, json args, InvokeReplyFunc func);
+//    void writeInvokeReply(int requestId, std::string name, json value);
+//    void writeSignal(std::string name, json args);
+//    void writeError(MessageType msgType, int requestId, std::string name);
+//    void handleInvokeReply(int requestId, std::string name, json value);
 
-private:
-    IProtocolListener *m_listener;
-    IMessageWriter *m_writer;
-    MessageFormat m_format;
-    ILogger *m_log;
-    int m_nextId;
-    std::map<int,InvokeReplyFunc> m_invokesPending;
-};
+//private:
+//    IProtocolListener *m_listener;
+//    IMessageWriter *m_writer;
+//    MessageFormat m_format;
+//    ILogger *m_log;
+//    int m_nextId;
+//    std::map<int,InvokeReplyFunc> m_invokesPending;
+//    WriteMessageFunc m_writeFunc;
+//};
 
 } } // ApiGear::ObjectLink
 

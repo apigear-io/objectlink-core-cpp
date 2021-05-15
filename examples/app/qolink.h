@@ -25,38 +25,35 @@
 
 #include <QtCore>
 #include <QtWebSockets>
-#include "olink/types.h"
+#include "olink/core/types.h"
+#include "olink/sinktypes.h"
+#include "olink/client.h"
+#include "olink/core/stdoutlogger.h"
 
 using namespace ApiGear::ObjectLink;
 
-namespace ApiGear { namespace ObjectLink {
-class Session;
-} }
-
-class QObjectLink :public QObject, public IMessageWriter, public ISessionListener
+class QObjectLinkClient
+        : public QObject
 {
     Q_OBJECT
 public:
-    explicit QObjectLink(QObject *parent=nullptr);
-    virtual ~QObjectLink() override;
-    Q_INVOKABLE void open(QUrl url);
-    Q_INVOKABLE void doCall();
-    Q_INVOKABLE void doRegister();
-    Q_INVOKABLE void doUnregister();
-
-    Q_INVOKABLE void doPublish();
-    Q_INVOKABLE void doSubscribe();
-    Q_INVOKABLE void doUnSubscribe();
-
+    explicit QObjectLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
+    virtual ~QObjectLinkClient() override;
+    void connectToHost(QUrl url);
+    SinkRegistry& registry();
+    Client &client();
 public:
+
     void onConnected();
     void onDisconnected();
     void handleTextMessage(const QString& message);
-    void onError(std::string error) override;
-    void onEvent(std::string topic, Arguments args, ArgumentsKw kwargs) override;
-    void onJoin() override;
-    void writeMessage(std::string message) override;
+    void processMessages();
+    const QString &name() const;
+
 private:
     QWebSocket *m_socket;
-    Session *m_session;
+    Client m_client;
+    QQueue<std::string> m_messages;
+    QString m_name;
+    ConsoleLogger m_logger;
 };

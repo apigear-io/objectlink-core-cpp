@@ -31,33 +31,35 @@ using json = nlohmann::json;
 namespace ApiGear { namespace ObjectLink {
 
 
-Message::Message()
-{
 
+Messages::Messages(IMessagesListener *listener)
+    : m_listener(listener)
+{
+    assert(m_listener);
 }
 
-json Message::linkMessage(std::string name)
+json Messages::linkMessage(std::string name)
 {
     return json::array(
                 { MessageType::LINK, name }
                 );
 }
 
-json Message::unlinkMessage(std::string name)
+json Messages::unlinkMessage(std::string name)
 {
     return json::array(
                 { MessageType::UNLINK, name }
                 );
 }
 
-json Message::initMessage(std::string name, json props)
+json Messages::initMessage(std::string name, json props)
 {
     return json::array(
                 { MessageType::INIT, name, props }
                 );
 }
 
-json Message::setPropertyMessage(std::string name, json value)
+json Messages::setPropertyMessage(std::string name, json value)
 {
     return json::array(
                 { MessageType::SET_PROPERTY, name, value }
@@ -65,41 +67,118 @@ json Message::setPropertyMessage(std::string name, json value)
 
 }
 
-json Message::propertyChangeMessage(std::string name, json value)
+json Messages::propertyChangeMessage(std::string name, json value)
 {
     return json::array(
                 { MessageType::PROPERTY_CHANGE, name, value }
                 );
 }
 
-json Message::invokeMessage(int requestId, std::string name, json args)
+json Messages::invokeMessage(int requestId, std::string name, json args)
 {
     return json::array(
                 { MessageType::INVOKE, requestId, name, args }
                 );
 }
 
-json Message::invokeReplyMessage(int requestId, std::string name, json value)
+json Messages::invokeReplyMessage(int requestId, std::string name, json value)
 {
     return json::array(
                 { MessageType::INVOKE_REPLY, requestId, name, value }
                 );
 }
 
-json Message::signalMessage(std::string name, json args)
+json Messages::signalMessage(std::string name, json args)
 {
     return json::array(
                 { MessageType::SIGNAL, name, args }
                 );
 }
 
-json Message::errorMessage(MessageType msgType, int requestId, std::string error)
+json Messages::errorMessage(MessageType msgType, int requestId, std::string error)
 {
     return json::array(
                 { MessageType::ERROR, msgType, requestId, error }
                 );
 }
 
+IMessagesListener *Messages::listener() const
+{
+    assert(m_listener);
+    return m_listener;
+}
+
+bool Messages::handleMessage(json msg) {
+
+    m_lastError = "";
+    if(!msg.is_array()) {
+        m_lastError = "message must be array";
+        return false;
+    }
+    const int msgType = msg[0].get<int>();
+    switch(msgType) {
+    case int(MessageType::LINK): {
+        const std::string name = msg[1].get<std::string>();
+        listener()->handleLink(name);
+        break;
+    }
+    case int(MessageType::INIT): {
+        const std::string name = msg[1].get<std::string>();
+        const json props = msg[2].get<json>();
+        if(listener()) listener()->handleInit(name, props);
+        break;
+    }
+    case int(MessageType::UNLINK): {
+        const std::string name = msg[1].get<std::string>();
+        if(listener()) listener()->handleUnlink(name);
+        break;
+    }
+    case int(MessageType::SET_PROPERTY): {
+        const std::string name = msg[1].get<std::string>();
+        const json value = msg[2].get<json>();
+        if(listener()) listener()->handleSetProperty(name, value);
+        break;
+    }
+    case int(MessageType::PROPERTY_CHANGE): {
+        const std::string name = msg[1].get<std::string>();
+        const json value = msg[2].get<json>();
+        if(listener()) listener()->handlePropertyChange(name, value);
+        break;
+    }
+    case int(MessageType::INVOKE): {
+        const int id = msg[1].get<int>();
+        const std::string name = msg[2].get<std::string>();
+        const json args = msg[3].get<json>();
+        if(listener()) listener()->handleInvoke(id, name, args);
+        break;
+    }
+    case int(MessageType::INVOKE_REPLY): {
+        const int id = msg[1].get<int>();
+        const std::string name = msg[2].get<std::string>();
+        const json value = msg[3].get<json>();
+        listener()->handleInvokeReply(id, name, value);
+        break;
+    }
+    case int(MessageType::SIGNAL): {
+        const std::string name = msg[1].get<std::string>();
+        const json args = msg[2].get<json>();
+        listener()->handleSignal(name, args);
+        break;
+    }
+    case int(MessageType::ERROR): {
+        const int msgType = msg[1].get<int>();
+        const int requestId = msg[2].get<int>();
+        const std::string error = msg[3].get<std::string>();
+        listener()->handleError(msgType, requestId, error);
+        break;
+    }
+    default:
+        m_lastError = "message not supported: " + msg.dump();
+        return false;
+    }
+    return true;
+}
 
 } } // ApiGear::ObjectLink
+
 

@@ -9,21 +9,28 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick WebSockets REQUIRED)
 set(APP_SOURCES
         main.cpp
         qolink.cpp
+        calcsink.cpp
         qml.qrc
+)
+
+
+set(APP_HEADERS
+        qolink.h
+        calcsink.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(app
-        ${APP_SOURCES}
+        ${APP_SOURCES} ${APP_HEADERS}
     )
 else()
     if(ANDROID)
         add_library(app SHARED
-            ${APP_SOURCES}
+            ${APP_SOURCES} ${APP_HEADERS}
         )
     else()
         add_executable(app
-          ${APP_SOURCES}
+          ${APP_SOURCES} ${APP_HEADERS}
         )
     endif()
 endif()
@@ -34,4 +41,4 @@ target_link_libraries(app
   PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::WebSockets)
 
 
-target_link_libraries(app PRIVATE nlohmann_json::nlohmann_json olink_core)
+target_link_libraries(app PRIVATE olink_core)

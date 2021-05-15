@@ -29,14 +29,33 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-class ObjectLinkSinkRegistry
+class IClient;
+
+class SinkRegistry
 {
 public:
-    void addObjectSink(std::string name, IObjectLinkSink* handler);
+    SinkRegistry(std::string name);
+    virtual ~SinkRegistry();
+    std::string name() const;
+    void unlinkClient(IClient *client);
+    IObjectLinkSink* linkSinkToClient(std::string name, IClient* client);
+    IClient* addObjectSink(std::string name, IObjectLinkSink* handler);
     void removeObjectSink(std::string name);
     IObjectLinkSink* objectSink(std::string name);
+    IClient* objectClient(std::string name);
 private:
-    std::map<std::string, IObjectLinkSink*> m_sinks;
+    std::map<std::string, SinkToClientLink> m_links;
+    std::string m_name;
+};
+
+class SinkRegistryManager {
+public:
+    void setRegistry(std::string name, SinkRegistry* registry);
+    void unsetRegistry(std::string name);
+    static SinkRegistryManager& get();
+    SinkRegistry* registry(std::string name="");
+private:
+    std::map<std::string, SinkRegistry*> m_registries;
 };
 
 } } // Apigear::ObjectLink
