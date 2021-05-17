@@ -33,14 +33,16 @@ namespace ApiGear { namespace ObjectLink {
 class IClient {
 public:
     virtual ~IClient();
-    virtual void invoke(std::string name, json args, InvokeReplyFunc func) = 0;
+    virtual void link(std::string name) = 0;
+    virtual void unlink(std::string name) = 0;
+    virtual void invoke(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) = 0;
     virtual void setProperty(std::string name, json value) = 0;
 };
 
-class IObjectLinkSink
+class ISink
 {
 public:
-    virtual ~IObjectLinkSink();
+    virtual ~ISink();
     virtual void onSignal(std::string name, json args) = 0;
     virtual void onPropertyChanged(std::string name, json value) = 0;
     virtual void onInit(std::string name, json props, IClient* client) = 0;
@@ -52,7 +54,7 @@ public:
 class SinkToClientLink {
 public:
     virtual ~SinkToClientLink();
-    IObjectLinkSink* sink;
+    ISink* sink;
     IClient* client;
 };
 

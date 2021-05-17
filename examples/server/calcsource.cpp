@@ -12,33 +12,35 @@ CalcSource::CalcSource()
 
 CalcSource::~CalcSource() {}
 
-IService *CalcSource::service() const {
+IServiceIO *CalcSource::service() const {
     assert(m_service);
     return m_service;
 }
 
 int CalcSource::add(int value) {
+    std::cout << "add: " + std::to_string(value) << std::endl;
     m_total += value;
     service()->notifyPropertyChange("demo.Calc/total", m_total);
-    m_events.push_back({ "demo.Calc/add", value });
-    m_events.push_back({ "demo.Calc/total", m_total });
     if(m_total >= 10) {
         service()->notifySignal("demo.Calc/hitUpper", { 10 });
-        m_events.push_back({ "demo.Calc/hitUpper", 10 });
     }
     return m_total;
 }
 
 int CalcSource::sub(int value) {
+    std::cout << "sub: " + std::to_string(value) << std::endl;
     m_total -= value;
     service()->notifyPropertyChange("demo.Calc/total", m_total);
-    m_events.push_back({ "demo.Calc/sub", value });
-    m_events.push_back({ "demo.Calc/total", m_total });
     if(m_total <= 0) {
         service()->notifySignal("demo.Calc/hitLower", { 0 });
-        m_events.push_back({ "demo.Calc/hitLower", 0 });
     }
     return m_total;
+}
+
+void CalcSource::clear()
+{
+    m_total = 0;
+    service()->notifyPropertyChange("demo.Calc/total", m_total);
 }
 
 void CalcSource::notifyShutdown(int timeout) {
@@ -56,6 +58,13 @@ json CalcSource::invoke(std::string name, json args) {
         int a = args[0].get<int>();
         int result = add(a);
         return result;
+    } else if(path == "sub") {
+        int a = args[0].get<int>();
+        int result = sub(a);
+        return result;
+    } else if(path == "clear") {
+        clear();
+        return json{};
     }
     return json();
 }
@@ -72,7 +81,7 @@ void CalcSource::setProperty(std::string name, json value) {
     }
 }
 
-void CalcSource::linked(std::string name, IService *service) {
+void CalcSource::linked(std::string name, IServiceIO *service) {
     std::cout << "linked" << name;
     m_service = service;
 }

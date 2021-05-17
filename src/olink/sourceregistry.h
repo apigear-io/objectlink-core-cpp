@@ -5,7 +5,7 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-class Service;
+class ServiceIO;
 
 // registry for remote objects
 class SourceRegistry {
@@ -13,17 +13,20 @@ private:
 public:
     SourceRegistry(std::string name);
     virtual ~SourceRegistry();
-    void addObjectSource(std::string name, IObjectLinkSource* listener);
+    void onLog(LogWriterFunc func);
+    void emitLog(LogLevel level, std::string msg);
+    void addObjectSource(std::string name, ISource* listener);
     void removeObjectSource(std::string name);
-    IObjectLinkSource* objectSource(std::string name);
+    ISource* objectSource(std::string name);
     std::string name() const;
 
-    void linkSource(std::string name, IService* service);
-    void unlinkSource(std::string name, IService *service);
-    std::list<IService*> objectServices(std::string name);
+    void linkSource(std::string name, IServiceIO* service);
+    void unlinkSource(std::string name, IServiceIO *service);
+    std::list<IServiceIO*> objectServices(std::string name);
 private:
     std::map<std::string, SourceToServiceLink> m_sources;
     std::string m_name;
+    LogWriterFunc m_logFunc;
 };
 
 class SourceRegistryManager {

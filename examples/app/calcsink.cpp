@@ -1,7 +1,7 @@
 #include "calcsink.h"
 
 #include "olink/core/types.h"
-#include "qolink.h"
+#include "qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -9,29 +9,32 @@ CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
     , m_client(nullptr)
 {
-    SinkRegistry* registry = SinkRegistryManager::get().registry();
+    SinkRegistry* registry = SinkRegistryManager::get().registry("client1");
     if(registry) {
-        m_client = registry->addObjectSink("demo.Calc", this);
+        registry->addObjectSink("demo.Calc", this);
     }
-    Q_ASSERT(m_client);
+//    Q_ASSERT(m_client);
+//    m_client->link("demo.Calc");
 }
 
 void CalcSink::add(int a)
 {
-
-    m_total += a;
-    emit totalChanged(m_total);
+    assert(m_client);
+    InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
+    m_client->invoke("demo.Calc/add", { a }, func);
 }
 
 void CalcSink::sub(int a)
 {
-    m_total -= a;
-    emit totalChanged(m_total);
+    assert(m_client);
+    InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
+    m_client->invoke("demo.Calc/sub", { a }, func);
 }
 
 void CalcSink::clear()
 {
-
+    assert(m_client);
+    m_client->invoke("demo.Calc/clear");
 }
 
 int CalcSink::total() const {
@@ -40,10 +43,8 @@ int CalcSink::total() const {
 
 void CalcSink::setTotal(int total)
 {
-    if(m_total != total) {
-        m_total = total;
-        emit totalChanged(total);
-    }
+    assert(m_client);
+    m_client->setProperty("demo.Calc/total", total);
 }
 
 bool CalcSink::isReady() const {
@@ -86,6 +87,7 @@ void CalcSink::onInit(std::string name, json props, IClient *client)
             emit totalChanged(total);
         }
     }
+    assert(m_client);
 }
 
 void CalcSink::onRelease()

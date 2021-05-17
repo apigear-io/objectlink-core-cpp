@@ -1,12 +1,12 @@
 #pragma once
 
 #include "olink/sourcetypes.h"
-#include "olink/core/messages.h"
+#include "olink/core/protocol.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
 
-class CalcSource: public IObjectLinkSource {
+class CalcSource: public ISource {
 public:
     CalcSource()
         : m_service(nullptr)
@@ -15,7 +15,7 @@ public:
     }
     virtual ~CalcSource() override {}
 
-    IService* service() const {
+    IServiceIO* service() const {
         assert(m_service);
         return m_service;
     }
@@ -72,7 +72,7 @@ public:
             }
         }
     }
-    void linked(std::string name, IService *service) override {
+    void linked(std::string name, IServiceIO *service) override {
         std::cout << "linked" << name;
         m_service = service;
     }
@@ -86,7 +86,7 @@ public:
         return {{ "total", m_total }};
     }
 private:
-    IService* m_service;
+    IServiceIO* m_service;
     int m_total;
     std::vector<json> m_events;
 };

@@ -5,7 +5,7 @@
 
 using namespace ApiGear::ObjectLink;
 
-class CalcSink: public IObjectLinkSink {
+class CalcSink: public ISink {
 public:
     CalcSink()
         : m_client(nullptr)

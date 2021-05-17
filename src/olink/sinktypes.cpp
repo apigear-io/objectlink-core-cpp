@@ -2,7 +2,7 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-IObjectLinkSink::~IObjectLinkSink()
+ISink::~ISink()
 {
 
 }

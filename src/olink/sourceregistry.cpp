@@ -6,6 +6,7 @@ namespace ApiGear { namespace ObjectLink {
 
 SourceRegistry::SourceRegistry(std::string name)
     : m_name(name)
+    , m_logFunc(nullptr)
 {
     SourceRegistryManager::get().setRegistry(name, this);
 }
@@ -15,7 +16,21 @@ SourceRegistry::~SourceRegistry()
     SourceRegistryManager::get().unsetRegistry(name());
 }
 
-void SourceRegistry::addObjectSource(std::string name, IObjectLinkSource *source) {
+void SourceRegistry::onLog(LogWriterFunc func)
+{
+    m_logFunc = func;
+}
+
+void SourceRegistry::emitLog(LogLevel level, std::string msg)
+{
+    if(m_logFunc) {
+        m_logFunc(level, msg);
+    }
+
+}
+
+void SourceRegistry::addObjectSource(std::string name, ISource *source) {
+    emitLog(LogLevel::Info, "addObjectSource: " + name);
     std::string resource = Name::resourceFromName(name);
     SourceToServiceLink link;
     link.source = source;
@@ -28,7 +43,7 @@ void SourceRegistry::removeObjectSource(std::string name) {
 }
 
 
-IObjectLinkSource *SourceRegistry::objectSource(std::string name)
+ISource *SourceRegistry::objectSource(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
     if(m_sources.count(resource) != 0) {
@@ -42,7 +57,7 @@ std::string SourceRegistry::name() const
     return m_name;
 }
 
-void SourceRegistry::linkSource(std::string name, IService *service)
+void SourceRegistry::linkSource(std::string name, IServiceIO *service)
 {
     std::cout << "link source" << name;
     std::string resource = Name::resourceFromName(name);
@@ -53,7 +68,7 @@ void SourceRegistry::linkSource(std::string name, IService *service)
     }
 }
 
-void SourceRegistry::unlinkSource(std::string name, IService *service)
+void SourceRegistry::unlinkSource(std::string name, IServiceIO *service)
 {
     std::string resource = Name::resourceFromName(name);
     if(m_sources.count(resource) != 0) {
@@ -61,7 +76,7 @@ void SourceRegistry::unlinkSource(std::string name, IService *service)
     }
 }
 
-std::list<IService *> SourceRegistry::objectServices(std::string name)
+std::list<IServiceIO *> SourceRegistry::objectServices(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
     if(m_sources.count(resource) != 0) {

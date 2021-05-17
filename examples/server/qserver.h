@@ -26,34 +26,25 @@
 #include <QtCore>
 #include <QtWebSockets>
 #include "olink/core/types.h"
-#include "olink/sinktypes.h"
-#include "olink/client.h"
-#include "olink/core/stdoutlogger.h"
+#include "olink/service.h"
+#include "olink/core/consolelogger.h"
+
+#include "../app/qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
-class QObjectLinkClient
-        : public QObject
+class QObjectLinkServer :public QObject
 {
     Q_OBJECT
 public:
-    explicit QObjectLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
-    virtual ~QObjectLinkClient() override;
-    void connectToHost(QUrl url);
-    SinkRegistry& registry();
-    Client &client();
-public:
-
-    void onConnected();
-    void onDisconnected();
-    void handleTextMessage(const QString& message);
-    void processMessages();
-    const QString &name() const;
-
+    explicit QObjectLinkServer(const QString &name, QObject *parent=nullptr);
+    virtual ~QObjectLinkServer() override;
+    void listen(const QString& host, int port);
+    void onNewConnection();
+    void onClosed();
+    SourceRegistry &registry();
 private:
-    QWebSocket *m_socket;
-    Client m_client;
-    QQueue<std::string> m_messages;
-    QString m_name;
-    ConsoleLogger m_logger;
+    QWebSocketServer* m_wss;
+    SourceRegistry m_registry;
+    ConsoleLogger m_log;
 };

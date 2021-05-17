@@ -3,6 +3,7 @@
 #include <QtCore>
 #include <QtWebSockets>
 
+#include "olink/core/consolelogger.h"
 #include "olink/sourcetypes.h"
 #include "olink/service.h"
 
@@ -17,6 +18,7 @@ public:
     void handleMessage(const QString& msg);
 private:
     QWebSocket* m_socket;
-    Service m_service;
+    ServiceIO m_service;
+    ConsoleLogger m_log;
 
 };

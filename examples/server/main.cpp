@@ -22,7 +22,7 @@
 * SOFTWARE.
 */
 #include <QtCore>
-#include <qolinkserver.h>
+#include <qserver.h>
 #include "calcsource.h"
 
 int main(int argc, char *argv[])
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     QObjectLinkServer server("server1");
     CalcSource source;
-    server.registry().addObjectSource("calc.Demo", &source);
+    server.registry().addObjectSource("demo.Calc", &source);
 
     server.listen("localhost", 8182);
     return app.exec();

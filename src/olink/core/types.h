@@ -41,6 +41,7 @@ typedef unsigned long long Id;
 
 class Name {
 public:
+    // calc.Demo/add
     static std::string resourceFromName(std::string name);
     static std::string pathFromName(std::string name);
     static bool hasPath(std::string name);

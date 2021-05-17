@@ -2,10 +2,9 @@
 #define CATCH_CONFIG_MAIN
 #include <catch2/catch.hpp>
 
-#include "olink/core/messages.h"
 #include "olink/core/protocol.h"
 #include "olink/core/types.h"
-#include "olink/core/stdoutlogger.h"
+#include "olink/core/consolelogger.h"
 #include "olink/client.h"
 #include "olink/service.h"
 #include "olink/sourceregistry.h"
@@ -29,12 +28,12 @@ TEST_CASE("link")
     ConsoleLogger log;
     // setup service
     SourceRegistry sourceRegistry("host1");
-    Service service(&sourceRegistry);
+    ServiceIO service(&sourceRegistry);
     service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    Client client("client1");
+    ClientIO client("client1");
     client.onLog(log.logFunc());
     CalcSink sink;
 
@@ -51,13 +50,15 @@ TEST_CASE("link")
 
     // register source object
     sourceRegistry.addObjectSource("demo.Calc", &source);
+    // register sink object
+    client.registry().addObjectSink("demo.Calc", &sink);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
         REQUIRE( sink.isReady() == false );
         REQUIRE( sink.total() == 0);
-        // register sink object
-        client.registry().addObjectSink("demo.Calc", &sink);
+        // link sink with source
+        client.link("demo.Calc");
         // initalized sink with total=1
         REQUIRE( sink.isReady() == true );
         REQUIRE( sink.total() == 1);
@@ -69,12 +70,12 @@ TEST_CASE("setProperty")
     ConsoleLogger log;
     // setup service
     SourceRegistry sourceRegistry("host1");
-    Service service(&sourceRegistry);
+    ServiceIO service(&sourceRegistry);
     service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    Client client("client1");
+    ClientIO client("client1");
     client.onLog(log.logFunc());
     CalcSink sink;
 
@@ -91,6 +92,7 @@ TEST_CASE("setProperty")
     // register source object
     sourceRegistry.addObjectSource("demo.Calc", &source);
     client.registry().addObjectSink("demo.Calc", &sink);
+    client.link("demo.Calc");
 
     REQUIRE( sink.isReady() == true );
     SECTION("set property") {
@@ -107,12 +109,12 @@ TEST_CASE("signal")
     ConsoleLogger log;
     // setup service
     SourceRegistry sourceRegistry("host1");
-    Service service(&sourceRegistry);
+    ServiceIO service(&sourceRegistry);
     service.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    Client client("client1");
+    ClientIO client("client1");
     client.onLog(log.logFunc());
     CalcSink sink;
 
@@ -129,6 +131,7 @@ TEST_CASE("signal")
     // register source object
     sourceRegistry.addObjectSource("demo.Calc", &source);
     client.registry().addObjectSink("demo.Calc", &sink);
+    client.link("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
     SECTION("signal") {
@@ -144,28 +147,29 @@ TEST_CASE("invoke")
     ConsoleLogger log;
     // setup service
     SourceRegistry sourceRegistry("host1");
-    Service service(&sourceRegistry);
-    service.onLog(log.logFunc());
+    ServiceIO serviceIO(&sourceRegistry);
+    serviceIO.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    Client client("client1");
-    client.onLog(log.logFunc());
+    ClientIO clientIO("client1");
+    clientIO.onLog(log.logFunc());
     CalcSink sink;
 
-    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
-        service.handleMessage(msg);
+    WriteMessageFunc clientWriteFunc = [&serviceIO](std::string msg) {
+        serviceIO.handleMessage(msg);
     };
-    client.onWrite(clientWriteFunc);
+    clientIO.onWrite(clientWriteFunc);
 
-    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
-        client.handleMessage(msg);
+    WriteMessageFunc serviceWriteFunc = [&clientIO](std::string msg) {
+        clientIO.handleMessage(msg);
     };
-    service.onWrite(serviceWriteFunc);
+    serviceIO.onWrite(serviceWriteFunc);
 
     // register source object
     sourceRegistry.addObjectSource("demo.Calc", &source);
-    client.registry().addObjectSink("demo.Calc", &sink);
+    clientIO.registry().addObjectSink("demo.Calc", &sink);
+    clientIO.link("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
     SECTION("invoke") {

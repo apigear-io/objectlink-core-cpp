@@ -3,12 +3,12 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-IService::~IService()
+IServiceIO::~IServiceIO()
 {
 
 }
 
-IObjectLinkSource::~IObjectLinkSource()
+ISource::~ISource()
 {
 
 }

@@ -21,7 +21,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include "stdoutlogger.h"
+#include "consolelogger.h"
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {

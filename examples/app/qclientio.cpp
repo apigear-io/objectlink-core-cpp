@@ -21,9 +21,8 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include "qolink.h"
+#include "qclientio.h"
 #include "olink/client.h"
-#include "olink/core/stdoutlogger.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -37,7 +36,7 @@ QObjectLinkClient::QObjectLinkClient(const QString& name, QWebSocket *socket, QO
     connect(m_socket, &QWebSocket::disconnected, this, &QObjectLinkClient::onDisconnected);
     connect(m_socket, &QWebSocket::textMessageReceived, this, &QObjectLinkClient::handleTextMessage);
     WriteMessageFunc func = [this](std::string msg) {
-        m_messages << msg;
+        m_protocol << msg;
         processMessages();
     };
     m_client.onWrite(func);
@@ -58,9 +57,14 @@ SinkRegistry &QObjectLinkClient::registry()
     return m_client.registry();
 }
 
-Client &QObjectLinkClient::client()
+ClientIO &QObjectLinkClient::client()
 {
     return m_client;
+}
+
+void QObjectLinkClient::link(const QString &name)
+{
+    m_client.link(name.toStdString());
 }
 
 
@@ -84,11 +88,11 @@ void QObjectLinkClient::handleTextMessage(const QString &message)
 void QObjectLinkClient::processMessages()
 {
     if (m_socket->state() == QAbstractSocket::ConnectedState) {
-        while(!m_messages.isEmpty()) {
+        while(!m_protocol.isEmpty()) {
             // if we are using JSON we need to use txt message
             // otherwise binary messages
             //    m_socket->sendBinaryMessage(QByteArray::fromStdString(message));
-            const QString& msg = QString::fromStdString(m_messages.dequeue());
+            const QString& msg = QString::fromStdString(m_protocol.dequeue());
             qDebug() << "write message to socket" << msg;
             m_socket->sendTextMessage(msg);
         }

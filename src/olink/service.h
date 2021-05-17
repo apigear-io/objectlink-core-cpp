@@ -24,7 +24,7 @@
 #pragma once
 
 #include "olink/core/types.h"
-#include "olink/core/messages.h"
+#include "olink/core/protocol.h"
 #include "olink/core/listeners.h"
 #include "sourceregistry.h"
 #include "sinkregistry.h"
@@ -34,9 +34,9 @@
 namespace ApiGear { namespace ObjectLink {
 
 
-class Service: public IService, public IMessagesListener, public IMessageHandler {
+class ServiceIO: public IServiceIO, public EmptyMessagesListener, public IMessageHandler {
 public:
-    Service(SourceRegistry *registry);
+    ServiceIO(SourceRegistry *registry);
     void onWrite(WriteMessageFunc func);
     void emitWrite(json j) override;
     void onLog(LogWriterFunc func);
@@ -47,13 +47,8 @@ public:
 public:
     void handleLink(std::string name) override;
     void handleUnlink(std::string name) override;
-    void handleInit(std::string name, json props) override;
     void handleSetProperty(std::string name, json value) override;
-    void handlePropertyChange(std::string name, json value) override;
     void handleInvoke(int requestId, std::string name, json args) override;
-    void handleInvokeReply(int requestId, std::string name, json value) override;
-    void handleSignal(std::string name, json args) override;
-    void handleError(int msgType, int requestId, std::string error) override;
     // IObjectLinkService interface
 public:
     void notifyPropertyChange(std::string name, json value) override;
@@ -61,9 +56,9 @@ public:
     void handleMessage(std::string data) override;
 private:
     SourceRegistry *m_registry;
-    ILogger* m_log;
+    Protocol m_protocol;
     MessageConverter m_converter;
-    Messages m_messages;
+    ILogger* m_log;
     WriteMessageFunc m_writeFunc;
     LogWriterFunc m_logFunc;
 

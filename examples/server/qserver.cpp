@@ -21,28 +21,50 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#pragma once
+#include "qserver.h"
 
-#include <QtCore>
-#include <QtWebSockets>
-#include "olink/core/types.h"
-#include "olink/service.h"
-
-#include "../app/qolink.h"
+#include "../app/qclientio.h"
+#include "qserviceio.h"
 
 using namespace ApiGear::ObjectLink;
 
-class QObjectLinkServer :public QObject
+
+
+QObjectLinkServer::QObjectLinkServer(const QString& name, QObject *parent)
+    : QObject(parent)
+    , m_wss(new QWebSocketServer("olink", QWebSocketServer::NonSecureMode, this))
+    , m_registry(name.toStdString())
 {
-    Q_OBJECT
-public:
-    explicit QObjectLinkServer(const QString &name, QObject *parent=nullptr);
-    virtual ~QObjectLinkServer() override;
-    void listen(const QString& host, int port);
-    void onNewConnection();
-    void onClosed();
-    SourceRegistry &registry();
-private:
-    QWebSocketServer* m_wss;
-    SourceRegistry m_registry;
-};
+    m_registry.onLog(m_log.logFunc());
+}
+
+QObjectLinkServer::~QObjectLinkServer()
+{
+}
+
+void QObjectLinkServer::listen(const QString& host, int port)
+{
+    qDebug() << "wss.listen()";
+    m_wss->listen(QHostAddress(host), quint16(port));
+    qDebug() << m_wss->serverAddress() << m_wss->serverPort();
+    connect(m_wss, &QWebSocketServer::newConnection, this, &QObjectLinkServer::onNewConnection);
+    connect(m_wss, &QWebSocketServer::closed, this, &QObjectLinkServer::onClosed);
+}
+
+void QObjectLinkServer::onNewConnection()
+{
+    qDebug() << "wss.newConnection()";
+    QWebSocket *ws = m_wss->nextPendingConnection();
+    new QObjectLinkConnection(&m_registry, ws);
+}
+
+void QObjectLinkServer::onClosed()
+{
+    qDebug() << "wss.closed()";
+}
+
+SourceRegistry &QObjectLinkServer::registry()
+{
+    return m_registry;
+}
+

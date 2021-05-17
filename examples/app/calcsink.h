@@ -11,7 +11,7 @@ using namespace ApiGear::ObjectLink;
 
 class CalcSink
     : public QObject
-    , public IObjectLinkSink
+    , public ISink
 {
     Q_OBJECT
     Q_PROPERTY(int total READ total WRITE setTotal NOTIFY totalChanged)
@@ -23,7 +23,7 @@ public:
     Q_INVOKABLE void clear();
 
     int total() const;
-    void setTotal(int a);
+    void setTotal(int total);
     bool isReady() const;
 signals:
     void totalChanged(int a);

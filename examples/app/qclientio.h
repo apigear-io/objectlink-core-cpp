@@ -21,49 +21,40 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-#include "qolinkserver.h"
+#pragma once
 
-#include "../app/qolink.h"
-#include "qobjectlinkconnection.h"
+#include <QtCore>
+#include <QtWebSockets>
+#include "olink/core/types.h"
+#include "olink/sinktypes.h"
+#include "olink/client.h"
+#include "olink/core/consolelogger.h"
 
 using namespace ApiGear::ObjectLink;
 
-
-
-QObjectLinkServer::QObjectLinkServer(const QString& name, QObject *parent)
-    : QObject(parent)
-    , m_wss(new QWebSocketServer("olink", QWebSocketServer::NonSecureMode, this))
-    , m_registry(name.toStdString())
+class QObjectLinkClient
+        : public QObject
 {
-}
+    Q_OBJECT
+public:
+    explicit QObjectLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
+    virtual ~QObjectLinkClient() override;
+    void connectToHost(QUrl url);
+    SinkRegistry& registry();
+    ClientIO &client();
+    void link(const QString &name);
+public:
 
-QObjectLinkServer::~QObjectLinkServer()
-{
-}
+    void onConnected();
+    void onDisconnected();
+    void handleTextMessage(const QString& message);
+    void processMessages();
+    const QString &name() const;
 
-void QObjectLinkServer::listen(const QString& host, int port)
-{
-    qDebug() << "wss.listen()";
-    m_wss->listen(QHostAddress(host), (quint16)port);
-    qDebug() << m_wss->serverAddress() << m_wss->serverPort();
-    connect(m_wss, &QWebSocketServer::newConnection, this, &QObjectLinkServer::onNewConnection);
-    connect(m_wss, &QWebSocketServer::closed, this, &QObjectLinkServer::onClosed);
-}
-
-void QObjectLinkServer::onNewConnection()
-{
-    qDebug() << "wss.newConnection()";
-    QWebSocket *ws = m_wss->nextPendingConnection();
-    new QObjectLinkConnection(&m_registry, ws);
-}
-
-void QObjectLinkServer::onClosed()
-{
-    qDebug() << "wss.closed()";
-}
-
-SourceRegistry &QObjectLinkServer::registry()
-{
-    return m_registry;
-}
-
+private:
+    QWebSocket *m_socket;
+    ClientIO m_client;
+    QQueue<std::string> m_protocol;
+    QString m_name;
+    ConsoleLogger m_logger;
+};

@@ -23,28 +23,28 @@
 */
 
 #include "service.h"
-#include "core/messages.h"
+#include "core/protocol.h"
 #include "core/types.h"
 
 namespace ApiGear { namespace ObjectLink {
 
 
-Service::Service(SourceRegistry *registry)
+ServiceIO::ServiceIO(SourceRegistry *registry)
     : m_registry(registry)
+    , m_protocol(this)
+    , m_converter(MessageFormat::JSON)
     , m_writeFunc(nullptr)
     , m_logFunc(nullptr)
-    , m_converter(MessageFormat::JSON)
-    , m_messages(this)
 {
 
 }
 
-void Service::onWrite(WriteMessageFunc func)
+void ServiceIO::onWrite(WriteMessageFunc func)
 {
     m_writeFunc = func;
 }
 
-void Service::emitWrite(json j)
+void ServiceIO::emitWrite(json j)
 {
     std::string data = m_converter.toString(j);
     if(m_writeFunc) {
@@ -53,108 +53,81 @@ void Service::emitWrite(json j)
 }
 
 
-void Service::onLog(LogWriterFunc func) {
+void ServiceIO::onLog(LogWriterFunc func) {
     m_logFunc = func;
 }
 
-void Service::emitLog(LogLevel level, std::string msg) {
+void ServiceIO::emitLog(LogLevel level, std::string msg) {
     if(m_logFunc) {
         m_logFunc(level, msg);
     }
 }
-void Service::handleMessage(std::string data)
+void ServiceIO::handleMessage(std::string data)
 {
     const json& j = m_converter.fromString(data);
-    m_messages.handleMessage(j);
+    m_protocol.handleMessage(j);
 }
 
-void Service::handleLink(std::string name)
+void ServiceIO::handleLink(std::string name)
 {
     if(!m_registry) { return; }
     emitLog(LogLevel::Info, "handleLink name: " + name);
     m_registry->linkSource(name, this);
-    IObjectLinkSource* s = m_registry->objectSource(name);
+    ISource* s = m_registry->objectSource(name);
     if(s) {
         s->linked(name, this);
         json props = s->collectProperties();
-        emitWrite(Messages::initMessage(name, props));
+        emitWrite(Protocol::initMessage(name, props));
     } else {
         emitLog(LogLevel::Warning, "no source to link: " + name);
     }
 
 }
 
-void Service::handleUnlink(std::string name)
+void ServiceIO::handleUnlink(std::string name)
 {
     if(!m_registry) { return; }
-    IObjectLinkSource* s = m_registry->objectSource(name);
+    ISource* s = m_registry->objectSource(name);
     if(s) {
         s->unlinked(name);
     }
     m_registry->unlinkSource(name, this);
 }
 
-void Service::handleInit(std::string name, json props)
-{
-    emitLog(LogLevel::Info, "handleInit not implemented");
-}
-
-
-void Service::handleSetProperty(std::string name, json value)
+void ServiceIO::handleSetProperty(std::string name, json value)
 {
     if(!m_registry) { return; }
-    IObjectLinkSource* s = m_registry->objectSource(name);
+    ISource* s = m_registry->objectSource(name);
     if(s) {
         s->setProperty(name, value);
     }
 }
 
-void Service::handlePropertyChange(std::string name, json value)
-{
-    emitLog(LogLevel::Info, "handleInit not implemented");
-}
-
-void Service::handleInvoke(int requestId, std::string name, json args)
+void ServiceIO::handleInvoke(int requestId, std::string name, json args)
 {
     if(!m_registry) { return; }
-    IObjectLinkSource* s = m_registry->objectSource(name);
+    ISource* s = m_registry->objectSource(name);
     if(s) {
         json value = s->invoke(name, args);
-        emitWrite(Messages::invokeReplyMessage(requestId, name, value));
+        emitWrite(Protocol::invokeReplyMessage(requestId, name, value));
     }
 }
 
-void Service::handleInvokeReply(int requestId, std::string name, json value)
-{
-    emitLog(LogLevel::Info, "handleInvokeReply not implemented");
-}
-
-void Service::handleSignal(std::string name, json args)
-{
-    emitLog(LogLevel::Info, "handleSignal not implemented");
-}
-
-void Service::handleError(int msgType, int requestId, std::string error)
-{
-    emitLog(LogLevel::Info, "handleError not implemented");
-}
-
-
-void Service::notifyPropertyChange(std::string name, json value)
+void ServiceIO::notifyPropertyChange(std::string name, json value)
 {
     if(!m_registry) { return; }
-    std::list<IService *> services = m_registry->objectServices(name);
-    for(IService* service: services) {
-        service->emitWrite(Messages::propertyChangeMessage(name, value));
+    std::list<IServiceIO *> services = m_registry->objectServices(name);
+    for(IServiceIO* service: services) {
+        service->emitWrite(Protocol::propertyChangeMessage(name, value));
     }
 }
 
-void Service::notifySignal(std::string name, json args)
+void ServiceIO::notifySignal(std::string name, json args)
 {
     if(!m_registry) { return; }
-    std::list<IService *> services = m_registry->objectServices(name);
-    for(IService* service: services) {
-        service->emitWrite(Messages::signalMessage(name, args));
+    std::list<IServiceIO *> services = m_registry->objectServices(name);
+    for(IServiceIO* service: services) {
+        service->emitWrite(Protocol::signalMessage(name, args));
     }
 }
 

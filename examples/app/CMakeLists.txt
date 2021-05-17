@@ -8,14 +8,14 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick WebSockets REQUIRED)
 
 set(APP_SOURCES
         main.cpp
-        qolink.cpp
+        qclientio.cpp
         calcsink.cpp
         qml.qrc
 )
 
 
 set(APP_HEADERS
-        qolink.h
+        qclientio.h
         calcsink.h
 )
 

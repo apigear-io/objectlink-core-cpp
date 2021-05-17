@@ -23,7 +23,7 @@
 */
 #include <QtGui>
 #include <QtQml>
-#include "qolink.h"
+#include "qclientio.h"
 #include "calcsink.h"
 
 int main(int argc, char *argv[])
@@ -33,10 +33,10 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
-
     QObjectLinkClient link("client1");
     link.connectToHost(QUrl("ws://127.0.0.1:8182"));
     link.registry().linkSinkToClient("demo.Calc", &link.client());
+    link.link("demo.Calc");
 
     qmlRegisterType<CalcSink>("net.olink", 1, 0, "Calculator");
 

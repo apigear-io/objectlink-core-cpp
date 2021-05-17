@@ -3,10 +3,9 @@ set(SPDLOG_TRACE_ON true)
 
 set(OLINK_SOURCES
     olink/core/types.cpp
-    olink/core/messages.cpp
     olink/core/protocol.cpp
     olink/core/listeners.cpp
-    olink/core/stdoutlogger.cpp
+    olink/core/consolelogger.cpp
     olink/sinktypes.cpp
     olink/sinkregistry.cpp
     olink/sourcetypes.cpp
@@ -17,10 +16,9 @@ set(OLINK_SOURCES
 
 SET(OLINK_HEADERS
     olink/core/types.h
-    olink/core/messages.h
     olink/core/protocol.h
     olink/core/listeners.h
-    olink/core/stdoutlogger.h
+    olink/core/consolelogger.h
     olink/sinktypes.h
     olink/sinkregistry.h
     olink/sourcetypes.h

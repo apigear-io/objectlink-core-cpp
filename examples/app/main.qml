@@ -11,27 +11,26 @@ Window {
     visible: true
     title: qsTr("Hello World")
     GridLayout {
-        columns: 6
+        columns: 4
         anchors.fill: parent
         Button {
-            text: "Call"
-            onClicked: wamp.doCall()
+            text: calc.total
+            Layout.fillWidth: true
         }
         Button {
-            text:  "Subscribe"
-            onClicked: wamp.doSubscribe()
+            text: "Add"
+            onClicked: calc.add(2);
+            Layout.fillWidth: true
         }
         Button {
-            text:  "Register"
-            onClicked: wamp.doRegister()
+            text:  "Sub"
+            onClicked: calc.sub(1);
+            Layout.fillWidth: true
         }
         Button {
-            text:  "Unsubscribe"
-            onClicked: wamp.doSubscribe()
-        }
-        Button {
-            text:  "Publish"
-            onClicked: wamp.doPublish()
+            text:  "Clear"
+            onClicked: calc.clear()
+            Layout.fillWidth: true
         }
     }
 
@@ -40,6 +39,9 @@ Window {
         id: calc
         onIsReadyChanged: {
             console.log("isReady=", isReady)
+        }
+        onTotalChanged: {
+            console.log("total changed", total)
         }
     }
 

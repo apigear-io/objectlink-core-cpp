@@ -36,16 +36,19 @@ class SinkRegistry
 public:
     SinkRegistry(std::string name);
     virtual ~SinkRegistry();
+    void onLog(LogWriterFunc func);
+    void emitLog(LogLevel level, std::string msg);
     std::string name() const;
     void unlinkClient(IClient *client);
-    IObjectLinkSink* linkSinkToClient(std::string name, IClient* client);
-    IClient* addObjectSink(std::string name, IObjectLinkSink* handler);
+    ISink* linkSinkToClient(std::string name, IClient* client);
+    IClient* addObjectSink(std::string name, ISink* handler);
     void removeObjectSink(std::string name);
-    IObjectLinkSink* objectSink(std::string name);
+    ISink* objectSink(std::string name);
     IClient* objectClient(std::string name);
 private:
     std::map<std::string, SinkToClientLink> m_links;
     std::string m_name;
+    LogWriterFunc m_logFunc;
 };
 
 class SinkRegistryManager {
@@ -53,7 +56,7 @@ public:
     void setRegistry(std::string name, SinkRegistry* registry);
     void unsetRegistry(std::string name);
     static SinkRegistryManager& get();
-    SinkRegistry* registry(std::string name="");
+    SinkRegistry* registry(std::string name);
 private:
     std::map<std::string, SinkRegistry*> m_registries;
 };
