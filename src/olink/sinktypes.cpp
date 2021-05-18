@@ -2,18 +2,18 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-ISink::~ISink()
+IObjectSink::~IObjectSink()
 {
 
 }
 
-IClient::~IClient()
+ISinkLink::~ISinkLink()
 {
 
 }
 
 
-SinkToClientLink::~SinkToClientLink()
+SinkToLinkEntry::~SinkToLinkEntry()
 {
 }
 

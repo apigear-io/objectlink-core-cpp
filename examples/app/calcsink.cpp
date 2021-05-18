@@ -1,17 +1,18 @@
 #include "calcsink.h"
 
 #include "olink/core/types.h"
+#include "olink/sinknode.h"
 #include "qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
 CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
-    , m_client(nullptr)
+    , m_link(nullptr)
 {
-    SinkRegistry* registry = SinkRegistryManager::get().registry("client1");
-    if(registry) {
-        registry->addObjectSink("demo.Calc", this);
+    SinkNode* node = SinkNodeManager::get().getSinkNode("client1");
+    if(node) {
+        node->addObjectSink("demo.Calc", this);
     }
 //    Q_ASSERT(m_client);
 //    m_client->link("demo.Calc");
@@ -19,22 +20,22 @@ CalcSink::CalcSink(QObject *parent)
 
 void CalcSink::add(int a)
 {
-    assert(m_client);
+    assert(m_link);
     InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_client->invoke("demo.Calc/add", { a }, func);
+    m_link->invoke("demo.Calc/add", { a }, func);
 }
 
 void CalcSink::sub(int a)
 {
-    assert(m_client);
+    assert(m_link);
     InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_client->invoke("demo.Calc/sub", { a }, func);
+    m_link->invoke("demo.Calc/sub", { a }, func);
 }
 
 void CalcSink::clear()
 {
-    assert(m_client);
-    m_client->invoke("demo.Calc/clear");
+    assert(m_link);
+    m_link->invoke("demo.Calc/clear");
 }
 
 int CalcSink::total() const {
@@ -43,8 +44,8 @@ int CalcSink::total() const {
 
 void CalcSink::setTotal(int total)
 {
-    assert(m_client);
-    m_client->setProperty("demo.Calc/total", total);
+    assert(m_link);
+    m_link->setProperty("demo.Calc/total", total);
 }
 
 bool CalcSink::isReady() const {
@@ -75,11 +76,11 @@ void CalcSink::onPropertyChanged(std::string name, json value)
         }
     }
 }
-void CalcSink::onInit(std::string name, json props, IClient *client)
+void CalcSink::onInit(std::string name, json props, ISinkLink *link)
 {
     m_name = name;
     m_ready = true;
-    m_client = client;
+    m_link = link;
     if(props.contains("total")) {
         int total = props["total"].get<int>();
         if(m_total != total) {
@@ -87,11 +88,11 @@ void CalcSink::onInit(std::string name, json props, IClient *client)
             emit totalChanged(total);
         }
     }
-    assert(m_client);
+    assert(m_link);
 }
 
 void CalcSink::onRelease()
 {
     m_ready = false;
-    m_client = nullptr;
+    m_link = nullptr;
 }

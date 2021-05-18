@@ -7,11 +7,13 @@ set(OLINK_SOURCES
     olink/core/listeners.cpp
     olink/core/consolelogger.cpp
     olink/sinktypes.cpp
-    olink/sinkregistry.cpp
+    olink/sinknode.cpp
     olink/sourcetypes.cpp
-    olink/sourceregistry.cpp
-    olink/client.cpp
-    olink/service.cpp
+    olink/sourcenode.cpp
+    olink/sinklink.cpp
+    olink/sourcelink.cpp
+    olink/objectnode.cpp
+    olink/objectlink.cpp
 )
 
 SET(OLINK_HEADERS
@@ -20,11 +22,13 @@ SET(OLINK_HEADERS
     olink/core/listeners.h
     olink/core/consolelogger.h
     olink/sinktypes.h
-    olink/sinkregistry.h
+    olink/sinknode.h
     olink/sourcetypes.h
-    olink/sourceregistry.h
-    olink/client.h
-    olink/service.h
+    olink/sourcenode.h
+    olink/sinklink.h
+    olink/sourcelink.h
+    olink/objectnode.h
+    olink/objectlink.h
 )
 
 

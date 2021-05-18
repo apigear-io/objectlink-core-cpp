@@ -104,7 +104,7 @@ public:
     virtual void log(LogLevel level, std::string message) = 0;
 };
 
-typedef std::function<void(LogLevel level, std::string msg)> LogWriterFunc;
+typedef std::function<void(LogLevel level, std::string msg)> WriteLogFunc;
 
 typedef std::function<void(std::string msg)> WriteMessageFunc;
 

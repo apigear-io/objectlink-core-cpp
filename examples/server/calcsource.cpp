@@ -5,24 +5,24 @@ using namespace ApiGear::ObjectLink;
 
 
 CalcSource::CalcSource()
-    : m_service(nullptr)
+    : m_link(nullptr)
     , m_total(1)
 {
 }
 
 CalcSource::~CalcSource() {}
 
-IServiceIO *CalcSource::service() const {
-    assert(m_service);
-    return m_service;
+ISourceLink *CalcSource::link() const {
+    assert(m_link);
+    return m_link;
 }
 
 int CalcSource::add(int value) {
     std::cout << "add: " + std::to_string(value) << std::endl;
     m_total += value;
-    service()->notifyPropertyChange("demo.Calc/total", m_total);
+    link()->notifyPropertyChange("demo.Calc/total", m_total);
     if(m_total >= 10) {
-        service()->notifySignal("demo.Calc/hitUpper", { 10 });
+        link()->notifySignal("demo.Calc/hitUpper", { 10 });
     }
     return m_total;
 }
@@ -30,9 +30,9 @@ int CalcSource::add(int value) {
 int CalcSource::sub(int value) {
     std::cout << "sub: " + std::to_string(value) << std::endl;
     m_total -= value;
-    service()->notifyPropertyChange("demo.Calc/total", m_total);
+    link()->notifyPropertyChange("demo.Calc/total", m_total);
     if(m_total <= 0) {
-        service()->notifySignal("demo.Calc/hitLower", { 0 });
+        link()->notifySignal("demo.Calc/hitLower", { 0 });
     }
     return m_total;
 }
@@ -40,11 +40,11 @@ int CalcSource::sub(int value) {
 void CalcSource::clear()
 {
     m_total = 0;
-    service()->notifyPropertyChange("demo.Calc/total", m_total);
+    link()->notifyPropertyChange("demo.Calc/total", m_total);
 }
 
 void CalcSource::notifyShutdown(int timeout) {
-    service()->notifySignal("demo.Calc/timeout", { timeout });
+    link()->notifySignal("demo.Calc/timeout", { timeout });
 }
 
 std::string CalcSource::getObjectName() {
@@ -76,20 +76,20 @@ void CalcSource::setProperty(std::string name, json value) {
         int total = value.get<int>();
         if(m_total != total) {
             m_total = total;
-            service()->notifyPropertyChange(name, total);
+            link()->notifyPropertyChange(name, total);
         }
     }
 }
 
-void CalcSource::linked(std::string name, IServiceIO *service) {
+void CalcSource::linked(std::string name, ISourceLink *link) {
     std::cout << "linked" << name;
-    m_service = service;
+    m_link = link;
 }
 
 void CalcSource::unlinked(std::string name)
 {
     std::cout << "unlinked" << name;
-    m_service = nullptr;
+    m_link = nullptr;
 }
 
 json CalcSource::collectProperties()

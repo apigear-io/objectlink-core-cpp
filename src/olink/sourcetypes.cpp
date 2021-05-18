@@ -1,19 +1,20 @@
 #include "sourcetypes.h"
 
 
+
 namespace ApiGear { namespace ObjectLink {
 
-IServiceIO::~IServiceIO()
+ISourceLink::~ISourceLink()
 {
 
 }
 
-ISource::~ISource()
+IObjectSource::~IObjectSource()
 {
 
 }
 
-SourceToServiceLink::~SourceToServiceLink()
+SourceToLinksEntry::~SourceToLinksEntry()
 {
 }
 

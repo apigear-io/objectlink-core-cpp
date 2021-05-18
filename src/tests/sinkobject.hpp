@@ -5,7 +5,7 @@
 
 using namespace ApiGear::ObjectLink;
 
-class CalcSink: public ISink {
+class CalcSink: public IObjectSink {
 public:
     CalcSink()
         : m_client(nullptr)
@@ -35,7 +35,7 @@ public:
         client()->invoke("demo.Calc/sub", { a }, func);
         return -1;
     }
-    IClient *client() const {
+    ISinkLink *client() const {
         assert(m_client);
         return m_client;
     }
@@ -60,7 +60,7 @@ public:
         }
 
     }
-    void onInit(std::string name, json props, IClient *client) override {
+    void onInit(std::string name, json props, ISinkLink *client) override {
         std::cout << "onInit" << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
@@ -78,7 +78,7 @@ public:
 public:
     std::list<json> events;
 private:
-    IClient *m_client;
+    ISinkLink *m_client;
     int m_total;
     bool m_ready;
 

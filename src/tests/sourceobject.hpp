@@ -6,7 +6,7 @@
 
 using namespace ApiGear::ObjectLink;
 
-class CalcSource: public ISource {
+class CalcSource: public IObjectSource {
 public:
     CalcSource()
         : m_service(nullptr)
@@ -15,7 +15,7 @@ public:
     }
     virtual ~CalcSource() override {}
 
-    IServiceIO* service() const {
+    ISourceLink* service() const {
         assert(m_service);
         return m_service;
     }
@@ -72,7 +72,7 @@ public:
             }
         }
     }
-    void linked(std::string name, IServiceIO *service) override {
+    void linked(std::string name, ISourceLink *service) override {
         std::cout << "linked" << name;
         m_service = service;
     }
@@ -86,7 +86,7 @@ public:
         return {{ "total", m_total }};
     }
 private:
-    IServiceIO* m_service;
+    ISourceLink* m_service;
     int m_total;
     std::vector<json> m_events;
 };

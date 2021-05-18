@@ -5,10 +5,10 @@
 #include "olink/core/protocol.h"
 #include "olink/core/types.h"
 #include "olink/core/consolelogger.h"
-#include "olink/client.h"
-#include "olink/service.h"
-#include "olink/sourceregistry.h"
-#include "olink/sinkregistry.h"
+#include "olink/sinklink.h"
+#include "olink/sourcelink.h"
+#include "olink/sinknode.h"
+#include "olink/sourcenode.h"
 
 
 #include "nlohmann/json.hpp"
@@ -27,38 +27,39 @@ TEST_CASE("link")
 {
     ConsoleLogger log;
     // setup service
-    SourceRegistry sourceRegistry("host1");
-    ServiceIO service(&sourceRegistry);
-    service.onLog(log.logFunc());
+    SourceNode sourceNode("host1");
+    SourceLink sourceLink(sourceNode.nodeName());
+    sourceLink.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    ClientIO client("client1");
-    client.onLog(log.logFunc());
+    SinkNode sinkNode("client1");
+    SinkLink sinkLink(sinkNode.nodeName());
+    sinkLink.onLog(log.logFunc());
     CalcSink sink;
 
-    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
-        service.handleMessage(msg);
+    WriteMessageFunc clientWriteFunc = [&sourceLink](std::string msg) {
+        sourceLink.handleMessage(msg);
     };
-    client.onWrite(clientWriteFunc);
+    sinkLink.onWrite(clientWriteFunc);
 
-    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
-        client.handleMessage(msg);
+    WriteMessageFunc serviceWriteFunc = [&sinkLink](std::string msg) {
+        sinkLink.handleMessage(msg);
     };
-    service.onWrite(serviceWriteFunc);
+    sourceLink.onWrite(serviceWriteFunc);
 
 
     // register source object
-    sourceRegistry.addObjectSource("demo.Calc", &source);
+    sourceNode.addObjectSource("demo.Calc", &source);
     // register sink object
-    client.registry().addObjectSink("demo.Calc", &sink);
+    sinkLink.sinkNode()->addObjectSink("demo.Calc", &sink);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
         REQUIRE( sink.isReady() == false );
         REQUIRE( sink.total() == 0);
         // link sink with source
-        client.link("demo.Calc");
+        sinkLink.link("demo.Calc");
         // initalized sink with total=1
         REQUIRE( sink.isReady() == true );
         REQUIRE( sink.total() == 1);
@@ -69,30 +70,31 @@ TEST_CASE("setProperty")
 {
     ConsoleLogger log;
     // setup service
-    SourceRegistry sourceRegistry("host1");
-    ServiceIO service(&sourceRegistry);
-    service.onLog(log.logFunc());
+    SourceNode sourceNode("host1");
+    SourceLink sourceLink(sourceNode.nodeName());
+    sourceLink.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    ClientIO client("client1");
-    client.onLog(log.logFunc());
+    SinkNode sinkNode("client1");
+    SinkLink sinkLink(sinkNode.nodeName());
+    sinkLink.onLog(log.logFunc());
     CalcSink sink;
 
-    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
-        service.handleMessage(msg);
+    WriteMessageFunc sinkWriteFunc = [&sourceLink](std::string msg) {
+        sourceLink.handleMessage(msg);
     };
-    client.onWrite(clientWriteFunc);
+    sinkLink.onWrite(sinkWriteFunc);
 
-    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
-        client.handleMessage(msg);
+    WriteMessageFunc sourceWriteFunc = [&sinkLink](std::string msg) {
+        sinkLink.handleMessage(msg);
     };
-    service.onWrite(serviceWriteFunc);
+    sourceLink.onWrite(sourceWriteFunc);
 
     // register source object
-    sourceRegistry.addObjectSource("demo.Calc", &source);
-    client.registry().addObjectSink("demo.Calc", &sink);
-    client.link("demo.Calc");
+    sourceNode.addObjectSource("demo.Calc", &source);
+    sinkLink.sinkNode()->addObjectSink("demo.Calc", &sink);
+    sinkLink.link("demo.Calc");
 
     REQUIRE( sink.isReady() == true );
     SECTION("set property") {
@@ -108,30 +110,31 @@ TEST_CASE("signal")
 {
     ConsoleLogger log;
     // setup service
-    SourceRegistry sourceRegistry("host1");
-    ServiceIO service(&sourceRegistry);
-    service.onLog(log.logFunc());
+    SourceNode sourceNode("host1");
+    SourceLink sourceLink(sourceNode.nodeName());
+    sourceLink.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    ClientIO client("client1");
-    client.onLog(log.logFunc());
+    SinkNode sinkNode("client1");
+    SinkLink sinkLink(sinkNode.nodeName());
+    sinkLink.onLog(log.logFunc());
     CalcSink sink;
 
-    WriteMessageFunc clientWriteFunc = [&service](std::string msg) {
-        service.handleMessage(msg);
+    WriteMessageFunc sinkWriteFunc = [&sourceLink](std::string msg) {
+        sourceLink.handleMessage(msg);
     };
-    client.onWrite(clientWriteFunc);
+    sinkLink.onWrite(sinkWriteFunc);
 
-    WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
-        client.handleMessage(msg);
+    WriteMessageFunc sourceWriteFunc = [&sinkLink](std::string msg) {
+        sinkLink.handleMessage(msg);
     };
-    service.onWrite(serviceWriteFunc);
+    sourceLink.onWrite(sourceWriteFunc);
 
     // register source object
-    sourceRegistry.addObjectSource("demo.Calc", &source);
-    client.registry().addObjectSink("demo.Calc", &sink);
-    client.link("demo.Calc");
+    sourceNode.addObjectSource("demo.Calc", &source);
+    sinkLink.sinkNode()->addObjectSink("demo.Calc", &sink);
+    sinkLink.link("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
     SECTION("signal") {
@@ -146,35 +149,36 @@ TEST_CASE("invoke")
 {
     ConsoleLogger log;
     // setup service
-    SourceRegistry sourceRegistry("host1");
-    ServiceIO serviceIO(&sourceRegistry);
-    serviceIO.onLog(log.logFunc());
+    SourceNode sourceNode("host1");
+    SourceLink sourceLink("host1");
+    sourceLink.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-    ClientIO clientIO("client1");
-    clientIO.onLog(log.logFunc());
+    SinkNode sinkNode("client1");
+    SinkLink sinkLink("client1");
+    sinkLink.onLog(log.logFunc());
     CalcSink sink;
 
-    WriteMessageFunc clientWriteFunc = [&serviceIO](std::string msg) {
-        serviceIO.handleMessage(msg);
+    WriteMessageFunc clientWriteFunc = [&sourceLink](std::string msg) {
+        sourceLink.handleMessage(msg);
     };
-    clientIO.onWrite(clientWriteFunc);
+    sinkLink.onWrite(clientWriteFunc);
 
-    WriteMessageFunc serviceWriteFunc = [&clientIO](std::string msg) {
-        clientIO.handleMessage(msg);
+    WriteMessageFunc serviceWriteFunc = [&sinkLink](std::string msg) {
+        sinkLink.handleMessage(msg);
     };
-    serviceIO.onWrite(serviceWriteFunc);
+    sourceLink.onWrite(serviceWriteFunc);
+
 
     // register source object
-    sourceRegistry.addObjectSource("demo.Calc", &source);
-    clientIO.registry().addObjectSink("demo.Calc", &sink);
-    clientIO.link("demo.Calc");
+    sourceNode.addObjectSource("demo.Calc", &source);
+    sinkNode.addObjectSink("demo.Calc", &sink);
+    sinkLink.link("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
     SECTION("invoke") {
         REQUIRE( sink.total() == 1);
-        REQUIRE( sink.events.size() == 0);
         sink.add(5);
         REQUIRE( sink.total() == 6);
     }

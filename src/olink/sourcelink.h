@@ -23,25 +23,21 @@
 */
 #pragma once
 
-#include "olink/core/types.h"
-#include "olink/core/protocol.h"
-#include "olink/core/listeners.h"
-#include "sourceregistry.h"
-#include "sinkregistry.h"
+#include "sourcenode.h"
+#include "sinknode.h"
 #include "sourcetypes.h"
 #include "sinktypes.h"
+
+#include "objectlink.h"
 
 namespace ApiGear { namespace ObjectLink {
 
 
-class ServiceIO: public IServiceIO, public EmptyMessagesListener, public IMessageHandler {
+class SourceLink: public ObjectLink, public ISourceLink {
 public:
-    ServiceIO(SourceRegistry *registry);
-    void onWrite(WriteMessageFunc func);
-    void emitWrite(json j) override;
-    void onLog(LogWriterFunc func);
-    void emitLog(LogLevel level, std::string msg);
+    SourceLink(std::string name);
     void writePropertyChange(std::string name, json value);
+    SourceNode *sourceNode();
 
     // IMessagesListener interface
 public:
@@ -53,15 +49,7 @@ public:
 public:
     void notifyPropertyChange(std::string name, json value) override;
     void notifySignal(std::string name, json args) override;
-    void handleMessage(std::string data) override;
 private:
-    SourceRegistry *m_registry;
-    Protocol m_protocol;
-    MessageConverter m_converter;
-    ILogger* m_log;
-    WriteMessageFunc m_writeFunc;
-    LogWriterFunc m_logFunc;
-
 };
 
 } } // Apigear::ObjectLink

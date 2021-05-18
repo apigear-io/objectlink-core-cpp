@@ -11,7 +11,7 @@ using namespace ApiGear::ObjectLink;
 
 class CalcSink
     : public QObject
-    , public ISink
+    , public IObjectSink
 {
     Q_OBJECT
     Q_PROPERTY(int total READ total WRITE setTotal NOTIFY totalChanged)
@@ -33,11 +33,11 @@ signals:
 public: // IObjectLinkSink
     virtual void onSignal(std::string name, json args) override;
     virtual void onPropertyChanged(std::string name, json value) override;
-    virtual void onInit(std::string name, json props, IClient *client) override;
+    virtual void onInit(std::string name, json props, ISinkLink *client) override;
     virtual void onRelease() override;
 private:
     int m_total;
     bool m_ready;
     std::string m_name;
-    IClient *m_client;
+    ISinkLink *m_link;
 };

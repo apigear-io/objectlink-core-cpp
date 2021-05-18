@@ -1,18 +1,17 @@
 #include "qserviceio.h"
 
 
-QObjectLinkConnection::QObjectLinkConnection(SourceRegistry* registry, QWebSocket *socket)
+QObjectLinkConnection::QObjectLinkConnection(const QString &name, QWebSocket *socket)
     : QObject(socket)
     , m_socket(socket)
-    , m_service(registry)
+    , m_link(name.toStdString())
 {
-    m_service.onLog(m_log.logFunc());
-    registry->onLog(m_log.logFunc());
+    m_link.onLog(m_log.logFunc());
     connect(m_socket, &QWebSocket::textMessageReceived, this, &QObjectLinkConnection::handleMessage);
     WriteMessageFunc writeFunc = [this](std::string msg) {
         writeMessage(msg);
     };
-    m_service.onWrite(writeFunc);
+    m_link.onWrite(writeFunc);
 }
 
 void QObjectLinkConnection::writeMessage(const std::string msg)
@@ -27,5 +26,5 @@ void QObjectLinkConnection::handleMessage(const QString &msg)
 {
     qDebug() << Q_FUNC_INFO << msg;
 
-    m_service.handleMessage(msg.toStdString());
+    m_link.handleMessage(msg.toStdString());
 }

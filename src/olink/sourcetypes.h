@@ -4,37 +4,37 @@
 
 namespace ApiGear { namespace ObjectLink {
 
+class SourceLink;
 
-// member of service object
+
+// passed into source object
 // distribute signals/propetty changes
-class IServiceIO {
+class ISourceLink {
 public:
-    virtual ~IServiceIO();
+    virtual ~ISourceLink();
     virtual void notifyPropertyChange(std::string name, json value) = 0;
     virtual void notifySignal(std::string name, json args) = 0;
-    virtual void emitWrite(json j) = 0;
-
 };
 
-// impemented by remote object
-// called from object service
-class ISource {
+// impemented by source object
+// called from object link
+class IObjectSource {
 public:
-    virtual ~ISource();
+    virtual ~IObjectSource();
     virtual std::string getObjectName() = 0;
     virtual json invoke(std::string name, json args) = 0;
     virtual void setProperty(std::string name, json value) = 0;
-    virtual void linked(std::string name, IServiceIO* notifier) = 0;
+    virtual void linked(std::string name, ISourceLink* link) = 0;
     virtual void unlinked(std::string name) = 0;
     virtual json collectProperties() = 0;
 };
 
-// links an object to services
-class SourceToServiceLink {
+// links an source object to ObjectLinks
+class SourceToLinksEntry {
 public:
-    virtual ~SourceToServiceLink();
-    ISource* source;
-    std::list<IServiceIO*> services;
+    virtual ~SourceToLinksEntry();
+    IObjectSource* source;
+    std::list<SourceLink*> links;
 };
 
 

@@ -52,7 +52,7 @@ void ConsoleLogger::log(LogLevel level, std::string msg)
     std::cout << msg << std::endl;
 }
 
-LogWriterFunc &ConsoleLogger::logFunc()
+WriteLogFunc &ConsoleLogger::logFunc()
 {
     return m_func;
 }

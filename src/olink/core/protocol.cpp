@@ -32,7 +32,7 @@ namespace ApiGear { namespace ObjectLink {
 
 
 
-Protocol::Protocol(IMessagesListener *listener)
+Protocol::Protocol(IProtocolListener *listener)
     : m_listener(listener)
 {
     assert(m_listener);
@@ -102,7 +102,7 @@ json Protocol::errorMessage(MessageType msgType, int requestId, std::string erro
                 );
 }
 
-IMessagesListener *Protocol::listener() const
+IProtocolListener *Protocol::listener() const
 {
     assert(m_listener);
     return m_listener;

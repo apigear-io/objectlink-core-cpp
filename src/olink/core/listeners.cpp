@@ -27,50 +27,50 @@
 namespace ApiGear { namespace ObjectLink {
 
 
-IMessagesListener::~IMessagesListener() {}
+IProtocolListener::~IProtocolListener() {}
 
-void EmptyMessagesListener::handleLink(std::string name)
+void DefaultProtocolListener::handleLink(std::string name)
 {
     std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
-void EmptyMessagesListener::handleUnlink(std::string name)
+void DefaultProtocolListener::handleUnlink(std::string name)
 {
     std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
-void EmptyMessagesListener::handleInvoke(int requestId, std::string name, json args)
+void DefaultProtocolListener::handleInvoke(int requestId, std::string name, json args)
 {
     std::cout << "not implemented " << __func__ << requestId << name << args.dump() << std::endl;
 }
 
-void EmptyMessagesListener::handleSetProperty(std::string name, json value)
+void DefaultProtocolListener::handleSetProperty(std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
 
-void EmptyMessagesListener::handleInit(std::string name, json props)
+void DefaultProtocolListener::handleInit(std::string name, json props)
 {
     std::cout << "not implemented " << __func__ << name << props.dump() << std::endl;
 }
 
-void EmptyMessagesListener::handleInvokeReply(int requestId, std::string name, json value)
+void DefaultProtocolListener::handleInvokeReply(int requestId, std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << requestId << name << value.dump() << std::endl;
 }
 
-void EmptyMessagesListener::handleSignal(std::string name, json args)
+void DefaultProtocolListener::handleSignal(std::string name, json args)
 {
     std::cout << "not implemented " << __func__ << name << args.dump()  << std::endl;
 }
 
-void EmptyMessagesListener::handlePropertyChange(std::string name, json value)
+void DefaultProtocolListener::handlePropertyChange(std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
-void EmptyMessagesListener::handleError(int msgType, int requestId, std::string error)
+void DefaultProtocolListener::handleError(int msgType, int requestId, std::string error)
 {
     std::cout << "not implemented " << __func__ << msgType << requestId << error << std::endl;
 }

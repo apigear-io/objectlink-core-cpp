@@ -1,25 +1,20 @@
 #pragma once
 #include "olink/sinktypes.h"
-#include "olink/sinkregistry.h"
-#include "olink/core/listeners.h"
-#include "olink/core/protocol.h"
+
+
+#include "olink/objectlink.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class ClientIO : public EmptyMessagesListener, public IMessageHandler, public IClient
+class SinkNode;
+
+class SinkLink : public ObjectLink, public ISinkLink
 {
 public:
-    ClientIO(std::string name);
-    void onWrite(WriteMessageFunc func);
-    void onLog(LogWriterFunc func);
-    std::string name() const;
-    SinkRegistry& registry();
+    SinkLink(std::string name);
+    SinkNode* sinkNode();
 protected:
-    void emitWrite(json j);
-    void emitLog(LogLevel level, std::string msg);
     int nextId();
-public: // IMessageHandler
-    void handleMessage(std::string data) override;
 public: // IObjectLinkClient
     void link(std::string name) override;
     void unlink(std::string name) override;
@@ -31,14 +26,8 @@ protected: // IMessageListener
     void handleSignal(std::string name, json args) override;
     void handleError(int msgType, int requestId, std::string error) override;
 private:
-    WriteMessageFunc m_writeFunc;
-    LogWriterFunc m_logFunc;
-    MessageConverter m_converter;
-    Protocol m_protocol;
     int m_nextId;
     std::map<int,InvokeReplyFunc> m_invokesPending;
-    std::string m_name;
-    SinkRegistry m_registry;
 };
 
 } } // ApiGear::ObjectLink

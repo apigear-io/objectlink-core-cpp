@@ -3,12 +3,12 @@
 
 using namespace ApiGear::ObjectLink;
 
-class CalcSource: public ISource {
+class CalcSource: public IObjectSource {
 public:
     CalcSource();
     virtual ~CalcSource() override;
 
-    IServiceIO *service() const;
+    ISourceLink *link() const;
 
     int add(int value);
 
@@ -20,11 +20,11 @@ public:
     std::string getObjectName() override;
     json invoke(std::string name, json args) override;
     void setProperty(std::string name, json value) override;
-    void linked(std::string name, IServiceIO *service) override;
+    void linked(std::string name, ISourceLink *service) override;
     void unlinked(std::string name) override;
     json collectProperties() override;
 private:
-    IServiceIO* m_service;
+    ISourceLink* m_link;
     int m_total;
 };
 

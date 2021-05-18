@@ -33,9 +33,9 @@ class ConsoleLogger : public ILogger {
 public:
     ConsoleLogger();
     void log(LogLevel level, std::string msg) override;
-    LogWriterFunc& logFunc();
+    WriteLogFunc& logFunc();
 private:
-    LogWriterFunc m_func;
+    WriteLogFunc m_func;
 };
 
 } } // ApiGear::ObjectLink

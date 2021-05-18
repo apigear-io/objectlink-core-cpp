@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    QObjectLinkServer server("server1");
+    QObjectLinkHost server("server1");
     CalcSource source;
     server.registry().addObjectSource("demo.Calc", &source);
 

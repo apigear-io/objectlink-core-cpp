@@ -26,25 +26,28 @@
 #include <QtCore>
 #include <QtWebSockets>
 #include "olink/core/types.h"
-#include "olink/service.h"
+#include "olink/sourcelink.h"
 #include "olink/core/consolelogger.h"
 
 #include "../app/qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
-class QObjectLinkServer :public QObject
+class QObjectLinkHost :public QObject
 {
     Q_OBJECT
 public:
-    explicit QObjectLinkServer(const QString &name, QObject *parent=nullptr);
-    virtual ~QObjectLinkServer() override;
+    explicit QObjectLinkHost(const QString &name, QObject *parent=nullptr);
+    virtual ~QObjectLinkHost() override;
     void listen(const QString& host, int port);
     void onNewConnection();
     void onClosed();
-    SourceRegistry &registry();
+    SourceNode &registry();
+    const QString &nodeName() const;
+
 private:
+    QString m_nodeName;
     QWebSocketServer* m_wss;
-    SourceRegistry m_registry;
+    SourceNode m_registry;
     ConsoleLogger m_log;
 };

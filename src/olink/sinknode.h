@@ -26,39 +26,38 @@
 
 #include <string>
 #include "sinktypes.h"
+#include "objectnode.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class IClient;
+class SinkLink;
 
-class SinkRegistry
+class SinkNode : public ObjectNode
 {
 public:
-    SinkRegistry(std::string name);
-    virtual ~SinkRegistry();
-    void onLog(LogWriterFunc func);
-    void emitLog(LogLevel level, std::string msg);
-    std::string name() const;
-    void unlinkClient(IClient *client);
-    ISink* linkSinkToClient(std::string name, IClient* client);
-    IClient* addObjectSink(std::string name, ISink* handler);
+    SinkNode(std::string name);
+    virtual ~SinkNode();
+    void addObjectSink(std::string name, IObjectSink *sink);
     void removeObjectSink(std::string name);
-    ISink* objectSink(std::string name);
-    IClient* objectClient(std::string name);
+    IObjectSink* getObjectSink(std::string name);
+
+    void setSinkLink(std::string name, SinkLink* link);
+    void unsetSinkLink(SinkLink *link);
+    ISinkLink* getSinkLink(std::string name);
+
+    static SinkNode* getSinkNode(std::string name);
 private:
-    std::map<std::string, SinkToClientLink> m_links;
-    std::string m_name;
-    LogWriterFunc m_logFunc;
+    std::map<std::string, SinkToLinkEntry> m_sinkEntries;
 };
 
-class SinkRegistryManager {
+class SinkNodeManager {
 public:
-    void setRegistry(std::string name, SinkRegistry* registry);
-    void unsetRegistry(std::string name);
-    static SinkRegistryManager& get();
-    SinkRegistry* registry(std::string name);
+    void setSinkNode(std::string name, SinkNode* registry);
+    void unsetSinkNode(std::string name);
+    static SinkNodeManager& get();
+    SinkNode* getSinkNode(std::string name);
 private:
-    std::map<std::string, SinkRegistry*> m_registries;
+    std::map<std::string, SinkNode*> m_registries;
 };
 
 } } // Apigear::ObjectLink

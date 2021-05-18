@@ -25,6 +25,7 @@
 #include <QtQml>
 #include "qclientio.h"
 #include "calcsink.h"
+#include "olink/sinknode.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,9 +34,10 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
-    QObjectLinkClient link("client1");
+    SinkNode sinkNode("client1");
+    QSinkLink link("client1");
+    sinkNode.setSinkLink("demo.Calc", &link.sinkLink());
     link.connectToHost(QUrl("ws://127.0.0.1:8182"));
-    link.registry().linkSinkToClient("demo.Calc", &link.client());
     link.link("demo.Calc");
 
     qmlRegisterType<CalcSink>("net.olink", 1, 0, "Calculator");

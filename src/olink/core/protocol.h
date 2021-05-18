@@ -32,7 +32,7 @@ namespace ApiGear { namespace ObjectLink {
 class Protocol
 {
 public:
-    Protocol(IMessagesListener *listener);
+    Protocol(IProtocolListener *listener);
     // lifecycle
     static json linkMessage(std::string name);
     static json unlinkMessage(std::string name);
@@ -50,9 +50,9 @@ public:
     bool handleMessage(json msg);
     std::string lastError();
 private:
-    IMessagesListener *listener() const;
+    IProtocolListener *listener() const;
 private:
-    IMessagesListener* m_listener;
+    IProtocolListener* m_listener;
     std::string m_lastError;
 };
 
