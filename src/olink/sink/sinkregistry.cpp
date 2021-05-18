@@ -22,110 +22,110 @@
 * SOFTWARE.
 */
 
+#include "sinkregistry.h"
 #include "sinknode.h"
-#include "sinklink.h"
 
 #include "iostream"
 
 namespace ApiGear { namespace ObjectLink {
 
-SinkNode::SinkNode(std::string name)
-    : ObjectNode(name)
+ObjectSinkRegistry::ObjectSinkRegistry(std::string name)
+    : BaseRegistry(name)
 {
-    SinkNodeManager::get().setSinkNode(name, this);
+    SinkRegistryManager::get().setRegistry(name, this);
 }
 
-SinkNode::~SinkNode()
+ObjectSinkRegistry::~ObjectSinkRegistry()
 {
-    SinkNodeManager::get().unsetSinkNode(nodeName());
+    SinkRegistryManager::get().unsetRegistry(name());
 }
 
-void SinkNode::unsetSinkLink(SinkLink *link)
+void ObjectSinkRegistry::unsetNode(ObjectSinkNode *node)
 {
     std::list<std::string> resources;
-    for(auto& it : m_sinkEntries) {
-        if(it.second.link == link) {
-            it.second.link = nullptr;
+    for(auto& it : m_entries) {
+        if(it.second.node == node) {
+            it.second.node = nullptr;
         }
     }
 }
 
-void SinkNode::setSinkLink(std::string name, SinkLink *link)
+void ObjectSinkRegistry::setNode(std::string name, ObjectSinkNode *node)
 {
     std::string resource = Name::resourceFromName(name);
     emitLog(LogLevel::Info, "ObjectLinkSinkRegistry.linkClientToSink: " + resource + ", " + name);
-    if(m_sinkEntries.count(resource) == 0) {
+    if(m_entries.count(resource) == 0) {
         emitLog(LogLevel::Info, "new link");
-        SinkToLinkEntry entry;
+        SinkToNodeEntry entry;
         entry.sink = nullptr;
-        entry.link = link;
-        m_sinkEntries[resource] = entry;
+        entry.node = node;
+        m_entries[resource] = entry;
     } else {
         emitLog(LogLevel::Info, "update link");
-        SinkToLinkEntry& entry = m_sinkEntries[resource];
-        entry.link = link;
+        SinkToNodeEntry& entry = m_entries[resource];
+        entry.node = node;
     }
 }
 
 
 
-void SinkNode::addObjectSink(std::string name, IObjectSink *sink)
+void ObjectSinkRegistry::addObjectSink(std::string name, IObjectSink *sink)
 {
     std::string resource = Name::resourceFromName(name);
     emitLog(LogLevel::Info, "ObjectLinkSinkRegistry.addObjectSink: " + resource + ", " + name);
-    if(m_sinkEntries.count(resource) == 0) {
+    if(m_entries.count(resource) == 0) {
         emitLog(LogLevel::Info, "new link");
-        SinkToLinkEntry link;
+        SinkToNodeEntry link;
         link.sink = sink;
-        link.link = nullptr;
-        m_sinkEntries[resource] = link;
+        link.node = nullptr;
+        m_entries[resource] = link;
     } else {
         emitLog(LogLevel::Info, "update link");
-        SinkToLinkEntry& link = m_sinkEntries[resource];
+        SinkToNodeEntry& link = m_entries[resource];
         link.sink = sink;
     }
 }
 
-void SinkNode::removeObjectSink(std::string name)
+void ObjectSinkRegistry::removeObjectSink(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
-    if(m_sinkEntries.count(resource) == 0) {
-        const SinkToLinkEntry& link = m_sinkEntries[resource];
+    if(m_entries.count(resource) == 0) {
+        const SinkToNodeEntry& link = m_entries[resource];
         if(link.sink) {
             link.sink->onRelease();
         }
     }
-    m_sinkEntries.erase(resource);
+    m_entries.erase(resource);
 }
 
-IObjectSink *SinkNode::getObjectSink(std::string name)
+IObjectSink *ObjectSinkRegistry::getObjectSink(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
     emitLog(LogLevel::Info, "object sink" + name + resource);
-    if(m_sinkEntries.count(resource) == 0) {
+    if(m_entries.count(resource) == 0) {
         std::cout << "sink not added: " +  name;
         return nullptr;
     }
-    return m_sinkEntries[resource].sink;
+    return m_entries[resource].sink;
 }
 
-ISinkLink *SinkNode::getSinkLink(std::string name)
+IObjectSinkNode *ObjectSinkRegistry::getNode(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
     emitLog(LogLevel::Info, "object client" + name + resource);
-    if(m_sinkEntries.count(resource) == 0) {
+    if(m_entries.count(resource) == 0) {
         emitLog(LogLevel::Info, "client not linked yet: " + name);
         return nullptr;
     }
-    return m_sinkEntries[resource].link;
+    return m_entries[resource].node;
 }
 
-SinkNode *SinkNode::getSinkNode(std::string name)
+ObjectSinkRegistry *ObjectSinkRegistry::registry(std::string name)
 {
-    return SinkNodeManager::get().getSinkNode(name);
+    return SinkRegistryManager::get().getRegistry(name);
 }
 
-void SinkNodeManager::setSinkNode(std::string name, SinkNode *registry)
+void SinkRegistryManager::setRegistry(std::string name, ObjectSinkRegistry *registry)
 {
     if(m_registries.count(name) == 0) {
         m_registries[name] = registry;
@@ -134,7 +134,7 @@ void SinkNodeManager::setSinkNode(std::string name, SinkNode *registry)
     }
 }
 
-void SinkNodeManager::unsetSinkNode(std::string name)
+void SinkRegistryManager::unsetRegistry(std::string name)
 {
     if(m_registries.count(name) == 1) {
         m_registries.erase(name);
@@ -144,13 +144,13 @@ void SinkNodeManager::unsetSinkNode(std::string name)
     }
 }
 
-SinkNodeManager &SinkNodeManager::get()
+SinkRegistryManager &SinkRegistryManager::get()
 {
-    static SinkNodeManager m;
+    static SinkRegistryManager m;
     return m;
 }
 
-SinkNode *SinkNodeManager::getSinkNode(std::string name)
+ObjectSinkRegistry *SinkRegistryManager::getRegistry(std::string name)
 {
     if(m_registries.count(name) == 1) {
         return m_registries[name];

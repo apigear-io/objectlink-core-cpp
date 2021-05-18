@@ -1,5 +1,5 @@
 #pragma once
-#include "olink/sourcetypes.h"
+#include "olink/source/sourcetypes.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -8,7 +8,7 @@ public:
     CalcSource();
     virtual ~CalcSource() override;
 
-    ISourceLink *link() const;
+    IObjectSourceNode *link() const;
 
     int add(int value);
 
@@ -20,11 +20,11 @@ public:
     std::string getObjectName() override;
     json invoke(std::string name, json args) override;
     void setProperty(std::string name, json value) override;
-    void linked(std::string name, ISourceLink *service) override;
+    void linked(std::string name, IObjectSourceNode *service) override;
     void unlinked(std::string name) override;
     json collectProperties() override;
 private:
-    ISourceLink* m_link;
+    IObjectSourceNode* m_link;
     int m_total;
 };
 

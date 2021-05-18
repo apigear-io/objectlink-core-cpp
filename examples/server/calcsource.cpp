@@ -12,7 +12,7 @@ CalcSource::CalcSource()
 
 CalcSource::~CalcSource() {}
 
-ISourceLink *CalcSource::link() const {
+IObjectSourceNode *CalcSource::link() const {
     assert(m_link);
     return m_link;
 }
@@ -81,7 +81,7 @@ void CalcSource::setProperty(std::string name, json value) {
     }
 }
 
-void CalcSource::linked(std::string name, ISourceLink *link) {
+void CalcSource::linked(std::string name, IObjectSourceNode *link) {
     std::cout << "linked" << name;
     m_link = link;
 }

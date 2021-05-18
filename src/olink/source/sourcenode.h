@@ -21,43 +21,34 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-
 #pragma once
 
-#include <string>
-#include "sinktypes.h"
-#include "objectnode.h"
+#include "olink/shared/basenode.h"
+#include "sourcetypes.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class SinkLink;
+class ObjectSourceRegistry;
 
-class SinkNode : public ObjectNode
-{
+class ObjectSourceNode: public BaseNode, public IObjectSourceNode {
 public:
-    SinkNode(std::string name);
-    virtual ~SinkNode();
-    void addObjectSink(std::string name, IObjectSink *sink);
-    void removeObjectSink(std::string name);
-    IObjectSink* getObjectSink(std::string name);
+    ObjectSourceNode(std::string name);
+    void writePropertyChange(std::string name, json value);
+    ObjectSourceRegistry *registry();
 
-    void setSinkLink(std::string name, SinkLink* link);
-    void unsetSinkLink(SinkLink *link);
-    ISinkLink* getSinkLink(std::string name);
+public: // IMessagesListener interface
+    void handleLink(std::string name) override;
+    void handleUnlink(std::string name) override;
+    void handleSetProperty(std::string name, json value) override;
+    void handleInvoke(int requestId, std::string name, json args) override;
 
-    static SinkNode* getSinkNode(std::string name);
+public: // IObjectSourceNode interface
+    void notifyPropertyChange(std::string name, json value) override;
+    void notifySignal(std::string name, json args) override;
 private:
-    std::map<std::string, SinkToLinkEntry> m_sinkEntries;
-};
-
-class SinkNodeManager {
-public:
-    void setSinkNode(std::string name, SinkNode* registry);
-    void unsetSinkNode(std::string name);
-    static SinkNodeManager& get();
-    SinkNode* getSinkNode(std::string name);
-private:
-    std::map<std::string, SinkNode*> m_registries;
 };
 
 } } // Apigear::ObjectLink
+
+
+

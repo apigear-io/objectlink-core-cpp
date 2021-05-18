@@ -30,47 +30,47 @@ using namespace ApiGear::ObjectLink;
 
 
 
-QObjectLinkHost::QObjectLinkHost(const QString& name, QObject *parent)
+ObjectLinkHost::ObjectLinkHost(const QString& name, QObject *parent)
     : QObject(parent)
-    , m_nodeName(name)
+    , m_name(name)
     , m_wss(new QWebSocketServer("olink", QWebSocketServer::NonSecureMode, this))
     , m_registry(name.toStdString())
 {
     m_registry.onLog(m_log.logFunc());
 }
 
-QObjectLinkHost::~QObjectLinkHost()
+ObjectLinkHost::~ObjectLinkHost()
 {
 }
 
-void QObjectLinkHost::listen(const QString& host, int port)
+void ObjectLinkHost::listen(const QString& host, int port)
 {
     qDebug() << "wss.listen()";
     m_wss->listen(QHostAddress(host), quint16(port));
     qDebug() << m_wss->serverAddress() << m_wss->serverPort();
-    connect(m_wss, &QWebSocketServer::newConnection, this, &QObjectLinkHost::onNewConnection);
-    connect(m_wss, &QWebSocketServer::closed, this, &QObjectLinkHost::onClosed);
+    connect(m_wss, &QWebSocketServer::newConnection, this, &ObjectLinkHost::onNewConnection);
+    connect(m_wss, &QWebSocketServer::closed, this, &ObjectLinkHost::onClosed);
 }
 
-void QObjectLinkHost::onNewConnection()
+void ObjectLinkHost::onNewConnection()
 {
     qDebug() << "wss.newConnection()";
     QWebSocket *ws = m_wss->nextPendingConnection();
-    new QObjectLinkConnection(m_nodeName, ws);
+    new SourceConnection(m_name, ws);
 }
 
-void QObjectLinkHost::onClosed()
+void ObjectLinkHost::onClosed()
 {
     qDebug() << "wss.closed()";
 }
 
-SourceNode &QObjectLinkHost::registry()
+ObjectSourceRegistry &ObjectLinkHost::registry()
 {
     return m_registry;
 }
 
-const QString &QObjectLinkHost::nodeName() const
+const QString &ObjectLinkHost::name() const
 {
-    return m_nodeName;
+    return m_name;
 }
 

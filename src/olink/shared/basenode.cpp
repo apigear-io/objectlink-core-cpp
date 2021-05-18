@@ -1,22 +1,22 @@
-#include "objectlink.h"
+#include "basenode.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-ObjectLink::ObjectLink(std::string name)
+BaseNode::BaseNode(std::string name)
     : m_writeFunc(nullptr)
     , m_logFunc(nullptr)
     , m_converter(MessageFormat::JSON)
     , m_protocol(this)
-    , m_nodeName(name)
+    , m_name(name)
 {
 }
 
-void ObjectLink::onWrite(WriteMessageFunc func)
+void BaseNode::onWrite(WriteMessageFunc func)
 {
     m_writeFunc = func;
 }
 
-void ObjectLink::emitWrite(json msg)
+void BaseNode::emitWrite(json msg)
 {
     const std::string& data = m_converter.toString(msg);
     emitLog(LogLevel::Debug, "writeMessage " + msg.dump());
@@ -27,12 +27,12 @@ void ObjectLink::emitWrite(json msg)
     }
 }
 
-void ObjectLink::onLog(WriteLogFunc func)
+void BaseNode::onLog(WriteLogFunc func)
 {
     m_logFunc = func;
 }
 
-void ObjectLink::emitLog(LogLevel level, std::string msg)
+void BaseNode::emitLog(LogLevel level, std::string msg)
 {
     if(m_logFunc) {
         m_logFunc(level, msg);
@@ -40,15 +40,15 @@ void ObjectLink::emitLog(LogLevel level, std::string msg)
 }
 
 
-void ObjectLink::handleMessage(std::string data)
+void BaseNode::handleMessage(std::string data)
 {
     const json& j = m_converter.fromString(data);
     m_protocol.handleMessage(j);
 }
 
-std::string ObjectLink::nodeName() const
+std::string BaseNode::name() const
 {
-    return m_nodeName;
+    return m_name;
 }
 
 

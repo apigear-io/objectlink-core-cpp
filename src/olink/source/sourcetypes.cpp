@@ -4,7 +4,7 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-ISourceLink::~ISourceLink()
+IObjectSourceNode::~IObjectSourceNode()
 {
 
 }
@@ -14,7 +14,7 @@ IObjectSource::~IObjectSource()
 
 }
 
-SourceToLinksEntry::~SourceToLinksEntry()
+SourceToNodesEntry::~SourceToNodesEntry()
 {
 }
 

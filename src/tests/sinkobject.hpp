@@ -1,6 +1,6 @@
 #pragma once
 
-#include "olink/sinktypes.h"
+#include "olink/sink/sinktypes.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
@@ -35,7 +35,7 @@ public:
         client()->invoke("demo.Calc/sub", { a }, func);
         return -1;
     }
-    ISinkLink *client() const {
+    IObjectSinkNode *client() const {
         assert(m_client);
         return m_client;
     }
@@ -60,7 +60,7 @@ public:
         }
 
     }
-    void onInit(std::string name, json props, ISinkLink *client) override {
+    void onInit(std::string name, json props, IObjectSinkNode *client) override {
         std::cout << "onInit" << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
@@ -78,7 +78,7 @@ public:
 public:
     std::list<json> events;
 private:
-    ISinkLink *m_client;
+    IObjectSinkNode *m_client;
     int m_total;
     bool m_ready;
 

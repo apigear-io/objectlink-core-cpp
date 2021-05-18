@@ -21,38 +21,45 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
+
 #pragma once
 
-#include "sourcenode.h"
-#include "sinknode.h"
-#include "sourcetypes.h"
-#include "sinktypes.h"
+#include "olink/core/types.h"
 
-#include "objectlink.h"
 
 namespace ApiGear { namespace ObjectLink {
 
+class ObjectSinkNode;
 
-class SourceLink: public ObjectLink, public ISourceLink {
+class IObjectSinkNode {
 public:
-    SourceLink(std::string name);
-    void writePropertyChange(std::string name, json value);
-    SourceNode *sourceNode();
-
-    // IMessagesListener interface
-public:
-    void handleLink(std::string name) override;
-    void handleUnlink(std::string name) override;
-    void handleSetProperty(std::string name, json value) override;
-    void handleInvoke(int requestId, std::string name, json args) override;
-    // IObjectLinkService interface
-public:
-    void notifyPropertyChange(std::string name, json value) override;
-    void notifySignal(std::string name, json args) override;
-private:
+    virtual ~IObjectSinkNode();
+    virtual void link(std::string name) = 0;
+    virtual void unlink(std::string name) = 0;
+    virtual void invoke(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) = 0;
+    virtual void setProperty(std::string name, json value) = 0;
 };
 
+class IObjectSink
+{
+public:
+    virtual ~IObjectSink();
+    virtual void onSignal(std::string name, json args) = 0;
+    virtual void onPropertyChanged(std::string name, json value) = 0;
+    virtual void onInit(std::string name, json props, IObjectSinkNode* adapter) = 0;
+    virtual void onRelease() = 0;
+};
+
+
+// links an object to services
+class SinkToNodeEntry {
+public:
+    virtual ~SinkToNodeEntry();
+    IObjectSink* sink;
+    ObjectSinkNode* node;
+};
+
+
+
 } } // Apigear::ObjectLink
-
-
 

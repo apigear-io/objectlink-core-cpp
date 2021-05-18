@@ -1,20 +1,20 @@
 #include "qserviceio.h"
 
 
-QObjectLinkConnection::QObjectLinkConnection(const QString &name, QWebSocket *socket)
+SourceConnection::SourceConnection(const QString &name, QWebSocket *socket)
     : QObject(socket)
     , m_socket(socket)
-    , m_link(name.toStdString())
+    , m_adapter(name.toStdString())
 {
-    m_link.onLog(m_log.logFunc());
-    connect(m_socket, &QWebSocket::textMessageReceived, this, &QObjectLinkConnection::handleMessage);
+    m_adapter.onLog(m_log.logFunc());
+    connect(m_socket, &QWebSocket::textMessageReceived, this, &SourceConnection::handleMessage);
     WriteMessageFunc writeFunc = [this](std::string msg) {
         writeMessage(msg);
     };
-    m_link.onWrite(writeFunc);
+    m_adapter.onWrite(writeFunc);
 }
 
-void QObjectLinkConnection::writeMessage(const std::string msg)
+void SourceConnection::writeMessage(const std::string msg)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(msg);
     if(m_socket) {
@@ -22,9 +22,9 @@ void QObjectLinkConnection::writeMessage(const std::string msg)
     }
 }
 
-void QObjectLinkConnection::handleMessage(const QString &msg)
+void SourceConnection::handleMessage(const QString &msg)
 {
     qDebug() << Q_FUNC_INFO << msg;
 
-    m_link.handleMessage(msg.toStdString());
+    m_adapter.handleMessage(msg.toStdString());
 }

@@ -32,34 +32,34 @@ namespace ApiGear { namespace ObjectLink {
 
 
 
-Protocol::Protocol(IProtocolListener *listener)
+ObjectLinkProtocol::ObjectLinkProtocol(IObjectLinkProtocolListener *listener)
     : m_listener(listener)
 {
     assert(m_listener);
 }
 
-json Protocol::linkMessage(std::string name)
+json ObjectLinkProtocol::linkMessage(std::string name)
 {
     return json::array(
                 { MessageType::LINK, name }
                 );
 }
 
-json Protocol::unlinkMessage(std::string name)
+json ObjectLinkProtocol::unlinkMessage(std::string name)
 {
     return json::array(
                 { MessageType::UNLINK, name }
                 );
 }
 
-json Protocol::initMessage(std::string name, json props)
+json ObjectLinkProtocol::initMessage(std::string name, json props)
 {
     return json::array(
                 { MessageType::INIT, name, props }
                 );
 }
 
-json Protocol::setPropertyMessage(std::string name, json value)
+json ObjectLinkProtocol::setPropertyMessage(std::string name, json value)
 {
     return json::array(
                 { MessageType::SET_PROPERTY, name, value }
@@ -67,48 +67,48 @@ json Protocol::setPropertyMessage(std::string name, json value)
 
 }
 
-json Protocol::propertyChangeMessage(std::string name, json value)
+json ObjectLinkProtocol::propertyChangeMessage(std::string name, json value)
 {
     return json::array(
                 { MessageType::PROPERTY_CHANGE, name, value }
                 );
 }
 
-json Protocol::invokeMessage(int requestId, std::string name, json args)
+json ObjectLinkProtocol::invokeMessage(int requestId, std::string name, json args)
 {
     return json::array(
                 { MessageType::INVOKE, requestId, name, args }
                 );
 }
 
-json Protocol::invokeReplyMessage(int requestId, std::string name, json value)
+json ObjectLinkProtocol::invokeReplyMessage(int requestId, std::string name, json value)
 {
     return json::array(
                 { MessageType::INVOKE_REPLY, requestId, name, value }
                 );
 }
 
-json Protocol::signalMessage(std::string name, json args)
+json ObjectLinkProtocol::signalMessage(std::string name, json args)
 {
     return json::array(
                 { MessageType::SIGNAL, name, args }
                 );
 }
 
-json Protocol::errorMessage(MessageType msgType, int requestId, std::string error)
+json ObjectLinkProtocol::errorMessage(MessageType msgType, int requestId, std::string error)
 {
     return json::array(
                 { MessageType::ERROR, msgType, requestId, error }
                 );
 }
 
-IProtocolListener *Protocol::listener() const
+IObjectLinkProtocolListener *ObjectLinkProtocol::listener() const
 {
     assert(m_listener);
     return m_listener;
 }
 
-bool Protocol::handleMessage(json msg) {
+bool ObjectLinkProtocol::handleMessage(json msg) {
 
     m_lastError = "";
     if(!msg.is_array()) {

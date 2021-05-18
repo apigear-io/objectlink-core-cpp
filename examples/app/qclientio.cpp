@@ -22,70 +22,70 @@
 * SOFTWARE.
 */
 #include "qclientio.h"
-#include "olink/sinklink.h"
+#include "olink/sink/sinknode.h"
 
 using namespace ApiGear::ObjectLink;
 
-QSinkLink::QSinkLink(const QString& name, QWebSocket *socket, QObject *parent)
+ObjectLinkClient::ObjectLinkClient(const QString& name, QWebSocket *socket, QObject *parent)
     : QObject(parent)
     , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
-    , m_link(name.toStdString())
+    , m_node(name.toStdString())
 {
-    m_link.onLog(m_logger.logFunc());
-    connect(m_socket, &QWebSocket::connected, this, &QSinkLink::onConnected);
-    connect(m_socket, &QWebSocket::disconnected, this, &QSinkLink::onDisconnected);
-    connect(m_socket, &QWebSocket::textMessageReceived, this, &QSinkLink::handleTextMessage);
+    m_node.onLog(m_logger.logFunc());
+    connect(m_socket, &QWebSocket::connected, this, &ObjectLinkClient::onConnected);
+    connect(m_socket, &QWebSocket::disconnected, this, &ObjectLinkClient::onDisconnected);
+    connect(m_socket, &QWebSocket::textMessageReceived, this, &ObjectLinkClient::handleTextMessage);
     WriteMessageFunc func = [this](std::string msg) {
         m_protocol << msg;
         processMessages();
     };
-    m_link.onWrite(func);
+    m_node.onWrite(func);
 }
 
-QSinkLink::~QSinkLink()
+ObjectLinkClient::~ObjectLinkClient()
 {
 }
 
 
-void QSinkLink::connectToHost(QUrl url)
+void ObjectLinkClient::connectToHost(QUrl url)
 {
     m_socket->open(QUrl(url));
 }
 
-SinkNode *QSinkLink::sinkNode()
+ObjectSinkRegistry *ObjectLinkClient::registry()
 {
-    return m_link.sinkNode();
+    return m_node.registry();
 }
 
-SinkLink &QSinkLink::sinkLink()
+ObjectSinkNode &ObjectLinkClient::node()
 {
-    return m_link;
+    return m_node;
 }
 
-void QSinkLink::link(const QString &name)
+void ObjectLinkClient::link(const QString &name)
 {
-    m_link.link(name.toStdString());
+    m_node.link(name.toStdString());
 }
 
 
-void QSinkLink::onConnected()
+void ObjectLinkClient::onConnected()
 {
     qDebug() << "socket connected";
     processMessages();
 }
 
-void QSinkLink::onDisconnected()
+void ObjectLinkClient::onDisconnected()
 {
     qDebug() << "socket disconnected";
 }
 
-void QSinkLink::handleTextMessage(const QString &message)
+void ObjectLinkClient::handleTextMessage(const QString &message)
 {
-    m_link.handleMessage(message.toStdString());
+    m_node.handleMessage(message.toStdString());
 }
 
 
-void QSinkLink::processMessages()
+void ObjectLinkClient::processMessages()
 {
     if (m_socket->state() == QAbstractSocket::ConnectedState) {
         while(!m_protocol.isEmpty()) {
@@ -101,7 +101,7 @@ void QSinkLink::processMessages()
 }
 
 
-const QString &QSinkLink::name() const
+const QString &ObjectLinkClient::name() const
 {
     return m_name;
 }

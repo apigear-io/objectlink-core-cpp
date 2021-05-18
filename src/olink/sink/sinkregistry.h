@@ -24,42 +24,41 @@
 
 #pragma once
 
-#include "core/types.h"
-
+#include <string>
+#include "sinktypes.h"
+#include "olink/shared/baseregistry.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class SinkLink;
+class ObjectSinkNode;
 
-class ISinkLink {
-public:
-    virtual ~ISinkLink();
-    virtual void link(std::string name) = 0;
-    virtual void unlink(std::string name) = 0;
-    virtual void invoke(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) = 0;
-    virtual void setProperty(std::string name, json value) = 0;
-};
-
-class IObjectSink
+class ObjectSinkRegistry : public BaseRegistry
 {
 public:
-    virtual ~IObjectSink();
-    virtual void onSignal(std::string name, json args) = 0;
-    virtual void onPropertyChanged(std::string name, json value) = 0;
-    virtual void onInit(std::string name, json props, ISinkLink* comms) = 0;
-    virtual void onRelease() = 0;
+    ObjectSinkRegistry(std::string name);
+    virtual ~ObjectSinkRegistry();
+
+    void addObjectSink(std::string name, IObjectSink *sink);
+    void removeObjectSink(std::string name);
+    IObjectSink* getObjectSink(std::string name);
+
+    void setNode(std::string name, ObjectSinkNode* node);
+    void unsetNode(ObjectSinkNode *node);
+    IObjectSinkNode* getNode(std::string name);
+
+    static ObjectSinkRegistry* registry(std::string name);
+private:
+    std::map<std::string, SinkToNodeEntry> m_entries;
 };
 
-
-// links an object to services
-class SinkToLinkEntry {
+class SinkRegistryManager {
 public:
-    virtual ~SinkToLinkEntry();
-    IObjectSink* sink;
-    SinkLink* link;
+    void setRegistry(std::string name, ObjectSinkRegistry* registry);
+    void unsetRegistry(std::string name);
+    static SinkRegistryManager& get();
+    ObjectSinkRegistry* getRegistry(std::string name);
+private:
+    std::map<std::string, ObjectSinkRegistry*> m_registries;
 };
-
-
 
 } } // Apigear::ObjectLink
-

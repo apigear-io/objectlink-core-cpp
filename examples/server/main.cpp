@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    QObjectLinkHost server("server1");
+    ObjectLinkHost server("server1");
     CalcSource source;
-    server.registry().addObjectSource("demo.Calc", &source);
+    server.registry().addSource("demo.Calc", &source);
 
     server.listen("localhost", 8182);
     return app.exec();

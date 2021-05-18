@@ -1,6 +1,6 @@
 #pragma once
 
-#include "olink/sourcetypes.h"
+#include "olink/source/sourcetypes.h"
 #include "olink/core/protocol.h"
 #include <iostream>
 
@@ -15,7 +15,7 @@ public:
     }
     virtual ~CalcSource() override {}
 
-    ISourceLink* service() const {
+    IObjectSourceNode* service() const {
         assert(m_service);
         return m_service;
     }
@@ -72,7 +72,7 @@ public:
             }
         }
     }
-    void linked(std::string name, ISourceLink *service) override {
+    void linked(std::string name, IObjectSourceNode *service) override {
         std::cout << "linked" << name;
         m_service = service;
     }
@@ -86,7 +86,7 @@ public:
         return {{ "total", m_total }};
     }
 private:
-    ISourceLink* m_service;
+    IObjectSourceNode* m_service;
     int m_total;
     std::vector<json> m_events;
 };

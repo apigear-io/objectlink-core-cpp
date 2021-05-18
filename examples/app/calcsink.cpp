@@ -1,16 +1,16 @@
 #include "calcsink.h"
 
 #include "olink/core/types.h"
-#include "olink/sinknode.h"
+#include "olink/sink/sinkregistry.h"
 #include "qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
 CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
-    , m_link(nullptr)
+    , m_node(nullptr)
 {
-    SinkNode* node = SinkNodeManager::get().getSinkNode("client1");
+    ObjectSinkRegistry* node = SinkRegistryManager::get().getRegistry("client1");
     if(node) {
         node->addObjectSink("demo.Calc", this);
     }
@@ -20,22 +20,22 @@ CalcSink::CalcSink(QObject *parent)
 
 void CalcSink::add(int a)
 {
-    assert(m_link);
+    assert(m_node);
     InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_link->invoke("demo.Calc/add", { a }, func);
+    m_node->invoke("demo.Calc/add", { a }, func);
 }
 
 void CalcSink::sub(int a)
 {
-    assert(m_link);
+    assert(m_node);
     InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_link->invoke("demo.Calc/sub", { a }, func);
+    m_node->invoke("demo.Calc/sub", { a }, func);
 }
 
 void CalcSink::clear()
 {
-    assert(m_link);
-    m_link->invoke("demo.Calc/clear");
+    assert(m_node);
+    m_node->invoke("demo.Calc/clear");
 }
 
 int CalcSink::total() const {
@@ -44,8 +44,8 @@ int CalcSink::total() const {
 
 void CalcSink::setTotal(int total)
 {
-    assert(m_link);
-    m_link->setProperty("demo.Calc/total", total);
+    assert(m_node);
+    m_node->setProperty("demo.Calc/total", total);
 }
 
 bool CalcSink::isReady() const {
@@ -76,11 +76,11 @@ void CalcSink::onPropertyChanged(std::string name, json value)
         }
     }
 }
-void CalcSink::onInit(std::string name, json props, ISinkLink *link)
+void CalcSink::onInit(std::string name, json props, IObjectSinkNode *node)
 {
     m_name = name;
     m_ready = true;
-    m_link = link;
+    m_node = node;
     if(props.contains("total")) {
         int total = props["total"].get<int>();
         if(m_total != total) {
@@ -88,11 +88,11 @@ void CalcSink::onInit(std::string name, json props, ISinkLink *link)
             emit totalChanged(total);
         }
     }
-    assert(m_link);
+    assert(m_node);
 }
 
 void CalcSink::onRelease()
 {
     m_ready = false;
-    m_link = nullptr;
+    m_node = nullptr;
 }

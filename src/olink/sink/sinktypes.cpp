@@ -7,13 +7,13 @@ IObjectSink::~IObjectSink()
 
 }
 
-ISinkLink::~ISinkLink()
+IObjectSinkNode::~IObjectSinkNode()
 {
 
 }
 
 
-SinkToLinkEntry::~SinkToLinkEntry()
+SinkToNodeEntry::~SinkToNodeEntry()
 {
 }
 

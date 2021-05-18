@@ -2,7 +2,7 @@
 
 #include <QtCore>
 
-#include "olink/sinktypes.h"
+#include "olink/sink/sinktypes.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -33,11 +33,11 @@ signals:
 public: // IObjectLinkSink
     virtual void onSignal(std::string name, json args) override;
     virtual void onPropertyChanged(std::string name, json value) override;
-    virtual void onInit(std::string name, json props, ISinkLink *client) override;
+    virtual void onInit(std::string name, json props, IObjectSinkNode *dispatcher) override;
     virtual void onRelease() override;
 private:
     int m_total;
     bool m_ready;
     std::string m_name;
-    ISinkLink *m_link;
+    IObjectSinkNode *m_node;
 };

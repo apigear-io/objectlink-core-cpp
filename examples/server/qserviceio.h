@@ -4,21 +4,21 @@
 #include <QtWebSockets>
 
 #include "olink/core/consolelogger.h"
-#include "olink/sourcetypes.h"
-#include "olink/sourcelink.h"
+#include "olink/source/sourcetypes.h"
+#include "olink/source/sourcenode.h"
 
 using namespace ApiGear::ObjectLink;
 
-class QObjectLinkConnection : public QObject
+class SourceConnection : public QObject
 {
     Q_OBJECT
 public:
-    explicit QObjectLinkConnection(const QString& name, QWebSocket* socket);
+    explicit SourceConnection(const QString& name, QWebSocket* socket);
     void writeMessage(const std::string msg);
     void handleMessage(const QString& msg);
 private:
     QWebSocket* m_socket;
-    SourceLink m_link;
+    ObjectSourceNode m_adapter;
     ConsoleLogger m_log;
 
 };
