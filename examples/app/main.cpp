@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
-    OLinkClient client("client1");
+    OLinkClient client;
     client.connectToHost(QUrl("ws://127.0.0.1:8182"));
-    client.link("demo.Calc");
+    client.linkObjectSource("demo.Calc");
 
     qmlRegisterType<CalcSink>("net.olink", 1, 0, "Calculator");
 

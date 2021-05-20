@@ -1,7 +1,7 @@
 #pragma once
 
-#include "olink/core/types.h"
-#include "olink/core/node.h"
+#include "core/types.h"
+#include "core/node.h"
 
 
 namespace ApiGear { namespace ObjectLink {
@@ -61,9 +61,11 @@ public:
     void detachClientNode(ClientNode *node);
     void linkClientNode(std::string name, ClientNode *node);
     void unlinkClientNode(std::string name, ClientNode *node);
-    void addObjectSink(IObjectSink *sink);
+    ClientNode *addObjectSink(IObjectSink *sink);
     void removeObjectSink(IObjectSink *sink);
     IObjectSink *getObjectSink(std::string name);
+    ClientNode *getClientNode(std::string name);
+    ClientNode *getClientNode(IObjectSink *sink);
     void initEntry(std::string name);
     bool hasEntry(std::string name);
     SinkToClientEntry &entry(std::string name);

@@ -35,24 +35,21 @@ class OLinkClient
 {
     Q_OBJECT
 public:
-    explicit OLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
+    explicit OLinkClient(QWebSocket *socket=nullptr, QObject *parent=nullptr);
     virtual ~OLinkClient() override;
     void connectToHost(QUrl url);
-//    ObjectSinkRegistry *registry();
     ClientNode &node();
-    void link(const QString &name);
+    void linkObjectSource(std::string name);
 public:
 
     void onConnected();
     void onDisconnected();
     void handleTextMessage(const QString& message);
     void processMessages();
-    const QString &scope() const;
 
 private:
     QWebSocket *m_socket;
     ClientNode m_node;
     QQueue<std::string> m_protocol;
-    QString m_scope;
     ConsoleLogger m_logger;
 };

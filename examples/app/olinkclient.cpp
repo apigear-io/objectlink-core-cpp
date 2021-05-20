@@ -26,7 +26,7 @@
 
 using namespace ApiGear::ObjectLink;
 
-OLinkClient::OLinkClient(const QString& scope, QWebSocket *socket, QObject *parent)
+OLinkClient::OLinkClient(QWebSocket *socket, QObject *parent)
     : QObject(parent)
     , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
 {
@@ -48,34 +48,32 @@ OLinkClient::~OLinkClient()
 
 void OLinkClient::connectToHost(QUrl url)
 {
+    qDebug() << Q_FUNC_INFO;
     m_socket->open(QUrl(url));
 }
-
-//ObjectSinkRegistry *ObjectLinkClient::registry()
-//{
-//    return m_node.registry();
-//}
 
 ClientNode &OLinkClient::node()
 {
     return m_node;
 }
 
-void OLinkClient::link(const QString &name)
+void OLinkClient::linkObjectSource(std::string name)
 {
-    m_node.linkRemote(name.toStdString());
+    qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
+    m_node.clientRegistry().linkClientNode(name, &m_node);
+    m_node.linkRemote(name);
 }
 
 
 void OLinkClient::onConnected()
 {
-    qDebug() << "socket connected";
+    qDebug() << Q_FUNC_INFO;
     processMessages();
 }
 
 void OLinkClient::onDisconnected()
 {
-    qDebug() << "socket disconnected";
+    qDebug() << Q_FUNC_INFO;
 }
 
 void OLinkClient::handleTextMessage(const QString &message)
@@ -86,21 +84,16 @@ void OLinkClient::handleTextMessage(const QString &message)
 
 void OLinkClient::processMessages()
 {
+    qDebug() << Q_FUNC_INFO;
     if (m_socket->state() == QAbstractSocket::ConnectedState) {
         while(!m_protocol.isEmpty()) {
             // if we are using JSON we need to use txt message
             // otherwise binary messages
             //    m_socket->sendBinaryMessage(QByteArray::fromStdString(message));
             const QString& msg = QString::fromStdString(m_protocol.dequeue());
-            qDebug() << "write message to socket" << msg;
+            qDebug() << "write message to socket: " << msg;
             m_socket->sendTextMessage(msg);
         }
     }
 
-}
-
-
-const QString &OLinkClient::scope() const
-{
-    return m_scope;
 }
