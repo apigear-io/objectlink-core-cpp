@@ -20,25 +20,25 @@ set(APP_HEADERS
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(app
+    qt_add_executable(olink_example_app
         ${APP_SOURCES} ${APP_HEADERS}
     )
 else()
     if(ANDROID)
-        add_library(app SHARED
+        add_library(olink_example_app SHARED
             ${APP_SOURCES} ${APP_HEADERS}
         )
     else()
-        add_executable(app
+        add_executable(olink_example_app
           ${APP_SOURCES} ${APP_HEADERS}
         )
     endif()
 endif()
 
-target_compile_definitions(app
+target_compile_definitions(olink_example_app
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
-target_link_libraries(app
+target_link_libraries(olink_example_app
   PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick Qt${QT_VERSION_MAJOR}::WebSockets)
 
 
-target_link_libraries(app PRIVATE olink_core)
+target_link_libraries(olink_example_app PRIVATE olink_core)
