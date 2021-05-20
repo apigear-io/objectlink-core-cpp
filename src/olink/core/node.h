@@ -1,17 +1,18 @@
 #pragma once
 
-#include "listeners.h"
 #include "protocol.h"
 
 namespace ApiGear { namespace ObjectLink {
 
+/**
+ * @brief A base class for client and remote nodes
+ * Adds default handling of listener calls and a emits write message when required
+ */
 class BaseNode: public Base, public IProtocolListener, public IMessageHandler {
 public:
     BaseNode();
     void onWrite(WriteMessageFunc func);
-    void onLog(WriteLogFunc func);
     virtual void emitWrite(json j);
-    void emitLog(LogLevel level, std::string msg);
 public: // IMessageHandler
     void handleMessage(std::string data) override;
 public: // IProtocolListener
@@ -26,7 +27,6 @@ public: // IProtocolListener
     void handleError(int msgType, int requestId, std::string error) override;
 private:
     WriteMessageFunc m_writeFunc;
-    WriteLogFunc m_logFunc;
     MessageConverter m_converter;
     Protocol m_protocol;
 };

@@ -32,8 +32,9 @@ class RemoteNode;
 class RemoteRegistry;
 
 
-// passed into source object
-// distribute signals/propetty changes
+/**
+ * @brief exposed to object source to call remote node functions
+ */
 class IRemoteNode {
 public:
     virtual ~IRemoteNode();
@@ -43,6 +44,10 @@ public:
 
 // impemented by source object
 // called from object link
+/**
+ * @brief Implemented by the object source
+ * Interface is called by the remote node
+ */
 class IObjectSource {
 public:
     virtual ~IObjectSource();
@@ -55,6 +60,10 @@ public:
 };
 
 
+/**
+ * @brief manages associations of object source and nodes
+ * One source can be linked to many nodes
+ */
 struct SourceToNodesEntry {
     SourceToNodesEntry()
         : source(nullptr)
@@ -63,6 +72,11 @@ struct SourceToNodesEntry {
     std::set<RemoteNode*> nodes;
 };
 
+/**
+ * @brief remote side node to handle sources and olink messages
+ * A remote node is associated with one socket to handle messages and to write messages.
+ * The remote node calls the object sources based on remote registry entries.
+ */
 class RemoteNode: public BaseNode, public IRemoteNode {
 public:
     RemoteNode();
@@ -84,6 +98,11 @@ public: // IObjectSourceNode interface
     void notifySignal(std::string name, json args) override;
 };
 
+/**
+ * @brief remote side registry for object sources.
+ * Only one registry exists
+ * Remote side all object sources must be unique for the whole process.
+ */
 class RemoteRegistry: public Base {
 private:
     RemoteRegistry();

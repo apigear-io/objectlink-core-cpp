@@ -5,7 +5,6 @@ set(OLINK_SOURCES
     olink/core/types.cpp
     olink/core/node.cpp
     olink/core/protocol.cpp
-    olink/core/listeners.cpp
     olink/consolelogger.cpp
     olink/clientnode.cpp
     olink/remotenode.cpp
@@ -15,7 +14,6 @@ SET(OLINK_HEADERS
     olink/core/types.h
     olink/core/node.h
     olink/core/protocol.h
-    olink/core/listeners.h
     olink/consolelogger.h
     olink/clientnode.h
     olink/remotenode.h

@@ -23,12 +23,36 @@
 */
 #pragma once
 
-#include "listeners.h"
 #include "types.h"
 
 namespace ApiGear { namespace ObjectLink {
 
 
+/**
+ * @brief listener for the protocol.
+ */
+class IProtocolListener
+{
+public:
+    virtual ~IProtocolListener();
+
+    virtual void handleLink(std::string name) = 0;
+    virtual void handleUnlink(std::string name) = 0;
+    virtual void handleInit(std::string name, json props) = 0;
+    virtual void handleSetProperty(std::string name, json value) = 0;
+    virtual void handlePropertyChange(std::string name, json value) = 0;
+    virtual void handleInvoke(int requestId, std::string name, json args) = 0;
+    virtual void handleInvokeReply(int requestId, std::string name, json value) = 0;
+    virtual void handleSignal(std::string name, json args) = 0;
+    virtual void handleError(int msgType, int requestId, std::string error) = 0;
+};
+
+/**
+ * @brief The ObjectLink protocol
+ * Functions to create olik messages and to handle all olink messages
+ * On incoming messages the listeners is called.
+ * A base implementation is available in BaseNode (see ndoe.h)
+ */
 class Protocol : public Base
 {
 public:

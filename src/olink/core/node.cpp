@@ -10,8 +10,8 @@ namespace ApiGear { namespace ObjectLink {
 
 
 BaseNode::BaseNode()
-    : m_writeFunc(nullptr)
-    , m_logFunc(nullptr)
+    : Base()
+    , m_writeFunc(nullptr)
     , m_converter(MessageFormat::JSON)
     , m_protocol(this)
 {
@@ -30,18 +30,6 @@ void BaseNode::emitWrite(json msg)
         m_writeFunc(data);
     } else {
         emitLog(LogLevel::Warning, "no writer set, can not write");
-    }
-}
-
-void BaseNode::onLog(WriteLogFunc func)
-{
-    m_logFunc = func;
-}
-
-void BaseNode::emitLog(LogLevel level, std::string msg)
-{
-    if(m_logFunc) {
-        m_logFunc(level, msg);
     }
 }
 

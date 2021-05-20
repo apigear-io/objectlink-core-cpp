@@ -31,6 +31,20 @@ using json = nlohmann::json;
 namespace ApiGear { namespace ObjectLink {
 
 
+// ********************************************************************
+// IProtocolListener
+// ********************************************************************
+
+
+IProtocolListener::~IProtocolListener()
+{
+
+}
+
+// ********************************************************************
+// Protocol
+// ********************************************************************
+
 
 Protocol::Protocol(IProtocolListener *listener)
     : Base()

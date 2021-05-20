@@ -9,6 +9,9 @@ namespace ApiGear { namespace ObjectLink {
 class ClientNode;
 class ClientRegistry;
 
+/**
+ * @brief Interface exposed to object sinks to call client functions
+ */
 class IClientNode {
 public:
     virtual ~IClientNode();
@@ -18,6 +21,9 @@ public:
     virtual void setRemoteProperty(std::string name, json value) = 0;
 };
 
+/**
+ * @brief Interface to be implemented by object sinks
+ */
 class IObjectSink
 {
 public:
@@ -29,6 +35,10 @@ public:
     virtual void olinkOnRelease() = 0;
 };
 
+/**
+ * @brief internal structure to manage sink/node associations
+ * one onject sink can only be linked to one node
+ */
 struct SinkToClientEntry {
     SinkToClientEntry()
         : sink(nullptr)
@@ -38,6 +48,9 @@ struct SinkToClientEntry {
     ClientNode *node;
 };
 
+/**
+ * @brief client side sink registry
+ */
 class ClientRegistry : public Base {
 private:
     ClientRegistry();
@@ -58,6 +71,11 @@ private:
     std::map<std::string, SinkToClientEntry> m_entries;
 };
 
+/**
+ * @brief client side node to handle sinks and olink messages
+ * A client node is associated with one socket to handle messages and to wrire messages.
+ * The client node calls the correct sinks based on registry entries.
+ */
 class ClientNode : public BaseNode, public IClientNode
 {
 public:
