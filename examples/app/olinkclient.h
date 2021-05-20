@@ -25,23 +25,21 @@
 
 #include <QtCore>
 #include <QtWebSockets>
-#include "olink/core/types.h"
-#include "olink/sink/sinktypes.h"
-#include "olink/sink/sinknode.h"
-#include "olink/core/consolelogger.h"
+#include "olink/clientnode.h"
+#include "olink/consolelogger.h"
 
 using namespace ApiGear::ObjectLink;
 
-class ObjectLinkClient
+class OLinkClient
         : public QObject
 {
     Q_OBJECT
 public:
-    explicit ObjectLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
-    virtual ~ObjectLinkClient() override;
+    explicit OLinkClient(const QString &name, QWebSocket *socket=nullptr, QObject *parent=nullptr);
+    virtual ~OLinkClient() override;
     void connectToHost(QUrl url);
-    ObjectSinkRegistry *registry();
-    ObjectSinkNode &node();
+//    ObjectSinkRegistry *registry();
+    ClientNode &node();
     void link(const QString &name);
 public:
 
@@ -49,12 +47,12 @@ public:
     void onDisconnected();
     void handleTextMessage(const QString& message);
     void processMessages();
-    const QString &name() const;
+    const QString &scope() const;
 
 private:
     QWebSocket *m_socket;
-    ObjectSinkNode m_node;
+    ClientNode m_node;
     QQueue<std::string> m_protocol;
-    QString m_name;
+    QString m_scope;
     ConsoleLogger m_logger;
 };

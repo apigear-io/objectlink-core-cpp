@@ -22,17 +22,15 @@
 * SOFTWARE.
 */
 #include <QtCore>
-#include <qserver.h>
+#include <olinkhost.h>
 #include "calcsource.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    ObjectLinkHost server("server1");
+    OLinkHost server;
     CalcSource source;
-    server.registry().addSource("demo.Calc", &source);
-
     server.listen("localhost", 8182);
     return app.exec();
 }

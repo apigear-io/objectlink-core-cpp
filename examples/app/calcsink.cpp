@@ -1,8 +1,6 @@
 #include "calcsink.h"
 
 #include "olink/core/types.h"
-#include "olink/sink/sinkregistry.h"
-#include "qclientio.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -10,32 +8,29 @@ CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
     , m_node(nullptr)
 {
-    ObjectSinkRegistry* node = SinkRegistryManager::get().getRegistry("client1");
-    if(node) {
-        node->addObjectSink("demo.Calc", this);
-    }
-//    Q_ASSERT(m_client);
-//    m_client->link("demo.Calc");
+    ClientRegistry::get().addObjectSink(this);
+}
+
+CalcSink::~CalcSink() {
+    ClientRegistry::get().removeObjectSink(this);
 }
 
 void CalcSink::add(int a)
 {
     assert(m_node);
-    InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_node->invoke("demo.Calc/add", { a }, func);
+    m_node->invokeRemote("demo.Calc/add", { a });
 }
 
 void CalcSink::sub(int a)
 {
     assert(m_node);
-    InvokeReplyFunc func = [this](InvokeReplyArg arg) {};
-    m_node->invoke("demo.Calc/sub", { a }, func);
+    m_node->invokeRemote("demo.Calc/sub", { a });
 }
 
 void CalcSink::clear()
 {
     assert(m_node);
-    m_node->invoke("demo.Calc/clear");
+    m_node->invokeRemote("demo.Calc/clear");
 }
 
 int CalcSink::total() const {
@@ -45,15 +40,18 @@ int CalcSink::total() const {
 void CalcSink::setTotal(int total)
 {
     assert(m_node);
-    m_node->setProperty("demo.Calc/total", total);
+    m_node->setRemoteProperty("demo.Calc/total", total);
 }
 
 bool CalcSink::isReady() const {
     return m_ready;
 }
 
+std::string CalcSink::olinkObjectName() {
+    return "demo.Calc";
+}
 
-void CalcSink::onSignal(std::string name, json args)
+void CalcSink::olinkOnSignal(std::string name, json args)
 {
     std::string path = Name::pathFromName(name);
     if(path == "maxReached") {
@@ -65,8 +63,9 @@ void CalcSink::onSignal(std::string name, json args)
         emit minReached(value);
     }
 }
-void CalcSink::onPropertyChanged(std::string name, json value)
+void CalcSink::olinkOnPropertyChanged(std::string name, json value)
 {
+    qDebug() << "property changed: " << QString::fromStdString(name);
     std::string path = Name::pathFromName(name);
     if(path == "total") {
         int total = value.get<int>();
@@ -76,8 +75,9 @@ void CalcSink::onPropertyChanged(std::string name, json value)
         }
     }
 }
-void CalcSink::onInit(std::string name, json props, IObjectSinkNode *node)
+void CalcSink::olinkOnInit(std::string name, json props, IClientNode *node)
 {
+    qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
     m_name = name;
     m_ready = true;
     m_node = node;
@@ -91,7 +91,7 @@ void CalcSink::onInit(std::string name, json props, IObjectSinkNode *node)
     assert(m_node);
 }
 
-void CalcSink::onRelease()
+void CalcSink::olinkOnRelease()
 {
     m_ready = false;
     m_node = nullptr;

@@ -3,32 +3,22 @@ set(SPDLOG_TRACE_ON true)
 
 set(OLINK_SOURCES
     olink/core/types.cpp
+    olink/core/node.cpp
     olink/core/protocol.cpp
     olink/core/listeners.cpp
-    olink/core/consolelogger.cpp
-    olink/sink/sinktypes.cpp
-    olink/sink/sinkregistry.cpp
-    olink/sink/sinknode.cpp
-    olink/source/sourcetypes.cpp
-    olink/source/sourceregistry.cpp
-    olink/source/sourcenode.cpp
-    olink/shared/basenode.cpp
-    olink/shared/baseregistry.cpp
+    olink/consolelogger.cpp
+    olink/clientnode.cpp
+    olink/remotenode.cpp
 )
 
 SET(OLINK_HEADERS
     olink/core/types.h
+    olink/core/node.h
     olink/core/protocol.h
     olink/core/listeners.h
-    olink/core/consolelogger.h
-    olink/sink/sinktypes.cpp
-    olink/sink/sinkregistry.cpp
-    olink/sink/sinknode.cpp
-    olink/source/sourcetypes.cpp
-    olink/source/sourceregistry.cpp
-    olink/source/sourcenode.cpp
-    olink/shared/basenode.cpp
-    olink/shared/baseregistry.cpp
+    olink/consolelogger.h
+    olink/clientnode.h
+    olink/remotenode.h
 )
 
 

@@ -131,5 +131,14 @@ public:
 typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;
 
 
+class Base {
+public:
+    Base();
+    virtual ~Base();
+    void onLog(WriteLogFunc func);
+    void emitLog(LogLevel level, std::string msg);
+private:
+    WriteLogFunc m_logFunc;
+};
 
 } } // ApiGear::ObjectLink

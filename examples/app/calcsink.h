@@ -2,7 +2,7 @@
 
 #include <QtCore>
 
-#include "olink/sink/sinktypes.h"
+#include "olink/clientnode.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -18,6 +18,7 @@ class CalcSink
     Q_PROPERTY(bool isReady READ isReady NOTIFY readyChanged)
 public:
     CalcSink(QObject *parent=nullptr);
+    virtual ~CalcSink();
     Q_INVOKABLE void add(int a);
     Q_INVOKABLE void sub(int a);
     Q_INVOKABLE void clear();
@@ -31,13 +32,14 @@ signals:
     void maxReached(int value);
     void minReached(int value);
 public: // IObjectLinkSink
-    virtual void onSignal(std::string name, json args) override;
-    virtual void onPropertyChanged(std::string name, json value) override;
-    virtual void onInit(std::string name, json props, IObjectSinkNode *dispatcher) override;
-    virtual void onRelease() override;
+    virtual std::string olinkObjectName() override;
+    virtual void olinkOnSignal(std::string name, json args) override;
+    virtual void olinkOnPropertyChanged(std::string name, json value) override;
+    virtual void olinkOnInit(std::string name, json props, IClientNode *node) override;
+    virtual void olinkOnRelease() override;
 private:
     int m_total;
     bool m_ready;
     std::string m_name;
-    IObjectSinkNode *m_node;
+    IClientNode *m_node;
 };

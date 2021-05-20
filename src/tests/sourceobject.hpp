@@ -1,7 +1,6 @@
 #pragma once
 
-#include "olink/source/sourcetypes.h"
-#include "olink/core/protocol.h"
+#include "olink/remotenode.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
@@ -9,24 +8,27 @@ using namespace ApiGear::ObjectLink;
 class CalcSource: public IObjectSource {
 public:
     CalcSource()
-        : m_service(nullptr)
+        : m_node(nullptr)
         , m_total(1)
     {
+        RemoteRegistry::get().addObjectSource(this);
     }
-    virtual ~CalcSource() override {}
+    virtual ~CalcSource() override {
+        RemoteRegistry::get().removeObjectSource(this);
+    }
 
-    IObjectSourceNode* service() const {
-        assert(m_service);
-        return m_service;
+    IRemoteNode* remoteNode() const {
+        assert(m_node);
+        return m_node;
     }
 
     int add(int value) {
         m_total += value;
-        service()->notifyPropertyChange("demo.Calc/total", m_total);
+        remoteNode()->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/add", value });
         m_events.push_back({ "demo.Calc/total", m_total });
         if(m_total >= 10) {
-            service()->notifySignal("demo.Calc/hitUpper", { 10 });
+            remoteNode()->notifySignal("demo.Calc/hitUpper", { 10 });
             m_events.push_back({ "demo.Calc/hitUpper", 10 });
         }
         return m_total;
@@ -34,24 +36,24 @@ public:
 
     int sub(int value) {
         m_total -= value;
-        service()->notifyPropertyChange("demo.Calc/total", m_total);
+        remoteNode()->notifyPropertyChange("demo.Calc/total", m_total);
         m_events.push_back({ "demo.Calc/sub", value });
         m_events.push_back({ "demo.Calc/total", m_total });
         if(m_total <= 0) {
-            service()->notifySignal("demo.Calc/hitLower", { 0 });
+            remoteNode()->notifySignal("demo.Calc/hitLower", { 0 });
             m_events.push_back({ "demo.Calc/hitLower", 0 });
         }
         return m_total;
     }
     void notifyShutdown(int timeout) {
-        service()->notifySignal("demo.Calc/timeout", { timeout });
+        remoteNode()->notifySignal("demo.Calc/timeout", { timeout });
     }
     // IServiceObjectListener interface
 public:
-    std::string getObjectName() override {
+    std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    json invoke(std::string name, json args) override {
+    json olinkInvoke(std::string name, json args) override {
         std::cout << "invoke" << name << args.dump();
         std::string path = Name::pathFromName(name);
         if(path == "add") {
@@ -61,32 +63,32 @@ public:
         }
         return json();
     }
-    void setProperty(std::string name, json value) override {
+    void olinkSetProperty(std::string name, json value) override {
         std::cout << "setProperty" << name << value.dump();
         std::string path = Name::pathFromName(name);
         if(path == "total") {
             int total = value.get<int>();
             if(m_total != total) {
                 m_total = total;
-                service()->notifyPropertyChange(name, total);
+                remoteNode()->notifyPropertyChange(name, total);
             }
         }
     }
-    void linked(std::string name, IObjectSourceNode *service) override {
+    void olinkLinked(std::string name, IRemoteNode *node) override {
         std::cout << "linked" << name;
-        m_service = service;
+        m_node = node;
     }
-    void unlinked(std::string name) override
+    void olinkUnlinked(std::string name) override
     {
         std::cout << "unlinked" << name;
-        m_service = nullptr;
+        m_node = nullptr;
     }
-    json collectProperties() override
+    json olinkCollectProperties() override
     {
         return {{ "total", m_total }};
     }
 private:
-    IObjectSourceNode* m_service;
+    IRemoteNode* m_node;
     int m_total;
     std::vector<json> m_events;
 };

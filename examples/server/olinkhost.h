@@ -23,32 +23,27 @@
 */
 #pragma once
 
-#include "olink/shared/basenode.h"
-#include "sourcetypes.h"
+#include <QtCore>
+#include <QtWebSockets>
+#include "olink/remotenode.h"
+#include "olink/consolelogger.h"
 
-namespace ApiGear { namespace ObjectLink {
+using namespace ApiGear::ObjectLink;
 
-class ObjectSourceRegistry;
-
-class ObjectSourceNode: public BaseNode, public IObjectSourceNode {
+class OLinkHost :public QObject
+{
+    Q_OBJECT
 public:
-    ObjectSourceNode(std::string name);
-    void writePropertyChange(std::string name, json value);
-    ObjectSourceRegistry *registry();
+    explicit OLinkHost(QObject *parent=nullptr);
+    virtual ~OLinkHost() override;
+    void listen(const QString& host, int port);
+    void onNewConnection();
+    void onClosed();
+    const QString &name() const;
 
-public: // IMessagesListener interface
-    void handleLink(std::string name) override;
-    void handleUnlink(std::string name) override;
-    void handleSetProperty(std::string name, json value) override;
-    void handleInvoke(int requestId, std::string name, json args) override;
+    RemoteRegistry &registry();
 
-public: // IObjectSourceNode interface
-    void notifyPropertyChange(std::string name, json value) override;
-    void notifySignal(std::string name, json args) override;
 private:
+    QWebSocketServer* m_wss;
+    ConsoleLogger m_log;
 };
-
-} } // Apigear::ObjectLink
-
-
-

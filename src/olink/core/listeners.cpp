@@ -27,50 +27,50 @@
 namespace ApiGear { namespace ObjectLink {
 
 
-IObjectLinkProtocolListener::~IObjectLinkProtocolListener() {}
+IProtocolListener::~IProtocolListener() {}
 
-void DefaultObjectLinkProtocolListener::handleLink(std::string name)
+void DefaultProtocolListener::handleLink(std::string name)
 {
     std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleUnlink(std::string name)
+void DefaultProtocolListener::handleUnlink(std::string name)
 {
     std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleInvoke(int requestId, std::string name, json args)
+void DefaultProtocolListener::handleInvoke(int requestId, std::string name, json args)
 {
     std::cout << "not implemented " << __func__ << requestId << name << args.dump() << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleSetProperty(std::string name, json value)
+void DefaultProtocolListener::handleSetProperty(std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
 
-void DefaultObjectLinkProtocolListener::handleInit(std::string name, json props)
+void DefaultProtocolListener::handleInit(std::string name, json props)
 {
     std::cout << "not implemented " << __func__ << name << props.dump() << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleInvokeReply(int requestId, std::string name, json value)
+void DefaultProtocolListener::handleInvokeReply(int requestId, std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << requestId << name << value.dump() << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleSignal(std::string name, json args)
+void DefaultProtocolListener::handleSignal(std::string name, json args)
 {
     std::cout << "not implemented " << __func__ << name << args.dump()  << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handlePropertyChange(std::string name, json value)
+void DefaultProtocolListener::handlePropertyChange(std::string name, json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
-void DefaultObjectLinkProtocolListener::handleError(int msgType, int requestId, std::string error)
+void DefaultProtocolListener::handleError(int msgType, int requestId, std::string error)
 {
     std::cout << "not implemented " << __func__ << msgType << requestId << error << std::endl;
 }

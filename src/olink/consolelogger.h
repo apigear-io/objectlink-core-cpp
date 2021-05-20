@@ -21,44 +21,22 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
 */
-
 #pragma once
 
+#include "core/types.h"
+
 #include <string>
-#include "sinktypes.h"
-#include "olink/shared/baseregistry.h"
 
 namespace ApiGear { namespace ObjectLink {
 
-class ObjectSinkNode;
-
-class ObjectSinkRegistry : public BaseRegistry
-{
+class ConsoleLogger : public ILogger {
 public:
-    ObjectSinkRegistry(std::string name);
-    virtual ~ObjectSinkRegistry();
-
-    void addObjectSink(std::string name, IObjectSink *sink);
-    void removeObjectSink(std::string name);
-    IObjectSink* getObjectSink(std::string name);
-
-    void setNode(std::string name, ObjectSinkNode* node);
-    void unsetNode(ObjectSinkNode *node);
-    IObjectSinkNode* getNode(std::string name);
-
-    static ObjectSinkRegistry* registry(std::string name);
+    ConsoleLogger();
+    void log(LogLevel level, std::string msg) override;
+    WriteLogFunc& logFunc();
 private:
-    std::map<std::string, SinkToNodeEntry> m_entries;
+    WriteLogFunc m_func;
 };
 
-class SinkRegistryManager {
-public:
-    void setRegistry(std::string name, ObjectSinkRegistry* registry);
-    void unsetRegistry(std::string name);
-    static SinkRegistryManager& get();
-    ObjectSinkRegistry* getRegistry(std::string name);
-private:
-    std::map<std::string, ObjectSinkRegistry*> m_registries;
-};
+} } // ApiGear::ObjectLink
 
-} } // Apigear::ObjectLink

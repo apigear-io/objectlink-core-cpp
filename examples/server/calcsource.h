@@ -1,14 +1,15 @@
 #pragma once
-#include "olink/source/sourcetypes.h"
+#include "olink/remotenode.h"
 
 using namespace ApiGear::ObjectLink;
+
 
 class CalcSource: public IObjectSource {
 public:
     CalcSource();
     virtual ~CalcSource() override;
 
-    IObjectSourceNode *link() const;
+    IRemoteNode *node() const;
 
     int add(int value);
 
@@ -17,14 +18,14 @@ public:
     void notifyShutdown(int timeout);
     // IServiceObjectListener interface
 public:
-    std::string getObjectName() override;
-    json invoke(std::string name, json args) override;
-    void setProperty(std::string name, json value) override;
-    void linked(std::string name, IObjectSourceNode *service) override;
-    void unlinked(std::string name) override;
-    json collectProperties() override;
+    std::string olinkObjectName() override;
+    json olinkInvoke(std::string name, json args) override;
+    void olinkSetProperty(std::string name, json value) override;
+    void olinkLinked(std::string name, IRemoteNode *node) override;
+    void olinkUnlinked(std::string name) override;
+    json olinkCollectProperties() override;
 private:
-    IObjectSourceNode* m_link;
+    IRemoteNode* m_node;
     int m_total;
 };
 

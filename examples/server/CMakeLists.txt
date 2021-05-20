@@ -8,18 +8,16 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick WebSockets REQUIRED)
 
 set(SERVER_SOURCE
         main.cpp
-        ../app/qclientio.cpp
         calcsource.cpp
-        qserver.cpp
-        qserviceio.cpp
+        olinkhost.cpp
+        remoteconnection.cpp
 )
 
 set(SERVER_HEADERS
         main.cpp
-        ../app/qclientio.h
         calcsource.h
-        qserver.h
-        qserviceio.h
+        olinkhost.h
+        remoteconnection.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

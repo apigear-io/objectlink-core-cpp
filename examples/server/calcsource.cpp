@@ -5,24 +5,27 @@ using namespace ApiGear::ObjectLink;
 
 
 CalcSource::CalcSource()
-    : m_link(nullptr)
+    : m_node(nullptr)
     , m_total(1)
 {
+    RemoteRegistry::get().addObjectSource(this);
 }
 
-CalcSource::~CalcSource() {}
+CalcSource::~CalcSource() {
+    RemoteRegistry::get().removeObjectSource(this);
+}
 
-IObjectSourceNode *CalcSource::link() const {
-    assert(m_link);
-    return m_link;
+IRemoteNode *CalcSource::node() const {
+    assert(m_node);
+    return m_node;
 }
 
 int CalcSource::add(int value) {
     std::cout << "add: " + std::to_string(value) << std::endl;
     m_total += value;
-    link()->notifyPropertyChange("demo.Calc/total", m_total);
+    node()->notifyPropertyChange("demo.Calc/total", m_total);
     if(m_total >= 10) {
-        link()->notifySignal("demo.Calc/hitUpper", { 10 });
+        node()->notifySignal("demo.Calc/hitUpper", { 10 });
     }
     return m_total;
 }
@@ -30,9 +33,9 @@ int CalcSource::add(int value) {
 int CalcSource::sub(int value) {
     std::cout << "sub: " + std::to_string(value) << std::endl;
     m_total -= value;
-    link()->notifyPropertyChange("demo.Calc/total", m_total);
+    node()->notifyPropertyChange("demo.Calc/total", m_total);
     if(m_total <= 0) {
-        link()->notifySignal("demo.Calc/hitLower", { 0 });
+        node()->notifySignal("demo.Calc/hitLower", { 0 });
     }
     return m_total;
 }
@@ -40,18 +43,18 @@ int CalcSource::sub(int value) {
 void CalcSource::clear()
 {
     m_total = 0;
-    link()->notifyPropertyChange("demo.Calc/total", m_total);
+    node()->notifyPropertyChange("demo.Calc/total", m_total);
 }
 
 void CalcSource::notifyShutdown(int timeout) {
-    link()->notifySignal("demo.Calc/timeout", { timeout });
+    node()->notifySignal("demo.Calc/timeout", { timeout });
 }
 
-std::string CalcSource::getObjectName() {
+std::string CalcSource::olinkObjectName() {
     return "demo.Calc";
 }
 
-json CalcSource::invoke(std::string name, json args) {
+json CalcSource::olinkInvoke(std::string name, json args) {
     std::cout << "invoke" << name << args.dump();
     std::string path = Name::pathFromName(name);
     if(path == "add") {
@@ -69,30 +72,30 @@ json CalcSource::invoke(std::string name, json args) {
     return json();
 }
 
-void CalcSource::setProperty(std::string name, json value) {
+void CalcSource::olinkSetProperty(std::string name, json value) {
     std::cout << "setProperty" << name << value.dump();
     std::string path = Name::pathFromName(name);
     if(path == "total") {
         int total = value.get<int>();
         if(m_total != total) {
             m_total = total;
-            link()->notifyPropertyChange(name, total);
+            node()->notifyPropertyChange(name, total);
         }
     }
 }
 
-void CalcSource::linked(std::string name, IObjectSourceNode *link) {
+void CalcSource::olinkLinked(std::string name, IRemoteNode *node) {
     std::cout << "linked" << name;
-    m_link = link;
+    m_node = node;
 }
 
-void CalcSource::unlinked(std::string name)
+void CalcSource::olinkUnlinked(std::string name)
 {
     std::cout << "unlinked" << name;
-    m_link = nullptr;
+    m_node = nullptr;
 }
 
-json CalcSource::collectProperties()
+json CalcSource::olinkCollectProperties()
 {
     return {{ "total", m_total }};
 }

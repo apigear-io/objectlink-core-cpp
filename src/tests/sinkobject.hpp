@@ -1,6 +1,6 @@
 #pragma once
 
-#include "olink/sink/sinktypes.h"
+#include "olink/clientnode.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
@@ -12,19 +12,22 @@ public:
         , m_total(0)
         , m_ready(false)
     {
+        ClientRegistry::get().addObjectSink(this);
     }
-    virtual ~CalcSink() override {}
+    virtual ~CalcSink() override {
+        ClientRegistry::get().removeObjectSink(this);
+    }
     int total() const {
         return m_total;
     }
     void setTotal(int value) {
-        client()->setProperty("demo.Calc/total", value);
+        client()->setRemoteProperty("demo.Calc/total", value);
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
             std::cout << "invoke reply" << arg.name << arg.value.dump();
         };
-        client()->invoke("demo.Calc/add", { a }, func);
+        client()->invokeRemote("demo.Calc/add", { a }, func);
 
         return -1;
     }
@@ -32,10 +35,10 @@ public:
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
             std::cout << "invoke reply " << arg.name << arg.value.dump();
         };
-        client()->invoke("demo.Calc/sub", { a }, func);
+        client()->invokeRemote("demo.Calc/sub", { a }, func);
         return -1;
     }
-    IObjectSinkNode *client() const {
+    IClientNode *client() const {
         assert(m_client);
         return m_client;
     }
@@ -44,12 +47,15 @@ public:
     }
     // IClientObjectHandler interface
 public:
-    void onSignal(std::string name, json args) override {
+    std::string olinkObjectName() override {
+        return "demo.Calc";
+    }
+    void olinkOnSignal(std::string name, json args) override {
         std::cout << "onSignal" << name  << args.dump() << std::endl;
         events.push_back({name, args});
 
     }
-    void onPropertyChanged(std::string name, json value) override {
+    void olinkOnPropertyChanged(std::string name, json value) override {
         std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::pathFromName(name);
         if(path == "total") {
@@ -60,8 +66,8 @@ public:
         }
 
     }
-    void onInit(std::string name, json props, IObjectSinkNode *client) override {
-        std::cout << "onInit" << name << props.dump() << std::endl;
+    void olinkOnInit(std::string name, json props, IClientNode *client) override {
+        std::cout << "CalcSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
         if(props.contains("total")) {
@@ -71,14 +77,14 @@ public:
             }
         }
     }
-    void onRelease() override {
+    void olinkOnRelease() override {
         m_ready = false;
         m_client = nullptr;
     }
 public:
     std::list<json> events;
 private:
-    IObjectSinkNode *m_client;
+    IClientNode *m_client;
     int m_total;
     bool m_ready;
 

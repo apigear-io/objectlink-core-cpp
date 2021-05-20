@@ -31,6 +31,10 @@
 
 namespace ApiGear { namespace ObjectLink {
 
+// ********************************************************************
+// Name
+// ********************************************************************
+
 std::string Name::resourceFromName(std::string name)
 {
     return name.substr(0, name.find("/"));
@@ -50,6 +54,10 @@ std::string Name::createName(std::string resource, std::string path)
 {
     return resource + "/" + path;
 }
+
+// ********************************************************************
+// MessageConverter
+// ********************************************************************
 
 MessageConverter::MessageConverter(MessageFormat format)
     : m_format(format)
@@ -117,8 +125,20 @@ std::string toString(MessageType type) {
     return result->second;
 }
 
+// ********************************************************************
+// IMessageHandler
+// ********************************************************************
+
+
 IMessageHandler::~IMessageHandler() {}
+
+// ********************************************************************
+// ILogger
+// ********************************************************************
+
 ILogger::~ILogger() {}
+
+
 
 
 LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
@@ -141,6 +161,33 @@ WriteMessageFunc& LoopbackWriter::writeFunc() {
     return m_writeFunc;
 }
 
+
+
+// ********************************************************************
+// Base
+// ********************************************************************
+
+Base::Base()
+    : m_logFunc(nullptr)
+{
+
+}
+
+Base::~Base()
+{
+}
+
+void Base::onLog(WriteLogFunc func)
+{
+    m_logFunc = func;
+}
+
+void Base::emitLog(LogLevel level, std::string msg)
+{
+    if(m_logFunc) {
+        m_logFunc(level, msg);
+    }
+}
 
 
 
