@@ -83,25 +83,88 @@ class ClientNode : public BaseNode, public IClientNode
 public:
     ClientNode();
     virtual ~ClientNode() override;
+    /**
+     * link client node to object source by name
+     */
     void linkNode(std::string name);
+    /**
+     * unlink client node from object source by name
+     */
     void unlinkNode(std::string name);
 public: // IClientNode
+    /**
+     * link object source to remote node by name
+     * sends LINK message
+     */
     void linkRemote(std::string name) override;
+    /**
+     * unlinks object source from remote node by name
+     * sends UNKINK message
+     */
     void unlinkRemote(std::string name) override;
+    /**
+     * invokes a remote function by name using arguments.
+     * Result is delivered using reply function.
+     * sends INVOKE message and registers a reply handler (INVOKE_REPLY)
+     */
     void invokeRemote(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) override;
+    /**
+     * set remote property using name to value.
+     * sends SET_PROPERTY message.
+     * Changes will be distributed using PROPERTY_CHANGE message.
+     */
     void setRemoteProperty(std::string name, json value) override;
+    /**
+     * Registry which manages a client to sink associations.
+     * Registry is global and only one sink with unique names can be registered.
+     * A sink has always none or one client.
+     */
     ClientRegistry& registry();
 public: // sink registry
+    /**
+     * Adds object sink to global registry.
+     * Return a client node, when previously registered using linkNode
+     */
     static ClientNode *addObjectSink(IObjectSink *sink);
+    /**
+     * Removed object sink from global registry.
+     */
     static void removeObjectSink(IObjectSink *sink);
+    /**
+     * Gets object sink using unique sink name
+     */
     IObjectSink* getObjectSink(std::string name);
 protected: // IMessageListener
+    /**
+     * handles remote init message.
+     * Calls the object sink init function.
+     */
     void handleInit(std::string name, json props) override;
+    /**
+     * handles remote property change message
+     * Calls the object sink property change function
+     */
     void handlePropertyChange(std::string name, json value) override;
+    /**
+     * handles remote invoke reply message
+     * Lookups the reply func and calls the function to deliver the value
+     */
     void handleInvokeReply(int requestId, std::string name, json value) override;
+    /**
+     * handles remote signal message
+     * Calls the object sink signal function
+     */
     void handleSignal(std::string name, json args) override;
+    /**
+     * handles remote error message
+     * Stores the error function. If request id, removes also the reply handler.
+     */
     void handleError(int msgType, int requestId, std::string error) override;
 protected:
+    /**
+     * returns new request id.
+     * Request id is always greater 0.
+     */
     int nextRequestId();
 private:
     int m_nextRequestId;

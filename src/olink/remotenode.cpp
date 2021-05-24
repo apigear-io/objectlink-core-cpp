@@ -43,6 +43,78 @@ IObjectSource::~IObjectSource()
 {
 }
 
+// ********************************************************************
+// RemoteRegistry
+// ********************************************************************
+
+RemoteRegistry::RemoteRegistry()
+    : Base()
+{
+}
+
+RemoteRegistry &RemoteRegistry::get()
+{
+    static RemoteRegistry r;
+    return r;
+}
+
+void RemoteRegistry::addObjectSource(IObjectSource *source)
+{
+    std::string resource = Name::resourceFromName(source->olinkObjectName());
+    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + resource);
+    m_entries[resource].source = source;
+}
+
+void RemoteRegistry::removeObjectSource(IObjectSource *source)
+{
+    std::string resource = Name::resourceFromName(source->olinkObjectName());
+    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + resource);
+    m_entries.erase(resource);
+}
+
+IObjectSource *RemoteRegistry::getObjectSource(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    emitLog(LogLevel::Info, "RemoteRegistry.getObjectSource: " + resource);
+    return m_entries[resource].source;
+}
+
+std::set<RemoteNode *> RemoteRegistry::getRemoteNodes(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    emitLog(LogLevel::Info, "RemoteRegistry.getRemoteNodes: " + resource);
+    return m_entries[resource].nodes;
+}
+
+void RemoteRegistry::attachRemoteNode(RemoteNode *node)
+{
+    emitLog(LogLevel::Info, "RemoteRegistry.attachRemoteNode");
+}
+
+void RemoteRegistry::detachRemoteNode(RemoteNode *node)
+{
+    emitLog(LogLevel::Info, "RemoteRegistry.detachRemoteNode");
+    for(auto &entry: m_entries) {
+        if(entry.second.nodes.count(node) != 0) {
+            entry.second.nodes.erase(node);
+        }
+    }
+}
+
+void RemoteRegistry::linkRemoteNode(std::string name, RemoteNode *node)
+{
+    std::string resource = Name::resourceFromName(name);
+    emitLog(LogLevel::Info, "RemoteRegistry.linkRemoteNode: " + resource);
+    m_entries[resource].nodes.insert(node);
+}
+
+void RemoteRegistry::unlinkRemoteNode(std::string name, RemoteNode *node)
+{
+    std::string resource = Name::resourceFromName(name);
+    emitLog(LogLevel::Info, "RemoteRegistry.unlinkRemoteNode: " + resource);
+    m_entries[resource].nodes.erase(node);
+}
+
 
 // ********************************************************************
 // RemoteNode
@@ -143,78 +215,6 @@ void RemoteNode::linkNode(std::string name)
 void RemoteNode::unlinkNode(std::string name)
 {
     registry().unlinkRemoteNode(name, this);
-}
-
-// ********************************************************************
-// RemoteRegistry
-// ********************************************************************
-
-RemoteRegistry::RemoteRegistry()
-    : Base()
-{
-}
-
-RemoteRegistry &RemoteRegistry::get()
-{
-    static RemoteRegistry r;
-    return r;
-}
-
-void RemoteRegistry::addObjectSource(IObjectSource *source)
-{
-    std::string resource = Name::resourceFromName(source->olinkObjectName());
-    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + resource);
-    m_entries[resource].source = source;
-}
-
-void RemoteRegistry::removeObjectSource(IObjectSource *source)
-{
-    std::string resource = Name::resourceFromName(source->olinkObjectName());
-    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + resource);
-    m_entries.erase(resource);
-}
-
-IObjectSource *RemoteRegistry::getObjectSource(std::string name)
-{
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.getObjectSource: " + resource);
-    return m_entries[resource].source;
-}
-
-std::set<RemoteNode *> RemoteRegistry::getRemoteNodes(std::string name)
-{
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.getRemoteNodes: " + resource);
-    return m_entries[resource].nodes;
-}
-
-void RemoteRegistry::attachRemoteNode(RemoteNode *node)
-{
-    emitLog(LogLevel::Info, "RemoteRegistry.attachRemoteNode");
-}
-
-void RemoteRegistry::detachRemoteNode(RemoteNode *node)
-{
-    emitLog(LogLevel::Info, "RemoteRegistry.detachRemoteNode");
-    for(auto &entry: m_entries) {
-        if(entry.second.nodes.count(node) != 0) {
-            entry.second.nodes.erase(node);
-        }
-    }
-}
-
-void RemoteRegistry::linkRemoteNode(std::string name, RemoteNode *node)
-{
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.linkRemoteNode: " + resource);
-    m_entries[resource].nodes.insert(node);
-}
-
-void RemoteRegistry::unlinkRemoteNode(std::string name, RemoteNode *node)
-{
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.unlinkRemoteNode: " + resource);
-    m_entries[resource].nodes.erase(node);
 }
 
 } } // Apigear::ObjectLink
