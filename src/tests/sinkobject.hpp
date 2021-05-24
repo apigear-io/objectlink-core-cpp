@@ -12,10 +12,10 @@ public:
         , m_total(0)
         , m_ready(false)
     {
-        ClientRegistry::get().addObjectSink(this);
+        m_client = ClientNode::addObjectSink(this);
     }
     virtual ~CalcSink() override {
-        ClientRegistry::get().removeObjectSink(this);
+        ClientNode::removeObjectSink(this);
     }
     int total() const {
         return m_total;

@@ -35,7 +35,7 @@ OLinkClient::OLinkClient(QWebSocket *socket, QObject *parent)
     connect(m_socket, &QWebSocket::disconnected, this, &OLinkClient::onDisconnected);
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkClient::handleTextMessage);
     WriteMessageFunc func = [this](std::string msg) {
-        m_protocol << msg;
+        m_queue << msg;
         processMessages();
     };
     m_node.onWrite(func);
@@ -60,7 +60,7 @@ ClientNode &OLinkClient::node()
 void OLinkClient::linkObjectSource(std::string name)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
-    m_node.clientRegistry().linkClientNode(name, &m_node);
+    m_node.registry().linkClientNode(name, &m_node);
     m_node.linkRemote(name);
 }
 
@@ -86,11 +86,11 @@ void OLinkClient::processMessages()
 {
     qDebug() << Q_FUNC_INFO;
     if (m_socket->state() == QAbstractSocket::ConnectedState) {
-        while(!m_protocol.isEmpty()) {
+        while(!m_queue.isEmpty()) {
             // if we are using JSON we need to use txt message
             // otherwise binary messages
             //    m_socket->sendBinaryMessage(QByteArray::fromStdString(message));
-            const QString& msg = QString::fromStdString(m_protocol.dequeue());
+            const QString& msg = QString::fromStdString(m_queue.dequeue());
             qDebug() << "write message to socket: " << msg;
             m_socket->sendTextMessage(msg);
         }

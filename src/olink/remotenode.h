@@ -83,10 +83,12 @@ public:
     virtual ~RemoteNode() override;
     void writePropertyChange(std::string name, json value);
     IObjectSource* getObjectSource(std::string name);
-    RemoteRegistry &remoteRegistry();
+    RemoteRegistry &registry();
+    void linkNode(std::string name);
+    void unlinkNode(std::string name);
 public: // source registry
-    void addObjectSource(IObjectSource *source);
-    void removeObjectSource(IObjectSource *source);
+    static void addObjectSource(IObjectSource *source);
+    static void removeObjectSource(IObjectSource *source);
 public: // IMessagesListener interface
     void handleLink(std::string name) override;
     void handleUnlink(std::string name) override;

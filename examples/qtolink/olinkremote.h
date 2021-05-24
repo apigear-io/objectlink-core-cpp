@@ -8,11 +8,11 @@
 
 using namespace ApiGear::ObjectLink;
 
-class RemoteConnection : public QObject
+class OLinkRemote : public QObject
 {
     Q_OBJECT
 public:
-    explicit RemoteConnection(QWebSocket* socket);
+    explicit OLinkRemote(QWebSocket* socket);
     void writeMessage(const std::string msg);
     void handleMessage(const QString& msg);
 private:

@@ -187,12 +187,22 @@ ClientNode::ClientNode()
     : BaseNode()
     , m_nextRequestId(0)
 {
-    clientRegistry().attachClientNode(this);
+    registry().attachClientNode(this);
 }
 
 ClientNode::~ClientNode()
 {
-    clientRegistry().detachClientNode(this);
+    registry().detachClientNode(this);
+}
+
+void ClientNode::linkNode(std::string name)
+{
+    registry().linkClientNode(name, this);
+}
+
+void ClientNode::unlinkNode(std::string name)
+{
+    registry().unlinkClientNode(name, this);
 }
 
 
@@ -220,26 +230,24 @@ void ClientNode::setRemoteProperty(std::string name, json value)
     emitWrite(msg);
 }
 
-ClientRegistry &ClientNode::clientRegistry()
+ClientRegistry &ClientNode::registry()
 {
     return ClientRegistry::get();
 }
 
-void ClientNode::addObjectSink(IObjectSink *sink)
+ClientNode *ClientNode::addObjectSink(IObjectSink *sink)
 {
-    emitLog(LogLevel::Info, "ClientNode.addObjectSink: " + sink->olinkObjectName());
-    clientRegistry().addObjectSink(sink);
+    return ClientRegistry::get().addObjectSink(sink);
 }
 
 void ClientNode::removeObjectSink(IObjectSink *sink)
 {
-    emitLog(LogLevel::Info, "ClientNode.removeObjectSink: " + sink->olinkObjectName());
-    clientRegistry().removeObjectSink(sink);
+    ClientRegistry::get().removeObjectSink(sink);
 }
 
 IObjectSink *ClientNode::getObjectSink(std::string name)
 {
-    return clientRegistry().getObjectSink(name);
+    return registry().getObjectSink(name);
 }
 
 

@@ -29,12 +29,9 @@ TEST_CASE("link")
     // setup service
     RemoteNode remote;
 
-//    remote.registry().onLog(log.logFunc());
-//    remote.onLog(log.logFunc());
     CalcSource source;
 
     // setup client
-//    ObjectSinkRegistry sinkRegistry("client1");
     ClientNode client;
     client.onLog(log.logFunc());
     CalcSink sink;

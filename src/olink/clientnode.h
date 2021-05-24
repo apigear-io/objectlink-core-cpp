@@ -83,15 +83,17 @@ class ClientNode : public BaseNode, public IClientNode
 public:
     ClientNode();
     virtual ~ClientNode() override;
+    void linkNode(std::string name);
+    void unlinkNode(std::string name);
 public: // IClientNode
     void linkRemote(std::string name) override;
     void unlinkRemote(std::string name) override;
     void invokeRemote(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) override;
     void setRemoteProperty(std::string name, json value) override;
-    ClientRegistry& clientRegistry();
+    ClientRegistry& registry();
 public: // sink registry
-    void addObjectSink(IObjectSink *sink);
-    void removeObjectSink(IObjectSink *sink);
+    static ClientNode *addObjectSink(IObjectSink *sink);
+    static void removeObjectSink(IObjectSink *sink);
     IObjectSink* getObjectSink(std::string name);
 protected: // IMessageListener
     void handleInit(std::string name, json props) override;

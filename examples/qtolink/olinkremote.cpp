@@ -1,19 +1,19 @@
-#include "remoteconnection.h"
+#include "olinkremote.h"
 
 
-RemoteConnection::RemoteConnection(QWebSocket *socket)
+OLinkRemote::OLinkRemote(QWebSocket *socket)
     : QObject(socket)
     , m_socket(socket)
 {
     m_node.onLog(m_log.logFunc());
-    connect(m_socket, &QWebSocket::textMessageReceived, this, &RemoteConnection::handleMessage);
+    connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkRemote::handleMessage);
     WriteMessageFunc writeFunc = [this](std::string msg) {
         writeMessage(msg);
     };
     m_node.onWrite(writeFunc);
 }
 
-void RemoteConnection::writeMessage(const std::string msg)
+void OLinkRemote::writeMessage(const std::string msg)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(msg);
     if(m_socket) {
@@ -21,7 +21,7 @@ void RemoteConnection::writeMessage(const std::string msg)
     }
 }
 
-void RemoteConnection::handleMessage(const QString &msg)
+void OLinkRemote::handleMessage(const QString &msg)
 {
     qDebug() << Q_FUNC_INFO << msg;
 

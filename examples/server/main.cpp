@@ -22,7 +22,7 @@
 * SOFTWARE.
 */
 #include <QtCore>
-#include <olinkhost.h>
+#include "../qtolink/olinkhost.h"
 #include "calcsource.h"
 
 int main(int argc, char *argv[])

@@ -16,7 +16,7 @@ public:
     int sub(int value);
     void clear();
     void notifyShutdown(int timeout);
-    // IServiceObjectListener interface
+    // IObjectSource interface
 public:
     std::string olinkObjectName() override;
     json olinkInvoke(std::string name, json args) override;

@@ -23,7 +23,7 @@
 */
 #include "olinkhost.h"
 
-#include "remoteconnection.h"
+#include "olinkremote.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -52,7 +52,7 @@ void OLinkHost::onNewConnection()
 {
     qDebug() << "wss.newConnection()";
     QWebSocket *ws = m_wss->nextPendingConnection();
-    new RemoteConnection(ws);
+    new OLinkRemote(ws);
 }
 
 void OLinkHost::onClosed()

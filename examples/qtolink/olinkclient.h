@@ -50,6 +50,6 @@ public:
 private:
     QWebSocket *m_socket;
     ClientNode m_node;
-    QQueue<std::string> m_protocol;
+    QQueue<std::string> m_queue;
     ConsoleLogger m_logger;
 };

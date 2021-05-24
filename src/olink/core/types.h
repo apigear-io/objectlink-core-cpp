@@ -31,13 +31,9 @@
 
 #include "nlohmann/json.hpp"
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-
 namespace ApiGear { namespace ObjectLink {
 
 using json = nlohmann::json;
-
-typedef unsigned long long Id;
 
 class Name {
 public:

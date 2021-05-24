@@ -11,10 +11,10 @@ public:
         : m_node(nullptr)
         , m_total(1)
     {
-        RemoteRegistry::get().addObjectSource(this);
+        RemoteNode::addObjectSource(this);
     }
     virtual ~CalcSource() override {
-        RemoteRegistry::get().removeObjectSource(this);
+        RemoteNode::removeObjectSource(this);
     }
 
     IRemoteNode* remoteNode() const {

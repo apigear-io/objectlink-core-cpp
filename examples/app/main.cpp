@@ -23,7 +23,7 @@
 */
 #include <QtGui>
 #include <QtQml>
-#include "olinkclient.h"
+#include "../qtolink/olinkclient.h"
 #include "calcsink.h"
 
 int main(int argc, char *argv[])

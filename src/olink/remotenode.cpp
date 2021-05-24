@@ -51,27 +51,27 @@ IObjectSource::~IObjectSource()
 RemoteNode::RemoteNode()
     : BaseNode()
 {
-    remoteRegistry().attachRemoteNode(this);
+    registry().attachRemoteNode(this);
 }
 
 RemoteNode::~RemoteNode()
 {
-    remoteRegistry().detachRemoteNode(this);
+    registry().detachRemoteNode(this);
 }
 
 IObjectSource *RemoteNode::getObjectSource(std::string name)
 {
-    return remoteRegistry().getObjectSource(name);
+    return registry().getObjectSource(name);
 }
 
 void RemoteNode::addObjectSource(IObjectSource *source)
 {
-    remoteRegistry().addObjectSource(source);
+    RemoteRegistry::get().addObjectSource(source);
 }
 
 void RemoteNode::removeObjectSource(IObjectSource *source)
 {
-    remoteRegistry().removeObjectSource(source);
+    RemoteRegistry::get().removeObjectSource(source);
 }
 
 
@@ -80,7 +80,7 @@ void RemoteNode::handleLink(std::string name)
     emitLog(LogLevel::Info, "handleLink name: " + name);
     IObjectSource* s = getObjectSource(name);
     if(s) {
-        remoteRegistry().linkRemoteNode(name, this);
+        registry().linkRemoteNode(name, this);
         s->olinkLinked(name, this);
         json props = s->olinkCollectProperties();
         emitWrite(Protocol::initMessage(name, props));
@@ -94,7 +94,7 @@ void RemoteNode::handleUnlink(std::string name)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
-        remoteRegistry().unlinkRemoteNode(name, this);
+        registry().unlinkRemoteNode(name, this);
         s->olinkUnlinked(name);
     }
 }
@@ -118,21 +118,31 @@ void RemoteNode::handleInvoke(int requestId, std::string name, json args)
 
 void RemoteNode::notifyPropertyChange(std::string name, json value)
 {
-    for(auto node: remoteRegistry().getRemoteNodes(name)) {
+    for(auto node: registry().getRemoteNodes(name)) {
         node->emitWrite(Protocol::propertyChangeMessage(name, value));
     }
 }
 
 void RemoteNode::notifySignal(std::string name, json args)
 {
-    for(auto node: remoteRegistry().getRemoteNodes(name)) {
+    for(auto node: registry().getRemoteNodes(name)) {
         node->emitWrite(Protocol::signalMessage(name, args));
     }
 }
 
-RemoteRegistry &RemoteNode::remoteRegistry()
+RemoteRegistry &RemoteNode::registry()
 {
     return RemoteRegistry::get();
+}
+
+void RemoteNode::linkNode(std::string name)
+{
+    registry().linkRemoteNode(name, this);
+}
+
+void RemoteNode::unlinkNode(std::string name)
+{
+    registry().unlinkRemoteNode(name, this);
 }
 
 // ********************************************************************

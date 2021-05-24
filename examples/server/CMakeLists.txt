@@ -9,15 +9,15 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick WebSockets REQUIRED)
 set(OLINK_EXAMPLE_SERVER_SOURCE
         main.cpp
         calcsource.cpp
-        olinkhost.cpp
-        remoteconnection.cpp
+        ../qtolink/olinkhost.cpp
+        ../qtolink/olinkremote.cpp
 )
 
 set(OLINK_EXAMPLE_SERVER_HEADERS
         main.cpp
         calcsource.h
-        olinkhost.h
-        remoteconnection.h
+        ../qtolink/olinkhost.h
+        ../qtolink/olinkremote.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
