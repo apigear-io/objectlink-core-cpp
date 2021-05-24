@@ -22,6 +22,7 @@
 * SOFTWARE.
 */
 #include "consolelogger.h"
+#include <string>
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {
@@ -29,11 +30,12 @@ namespace ApiGear { namespace ObjectLink {
 ConsoleLogger::ConsoleLogger()
 {
     m_func = [this](LogLevel level, std::string msg) {
-        log(level, msg);
+        writeLog(level, msg);
     };
+
 }
 
-void ConsoleLogger::log(LogLevel level, std::string msg)
+void ConsoleLogger::writeLog(LogLevel level, std::string msg)
 {
     switch(level) {
     case LogLevel::Info:
@@ -52,7 +54,7 @@ void ConsoleLogger::log(LogLevel level, std::string msg)
     std::cout << msg << std::endl;
 }
 
-WriteLogFunc &ConsoleLogger::logFunc()
+WriteLogFunc ConsoleLogger::logFunc()
 {
     return m_func;
 }

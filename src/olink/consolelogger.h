@@ -32,8 +32,8 @@ namespace ApiGear { namespace ObjectLink {
 class ConsoleLogger : public ILogger {
 public:
     ConsoleLogger();
-    void log(LogLevel level, std::string msg) override;
-    WriteLogFunc& logFunc();
+    void writeLog(LogLevel level, std::string msg) override;
+    WriteLogFunc logFunc();
 private:
     WriteLogFunc m_func;
 };

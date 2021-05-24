@@ -70,7 +70,7 @@ public:
     // signal
     static json signalMessage(std::string name, json args);
     // error
-    static json errorMessage(MessageType msgType, int requestId, std::string error);
+    static json errorMessage(MsgType msgType, int requestId, std::string error);
     bool handleMessage(json msg);
     std::string lastError();
 private:

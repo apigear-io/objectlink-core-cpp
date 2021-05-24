@@ -44,7 +44,7 @@ public:
     static std::string createName(std::string resource, std::string path);
 };
 
-enum class MessageType : int
+enum class MsgType : int
 {
     LINK = 10,
     INIT = 11,
@@ -57,7 +57,7 @@ enum class MessageType : int
     ERROR = 99,
 };
 
-std::string toString(MessageType type);
+std::string toString(MsgType type);
 
 
 enum MessageFormat
@@ -97,7 +97,7 @@ class ILogger
 {
 public:
     virtual ~ILogger();
-    virtual void log(LogLevel level, std::string message) = 0;
+    virtual void writeLog(LogLevel level, std::string message) = 0;
 };
 
 typedef std::function<void(LogLevel level, std::string msg)> WriteLogFunc;

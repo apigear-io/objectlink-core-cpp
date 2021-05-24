@@ -56,28 +56,28 @@ Protocol::Protocol(IProtocolListener *listener)
 json Protocol::linkMessage(std::string name)
 {
     return json::array(
-                { MessageType::LINK, name }
+                { MsgType::LINK, name }
                 );
 }
 
 json Protocol::unlinkMessage(std::string name)
 {
     return json::array(
-                { MessageType::UNLINK, name }
+                { MsgType::UNLINK, name }
                 );
 }
 
 json Protocol::initMessage(std::string name, json props)
 {
     return json::array(
-                { MessageType::INIT, name, props }
+                { MsgType::INIT, name, props }
                 );
 }
 
 json Protocol::setPropertyMessage(std::string name, json value)
 {
     return json::array(
-                { MessageType::SET_PROPERTY, name, value }
+                { MsgType::SET_PROPERTY, name, value }
                 );
 
 }
@@ -85,35 +85,35 @@ json Protocol::setPropertyMessage(std::string name, json value)
 json Protocol::propertyChangeMessage(std::string name, json value)
 {
     return json::array(
-                { MessageType::PROPERTY_CHANGE, name, value }
+                { MsgType::PROPERTY_CHANGE, name, value }
                 );
 }
 
 json Protocol::invokeMessage(int requestId, std::string name, json args)
 {
     return json::array(
-                { MessageType::INVOKE, requestId, name, args }
+                { MsgType::INVOKE, requestId, name, args }
                 );
 }
 
 json Protocol::invokeReplyMessage(int requestId, std::string name, json value)
 {
     return json::array(
-                { MessageType::INVOKE_REPLY, requestId, name, value }
+                { MsgType::INVOKE_REPLY, requestId, name, value }
                 );
 }
 
 json Protocol::signalMessage(std::string name, json args)
 {
     return json::array(
-                { MessageType::SIGNAL, name, args }
+                { MsgType::SIGNAL, name, args }
                 );
 }
 
-json Protocol::errorMessage(MessageType msgType, int requestId, std::string error)
+json Protocol::errorMessage(MsgType msgType, int requestId, std::string error)
 {
     return json::array(
-                { MessageType::ERROR, msgType, requestId, error }
+                { MsgType::ERROR, msgType, requestId, error }
                 );
 }
 
@@ -132,55 +132,55 @@ bool Protocol::handleMessage(json msg) {
     }
     const int msgType = msg[0].get<int>();
     switch(msgType) {
-    case int(MessageType::LINK): {
+    case int(MsgType::LINK): {
         const std::string name = msg[1].get<std::string>();
         listener()->handleLink(name);
         break;
     }
-    case int(MessageType::INIT): {
+    case int(MsgType::INIT): {
         const std::string name = msg[1].get<std::string>();
         const json props = msg[2].get<json>();
         if(listener()) listener()->handleInit(name, props);
         break;
     }
-    case int(MessageType::UNLINK): {
+    case int(MsgType::UNLINK): {
         const std::string name = msg[1].get<std::string>();
         if(listener()) listener()->handleUnlink(name);
         break;
     }
-    case int(MessageType::SET_PROPERTY): {
+    case int(MsgType::SET_PROPERTY): {
         const std::string name = msg[1].get<std::string>();
         const json value = msg[2].get<json>();
         if(listener()) listener()->handleSetProperty(name, value);
         break;
     }
-    case int(MessageType::PROPERTY_CHANGE): {
+    case int(MsgType::PROPERTY_CHANGE): {
         const std::string name = msg[1].get<std::string>();
         const json value = msg[2].get<json>();
         if(listener()) listener()->handlePropertyChange(name, value);
         break;
     }
-    case int(MessageType::INVOKE): {
+    case int(MsgType::INVOKE): {
         const int id = msg[1].get<int>();
         const std::string name = msg[2].get<std::string>();
         const json args = msg[3].get<json>();
         if(listener()) listener()->handleInvoke(id, name, args);
         break;
     }
-    case int(MessageType::INVOKE_REPLY): {
+    case int(MsgType::INVOKE_REPLY): {
         const int id = msg[1].get<int>();
         const std::string name = msg[2].get<std::string>();
         const json value = msg[3].get<json>();
         listener()->handleInvokeReply(id, name, value);
         break;
     }
-    case int(MessageType::SIGNAL): {
+    case int(MsgType::SIGNAL): {
         const std::string name = msg[1].get<std::string>();
         const json args = msg[2].get<json>();
         listener()->handleSignal(name, args);
         break;
     }
-    case int(MessageType::ERROR): {
+    case int(MsgType::ERROR): {
         const int msgType = msg[1].get<int>();
         const int requestId = msg[2].get<int>();
         const std::string error = msg[3].get<std::string>();
