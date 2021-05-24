@@ -18,6 +18,4 @@ public:
 private:
     QWebSocket* m_socket;
     RemoteNode m_node;
-    ConsoleLogger m_log;
-
 };

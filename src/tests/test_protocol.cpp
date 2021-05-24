@@ -13,22 +13,23 @@
 using json = nlohmann::json;
 using namespace ApiGear::ObjectLink;
 
-const std::string name = "demo.Calc";
-const json props = {{ "count", 0 }};
-const int value = 1;
-const json args = json({1, 2});
-const int requestId = 1;
-const MsgType msgType = MsgType::INVOKE;
-const std::string error = "failed";
 
 TEST_CASE("protocol")
 {
+    std::string name = "demo.Calc";
+    json props = {{ "count", 0 }};
+    int value = 1;
+    json args = {1, 2};
+    int requestId = 1;
+    MsgType msgType = MsgType::INVOKE;
+    std::string error = "failed";
+
     ConsoleLogger log;
     MockSink sink;
     MockSource source;
     ClientNode client;
-    RemoteNode remote;
     client.onLog(log.logFunc());
+    RemoteNode remote;
     remote.onLog(log.logFunc());
     SECTION("link") {
         json msg = Protocol::linkMessage(name);

@@ -30,7 +30,7 @@ OLinkClient::OLinkClient(QWebSocket *socket, QObject *parent)
     : QObject(parent)
     , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
 {
-    m_node.onLog(m_logger.logFunc());
+    m_node.onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::connected, this, &OLinkClient::onConnected);
     connect(m_socket, &QWebSocket::disconnected, this, &OLinkClient::onDisconnected);
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkClient::handleTextMessage);

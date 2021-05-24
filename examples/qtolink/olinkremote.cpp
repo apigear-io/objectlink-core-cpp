@@ -5,7 +5,7 @@ OLinkRemote::OLinkRemote(QWebSocket *socket)
     : QObject(socket)
     , m_socket(socket)
 {
-    m_node.onLog(m_log.logFunc());
+    m_node.onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkRemote::handleMessage);
     WriteMessageFunc writeFunc = [this](std::string msg) {
         writeMessage(msg);

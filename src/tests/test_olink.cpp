@@ -21,9 +21,8 @@ using namespace ApiGear::ObjectLink;
 
 TEST_CASE("link")
 {
-    ConsoleLogger log;
-    RemoteRegistry::get().onLog(log.logFunc());
-    ClientRegistry::get().onLog(log.logFunc());
+    RemoteRegistry::get().onLog(ConsoleLogger::logFunc());
+    ClientRegistry::get().onLog(ConsoleLogger::logFunc());
     // setup service
     RemoteNode remote;
 
@@ -31,7 +30,7 @@ TEST_CASE("link")
 
     // setup client
     ClientNode client;
-    client.onLog(log.logFunc());
+    client.onLog(ConsoleLogger::logFunc());
     CalcSink sink;
 
     WriteMessageFunc clientWriteFunc = [&remote](std::string msg) {

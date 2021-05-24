@@ -45,5 +45,4 @@ public:
 
 private:
     QWebSocketServer* m_wss;
-    ConsoleLogger m_log;
 };

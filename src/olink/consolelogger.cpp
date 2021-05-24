@@ -27,14 +27,6 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-ConsoleLogger::ConsoleLogger()
-{
-    m_func = [this](LogLevel level, std::string msg) {
-        writeLog(level, msg);
-    };
-
-}
-
 void ConsoleLogger::writeLog(LogLevel level, std::string msg)
 {
     switch(level) {
@@ -56,7 +48,9 @@ void ConsoleLogger::writeLog(LogLevel level, std::string msg)
 
 WriteLogFunc ConsoleLogger::logFunc()
 {
-    return m_func;
+    return [](LogLevel level, std::string msg) {
+        ConsoleLogger::writeLog(level, msg);
+    };
 }
 
 } } // ApiGear::ObjectLink
