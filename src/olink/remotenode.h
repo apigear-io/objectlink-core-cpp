@@ -90,6 +90,8 @@ public:
     void detachRemoteNode(RemoteNode* node);
     void linkRemoteNode(std::string name, RemoteNode *node);
     void unlinkRemoteNode(std::string name, RemoteNode *node);
+    SourceToNodesEntry &entry(std::string name);
+    void removeEntry(std::string name);
 private:
     std::map<std::string, SourceToNodesEntry> m_entries;
 };

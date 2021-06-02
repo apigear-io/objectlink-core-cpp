@@ -24,6 +24,5 @@ void OLinkRemote::writeMessage(const std::string msg)
 void OLinkRemote::handleMessage(const QString &msg)
 {
     qDebug() << Q_FUNC_INFO << msg;
-
     m_node.handleMessage(msg.toStdString());
 }

@@ -60,30 +60,28 @@ RemoteRegistry &RemoteRegistry::get()
 
 void RemoteRegistry::addObjectSource(IObjectSource *source)
 {
-    std::string resource = Name::resourceFromName(source->olinkObjectName());
-    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + resource);
-    m_entries[resource].source = source;
+    std::string name = source->olinkObjectName();
+    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + name);
+    entry(name).source = source;
 }
 
 void RemoteRegistry::removeObjectSource(IObjectSource *source)
 {
-    std::string resource = Name::resourceFromName(source->olinkObjectName());
-    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + resource);
-    m_entries.erase(resource);
+    std::string name = source->olinkObjectName();
+    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + name);
+    removeEntry(name);
 }
 
 IObjectSource *RemoteRegistry::getObjectSource(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.getObjectSource: " + resource);
-    return m_entries[resource].source;
+    emitLog(LogLevel::Info, "RemoteRegistry.getObjectSource: " + name);
+    return entry(name).source;
 }
 
 std::set<RemoteNode *> RemoteRegistry::getRemoteNodes(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.getRemoteNodes: " + resource);
-    return m_entries[resource].nodes;
+    emitLog(LogLevel::Info, "RemoteRegistry.getRemoteNodes: " + name);
+    return entry(name).nodes;
 }
 
 void RemoteRegistry::attachRemoteNode(RemoteNode *node)
@@ -103,17 +101,35 @@ void RemoteRegistry::detachRemoteNode(RemoteNode *node)
 
 void RemoteRegistry::linkRemoteNode(std::string name, RemoteNode *node)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.linkRemoteNode: " + resource);
-    m_entries[resource].nodes.insert(node);
+    emitLog(LogLevel::Info, "RemoteRegistry.linkRemoteNode: " + name);
+    entry(name).nodes.insert(node);
 }
 
 void RemoteRegistry::unlinkRemoteNode(std::string name, RemoteNode *node)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "RemoteRegistry.unlinkRemoteNode: " + resource);
-    m_entries[resource].nodes.erase(node);
+    emitLog(LogLevel::Info, "RemoteRegistry.unlinkRemoteNode: " + name);
+    entry(name).nodes.erase(node);
 }
+
+SourceToNodesEntry &RemoteRegistry::entry(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    if(m_entries.count(resource) == 0) {
+        emitLog(LogLevel::Info, "RemoteRegistry.entry: new entry" + resource);
+        m_entries[resource] = SourceToNodesEntry();
+    }
+    return m_entries[resource];
+}
+
+void RemoteRegistry::removeEntry(std::string name)
+{
+    std::string resource = Name::resourceFromName(name);
+    if(m_entries.count(resource) > 0) {
+        m_entries.erase(resource);
+    }
+}
+
+
 
 
 // ********************************************************************

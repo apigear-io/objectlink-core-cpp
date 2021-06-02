@@ -61,94 +61,42 @@ void ClientRegistry::detachClientNode(ClientNode *node)
 
 void ClientRegistry::linkClientNode(std::string name, ClientNode *node)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "ClientRegistry.linkClientNode: " + resource);
-    if(!hasEntry(resource)) {
-        initEntry(resource);
-    }
-    if(!m_entries[resource].node) {
-        m_entries[resource].node = node;
-    } else {
-        emitLog(LogLevel::Info, "link node failed: sink has already a node" + resource);
-    }
+    emitLog(LogLevel::Info, "ClientRegistry.linkClientNode: " + name);
+    entry(name).node = node;
 }
 
 void ClientRegistry::unlinkClientNode(std::string name, ClientNode *node)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "ClientRegistry.unlinkClientNode: " + resource);
-    if(hasEntry(resource)) {
-        if(m_entries[resource].node == node) {
-            m_entries[resource].node = nullptr;
-        } else {
-            emitLog(LogLevel::Info, "unlink node failed, not the same node" + resource);
-        }
-    }
+    emitLog(LogLevel::Info, "ClientRegistry.unlinkClientNode: " + name);
+    entry(name).node = nullptr;
 }
 
 ClientNode* ClientRegistry::addObjectSink(IObjectSink *sink)
 {
-    std::string resource = Name::resourceFromName(sink->olinkObjectName());
-    emitLog(LogLevel::Info, "ClientRegistry.addObjectSink: " + resource);
-    if(!hasEntry(resource)) {
-        initEntry(resource);
-    }
-    emitLog(LogLevel::Info, "link sink: " + resource);
-    if(!m_entries[resource].sink) {
-        m_entries[resource].sink = sink;
-    } else {
-        emitLog(LogLevel::Info, "update link: " + resource);
-        if(!entry(resource).sink) {
-            m_entries[resource].sink = sink;
-        } else {
-        emitLog(LogLevel::Info, "add object sink failed: sink already added" + resource);
-        }
-    }
-    return m_entries[resource].node;
+    std::string name = sink->olinkObjectName();
+    emitLog(LogLevel::Info, "ClientRegistry.addObjectSink: " + name);
+    SinkToClientEntry &e = entry(name);
+    e.sink = sink;
+    return e.node;
 }
 
 void ClientRegistry::removeObjectSink(IObjectSink *sink)
 {
-    std::string resource = Name::resourceFromName(sink->olinkObjectName());
-    emitLog(LogLevel::Info, "ClientRegistry.removeObjectSink: " + resource);
-    if(hasEntry(resource)) {
-        m_entries.erase(resource);
-    } else {
-        emitLog(LogLevel::Info, "remove object sink failed: no sink to remove" + resource);
-    }
+    std::string name = sink->olinkObjectName();
+    emitLog(LogLevel::Info, "ClientRegistry.removeObjectSink: " + name);
+    removeEntry(name);
 }
 
 IObjectSink *ClientRegistry::getObjectSink(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "ClientRegistry.getObjectSink: " + resource);
-    if(hasEntry(resource)) {
-        IObjectSink *sink = m_entries[resource].sink;
-        if(!sink) {
-            emitLog(LogLevel::Info, "no sink attached " + resource);
-        }
-        return sink;
-    } else {
-        emitLog(LogLevel::Info, "no object sink " + resource);
-    }
-    return nullptr;
-
+    emitLog(LogLevel::Info, "ClientRegistry.getObjectSink: " + name);
+    return entry(name).sink;
 }
 
 ClientNode *ClientRegistry::getClientNode(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "ClientRegistry.getClientNode: " + resource);
-    if(hasEntry(resource)) {
-        ClientNode *node = m_entries[resource].node;
-        if(!node) {
-            emitLog(LogLevel::Info, "no node attached " + resource);
-        }
-        return node;
-    } else {
-        emitLog(LogLevel::Info, "no object sink " + resource);
-    }
-    return nullptr;
+    emitLog(LogLevel::Info, "ClientRegistry.getClientNode: " + name);
+    return entry(name).node;
 }
 
 ClientNode *ClientRegistry::getClientNode(IObjectSink *sink) {
@@ -157,21 +105,17 @@ ClientNode *ClientRegistry::getClientNode(IObjectSink *sink) {
 
 SinkToClientEntry& ClientRegistry::entry(std::string name) {
     std::string resource = Name::resourceFromName(name);
+    if(m_entries.count(resource) == 0) {
+        m_entries[resource] = SinkToClientEntry();
+    }
     return m_entries[resource];
 }
 
-bool ClientRegistry::hasEntry(std::string name)
+void ClientRegistry::removeEntry(std::string name)
 {
     std::string resource = Name::resourceFromName(name);
-    return m_entries.count(resource) != 0;
-}
-
-void ClientRegistry::initEntry(std::string name)
-{
-    std::string resource = Name::resourceFromName(name);
-    emitLog(LogLevel::Info, "ensure link: " + resource);
-    if(m_entries.count(resource) == 0) {
-        m_entries[resource] = SinkToClientEntry();
+    if(m_entries.count(resource) > 0) {
+        m_entries.erase(resource);
     }
 }
 

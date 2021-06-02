@@ -66,9 +66,8 @@ public:
     IObjectSink *getObjectSink(std::string name);
     ClientNode *getClientNode(std::string name);
     ClientNode *getClientNode(IObjectSink *sink);
-    void initEntry(std::string name);
-    bool hasEntry(std::string name);
     SinkToClientEntry &entry(std::string name);
+    void removeEntry(std::string name);
 private:
     std::map<std::string, SinkToClientEntry> m_entries;
 };
