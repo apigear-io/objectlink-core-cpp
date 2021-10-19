@@ -13,8 +13,8 @@ project(objectlink-core-cpp LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_subdirectory (external)
 add_subdirectory (src)
+add_subdirectory (tests)
 
 
 if(NOT SUBPROJECT)
