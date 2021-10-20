@@ -1,6 +1,15 @@
 set(SPDLOG_DEBUG_ON true)
 set(SPDLOG_TRACE_ON true)
 
+# pull nlohmann json as dependency
+include(FetchContent)
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+  GIT_TAG v3.9.1)
+
+FetchContent_MakeAvailable(json)
+
 set(OLINK_SOURCES
     olink/core/types.cpp
     olink/core/node.cpp
@@ -24,19 +33,3 @@ add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
 
 target_include_directories (olink_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json)
-
-
-
-set(TEST_OLINK_SOURCES
-    tests/test_main.cpp
-    tests/test_olink.cpp
-    tests/test_protocol.cpp
-    tests/sinkobject.hpp
-    tests/sourceobject.hpp
-    tests/mocksink.hpp
-    tests/mocksource.hpp
-)
-
-add_executable(tst_olink ${TEST_OLINK_SOURCES})
-target_link_libraries(tst_olink PRIVATE olink_core Catch2::Catch2)
-
