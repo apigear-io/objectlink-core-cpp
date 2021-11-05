@@ -106,15 +106,15 @@ std::string MessageConverter::toString(json j)
 
 std::string toString(MsgType type) {
     static std::map<MsgType, std::string> typeNames = {
-        { MsgType::LINK, "link" },
-        { MsgType::UNLINK, "unlink" },
-        { MsgType::INIT, "init" },
-        { MsgType::SET_PROPERTY, "property_change" },
-        { MsgType::PROPERTY_CHANGE, "signal_property_change" },
-        { MsgType::INVOKE, "invole" },
-        { MsgType::INVOKE_REPLY, "invoke_reply" },
-        { MsgType::SIGNAL, "signal" },
-        { MsgType::ERROR, "error"
+        { MsgType::Link, "link" },
+        { MsgType::Unlink, "unlink" },
+        { MsgType::Init, "init" },
+        { MsgType::SetProperty, "property_change" },
+        { MsgType::PropertyChange, "signal_property_change" },
+        { MsgType::Invoke, "invole" },
+        { MsgType::InvokeReply, "invoke_reply" },
+        { MsgType::Signal, "signal" },
+        { MsgType::Error, "error"
         },
     };
     auto result = typeNames.find(type);

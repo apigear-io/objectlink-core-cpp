@@ -134,20 +134,20 @@ public: // source registry
     static void removeObjectSource(IObjectSource *source);
 public: // IMessagesListener interface
     /**
-     * handle LINK message from client
+     * handle Link message from client
      */
     void handleLink(std::string name) override;
     /**
-     * handle UNLINK message from client
+     * handle Unlink message from client
      */
     void handleUnlink(std::string name) override;
     /**
-     * handle SET_PROPERTY message from client
+     * handle SetProperty message from client
      */
     void handleSetProperty(std::string name, json value) override;
     /**
-     * handle INVOKE message form client.
-     * Calls the object source and returns the value using INVOKE_REPLY message
+     * handle Invoke message form client.
+     * Calls the object source and returns the value using InvokeReply message
      */
     void handleInvoke(int requestId, std::string name, json args) override;
 

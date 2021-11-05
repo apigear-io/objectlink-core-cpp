@@ -21,7 +21,7 @@ TEST_CASE("protocol")
     int value = 1;
     json args = {1, 2};
     int requestId = 1;
-    MsgType msgType = MsgType::INVOKE;
+    MsgType msgType = MsgType::Invoke;
     std::string error = "failed";
 
     ConsoleLogger log;
@@ -33,55 +33,55 @@ TEST_CASE("protocol")
     remote.onLog(log.logFunc());
     SECTION("link") {
         json msg = Protocol::linkMessage(name);
-        REQUIRE(msg[0] == MsgType::LINK);
+        REQUIRE(msg[0] == MsgType::Link);
         REQUIRE(msg[1] == name);
     }
     SECTION("unlink") {
         json msg = Protocol::unlinkMessage(name);
-        REQUIRE(msg[0] == MsgType::UNLINK);
+        REQUIRE(msg[0] == MsgType::Unlink);
         REQUIRE(msg[1] == name);
     }
     SECTION("init") {
         json msg = Protocol::initMessage(name, props);
-        REQUIRE(msg[0] == MsgType::INIT);
+        REQUIRE(msg[0] == MsgType::Init);
         REQUIRE(msg[1] == name);
         REQUIRE(msg[2] == props);
     }
     SECTION("setProperty") {
         json msg = Protocol::setPropertyMessage(name, value);
-        REQUIRE(msg[0] == MsgType::SET_PROPERTY);
+        REQUIRE(msg[0] == MsgType::SetProperty);
         REQUIRE(msg[1] == name);
         REQUIRE(msg[2] == value);
     }
     SECTION("propertyChange") {
         json msg = Protocol::propertyChangeMessage(name, value);
-        REQUIRE(msg[0] == MsgType::PROPERTY_CHANGE);
+        REQUIRE(msg[0] == MsgType::PropertyChange);
         REQUIRE(msg[1] == name);
         REQUIRE(msg[2] == value);
     }
     SECTION("invoke") {
         json msg = Protocol::invokeMessage(requestId, name, args);
-        REQUIRE(msg[0] == MsgType::INVOKE);
+        REQUIRE(msg[0] == MsgType::Invoke);
         REQUIRE(msg[1] == requestId);
         REQUIRE(msg[2] == name);
         REQUIRE(msg[3] == args);
     }
     SECTION("invokeReply") {
         json msg = Protocol::invokeReplyMessage(requestId, name, value);
-        REQUIRE(msg[0] == MsgType::INVOKE_REPLY);
+        REQUIRE(msg[0] == MsgType::InvokeReply);
         REQUIRE(msg[1] == requestId);
         REQUIRE(msg[2] == name);
         REQUIRE(msg[3] == value);
     }
     SECTION("signal") {
         json msg = Protocol::signalMessage(name, args);
-        REQUIRE(msg[0] == MsgType::SIGNAL);
+        REQUIRE(msg[0] == MsgType::Signal);
         REQUIRE(msg[1] == name);
         REQUIRE(msg[2] == args);
     }
     SECTION("error") {
         json msg = Protocol::errorMessage(msgType, requestId, error);
-        REQUIRE(msg[0] == MsgType::ERROR);
+        REQUIRE(msg[0] == MsgType::Error);
         REQUIRE(msg[1] == msgType);
         REQUIRE(msg[2] == requestId);
         REQUIRE(msg[3] == error);

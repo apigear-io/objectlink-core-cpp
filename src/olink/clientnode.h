@@ -93,7 +93,7 @@ public:
 public: // IClientNode
     /**
      * link object source to remote node by name
-     * sends LINK message
+     * sends Link message
      */
     void linkRemote(std::string name) override;
     /**
@@ -104,13 +104,13 @@ public: // IClientNode
     /**
      * invokes a remote function by name using arguments.
      * Result is delivered using reply function.
-     * sends INVOKE message and registers a reply handler (INVOKE_REPLY)
+     * sends Invoke message and registers a reply handler (InvokeReply)
      */
     void invokeRemote(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) override;
     /**
      * set remote property using name to value.
-     * sends SET_PROPERTY message.
-     * Changes will be distributed using PROPERTY_CHANGE message.
+     * sends SetProperty message.
+     * Changes will be distributed using PropertyChange message.
      */
     void setRemoteProperty(std::string name, json value) override;
     /**
