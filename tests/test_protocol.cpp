@@ -81,7 +81,7 @@ TEST_CASE("protocol")
     }
     SECTION("error") {
         json msg = Protocol::errorMessage(msgType, requestId, error);
-        REQUIRE(msg[0] == MsgType::ERROR);
+        REQUIRE(msg[0] == MsgType::FAILURE);
         REQUIRE(msg[1] == msgType);
         REQUIRE(msg[2] == requestId);
         REQUIRE(msg[3] == error);

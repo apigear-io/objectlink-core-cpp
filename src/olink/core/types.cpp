@@ -114,7 +114,7 @@ std::string toString(MsgType type) {
         { MsgType::INVOKE, "invole" },
         { MsgType::INVOKE_REPLY, "invoke_reply" },
         { MsgType::SIGNAL, "signal" },
-        { MsgType::ERROR, "error"
+        { MsgType::FAILURE, "error"
         },
     };
     auto result = typeNames.find(type);

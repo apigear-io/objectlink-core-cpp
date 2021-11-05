@@ -113,7 +113,7 @@ json Protocol::signalMessage(std::string name, json args)
 json Protocol::errorMessage(MsgType msgType, int requestId, std::string error)
 {
     return json::array(
-                { MsgType::ERROR, msgType, requestId, error }
+                { MsgType::FAILURE, msgType, requestId, error }
                 );
 }
 
@@ -180,7 +180,7 @@ bool Protocol::handleMessage(json msg) {
         listener()->handleSignal(name, args);
         break;
     }
-    case int(MsgType::ERROR): {
+    case int(MsgType::FAILURE): {
         const int msgType = msg[1].get<int>();
         const int requestId = msg[2].get<int>();
         const std::string error = msg[3].get<std::string>();

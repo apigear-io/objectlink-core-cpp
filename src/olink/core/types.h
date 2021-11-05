@@ -54,7 +54,7 @@ enum class MsgType : int
     INVOKE = 30,
     INVOKE_REPLY = 31,
     SIGNAL = 40,
-    ERROR = 99,
+    FAILURE = 99,
 };
 
 std::string toString(MsgType type);
