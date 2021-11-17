@@ -111,7 +111,7 @@ std::string toString(MsgType type) {
         { MsgType::Init, "init" },
         { MsgType::SetProperty, "property_change" },
         { MsgType::PropertyChange, "signal_property_change" },
-        { MsgType::Invoke, "invole" },
+        { MsgType::Invoke, "invoke" },
         { MsgType::InvokeReply, "invoke_reply" },
         { MsgType::Signal, "signal" },
         { MsgType::Error, "error"
