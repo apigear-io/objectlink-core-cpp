@@ -170,7 +170,7 @@ void RemoteNode::handleLink(std::string name)
     if(s) {
         registry().linkRemoteNode(name, this);
         s->olinkLinked(name, this);
-        json props = s->olinkCollectProperties();
+        nlohmann::json props = s->olinkCollectProperties();
         emitWrite(Protocol::initMessage(name, props));
     } else {
         emitLog(LogLevel::Warning, "no source to link: " + name);
@@ -187,7 +187,7 @@ void RemoteNode::handleUnlink(std::string name)
     }
 }
 
-void RemoteNode::handleSetProperty(std::string name, json value)
+void RemoteNode::handleSetProperty(std::string name, nlohmann::json value)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
@@ -195,23 +195,23 @@ void RemoteNode::handleSetProperty(std::string name, json value)
     }
 }
 
-void RemoteNode::handleInvoke(int requestId, std::string name, json args)
+void RemoteNode::handleInvoke(int requestId, std::string name, nlohmann::json args)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
-        json value = s->olinkInvoke(name, args);
+        nlohmann::json value = s->olinkInvoke(name, args);
         emitWrite(Protocol::invokeReplyMessage(requestId, name, value));
     }
 }
 
-void RemoteNode::notifyPropertyChange(std::string name, json value)
+void RemoteNode::notifyPropertyChange(std::string name, nlohmann::json value)
 {
     for(auto node: registry().getRemoteNodes(name)) {
         node->emitWrite(Protocol::propertyChangeMessage(name, value));
     }
 }
 
-void RemoteNode::notifySignal(std::string name, json args)
+void RemoteNode::notifySignal(std::string name, nlohmann::json args)
 {
     for(auto node: registry().getRemoteNodes(name)) {
         node->emitWrite(Protocol::signalMessage(name, args));

@@ -53,7 +53,7 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    json olinkInvoke(std::string name, json args) override {
+    nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override {
         std::cout << "invoke" << name << args.dump();
         std::string path = Name::pathFromName(name);
         if(path == "add") {
@@ -61,9 +61,9 @@ public:
             int result = add(a);
             return result;
         }
-        return json();
+        return nlohmann::json();
     }
-    void olinkSetProperty(std::string name, json value) override {
+    void olinkSetProperty(std::string name, nlohmann::json value) override {
         std::cout << "setProperty" << name << value.dump();
         std::string path = Name::pathFromName(name);
         if(path == "total") {
@@ -83,12 +83,12 @@ public:
         std::cout << "unlinked" << name;
         m_node = nullptr;
     }
-    json olinkCollectProperties() override
+    nlohmann::json olinkCollectProperties() override
     {
         return {{ "total", m_total }};
     }
 private:
     IRemoteNode* m_node;
     int m_total;
-    std::vector<json> m_events;
+    std::vector<nlohmann::json> m_events;
 };

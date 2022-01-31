@@ -17,8 +17,8 @@ public:
     virtual ~IClientNode();
     virtual void linkRemote(std::string name) = 0;
     virtual void unlinkRemote(std::string name) = 0;
-    virtual void invokeRemote(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) = 0;
-    virtual void setRemoteProperty(std::string name, json value) = 0;
+    virtual void invokeRemote(std::string name, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) = 0;
+    virtual void setRemoteProperty(std::string name, nlohmann::json value) = 0;
 };
 
 /**
@@ -29,9 +29,9 @@ class IObjectSink
 public:
     virtual ~IObjectSink();
     virtual std::string olinkObjectName() = 0;
-    virtual void olinkOnSignal(std::string name, json args) = 0;
-    virtual void olinkOnPropertyChanged(std::string name, json value) = 0;
-    virtual void olinkOnInit(std::string name, json props, IClientNode* node) = 0;
+    virtual void olinkOnSignal(std::string name, nlohmann::json args) = 0;
+    virtual void olinkOnPropertyChanged(std::string name, nlohmann::json value) = 0;
+    virtual void olinkOnInit(std::string name, nlohmann::json props, IClientNode* node) = 0;
     virtual void olinkOnRelease() = 0;
 };
 
@@ -106,13 +106,13 @@ public: // IClientNode
      * Result is delivered using reply function.
      * sends Invoke message and registers a reply handler (InvokeReply)
      */
-    void invokeRemote(std::string name, json args=json{}, InvokeReplyFunc func=nullptr) override;
+    void invokeRemote(std::string name, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
     /**
      * set remote property using name to value.
      * sends SetProperty message.
      * Changes will be distributed using PropertyChange message.
      */
-    void setRemoteProperty(std::string name, json value) override;
+    void setRemoteProperty(std::string name, nlohmann::json value) override;
     /**
      * Registry which manages a client to sink associations.
      * Registry is global and only one sink with unique names can be registered.
@@ -138,22 +138,22 @@ protected: // IMessageListener
      * handles remote init message.
      * Calls the object sink init function.
      */
-    void handleInit(std::string name, json props) override;
+    void handleInit(std::string name, nlohmann::json props) override;
     /**
      * handles remote property change message
      * Calls the object sink property change function
      */
-    void handlePropertyChange(std::string name, json value) override;
+    void handlePropertyChange(std::string name, nlohmann::json value) override;
     /**
      * handles remote invoke reply message
      * Lookups the reply func and calls the function to deliver the value
      */
-    void handleInvokeReply(int requestId, std::string name, json value) override;
+    void handleInvokeReply(int requestId, std::string name, nlohmann::json value) override;
     /**
      * handles remote signal message
      * Calls the object sink signal function
      */
-    void handleSignal(std::string name, json args) override;
+    void handleSignal(std::string name, nlohmann::json args) override;
     /**
      * handles remote error message
      * Stores the error function. If request id, removes also the reply handler.

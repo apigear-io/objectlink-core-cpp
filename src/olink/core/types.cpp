@@ -69,36 +69,36 @@ void MessageConverter::setMessageFormat(MessageFormat format)
     m_format = format;
 }
 
-json MessageConverter::fromString(std::string message)
+nlohmann::json MessageConverter::fromString(std::string message)
 {
     switch(m_format) {
     case MessageFormat::JSON:
-        return json::parse(message);
+        return nlohmann::json::parse(message);
     case MessageFormat::BSON:
-        return json::from_bson(message);
+        return nlohmann::json::from_bson(message);
     case MessageFormat::MSGPACK:
-        return json::from_msgpack(message);
+        return nlohmann::json::from_msgpack(message);
     case MessageFormat::CBOR:
-        return json::from_cbor(message);
+        return nlohmann::json::from_cbor(message);
     }
 
-    return json();
+    return nlohmann::json();
 }
 
-std::string MessageConverter::toString(json j)
+std::string MessageConverter::toString(nlohmann::json j)
 {
     std::vector<uint8_t> v;
     switch(m_format) {
     case MessageFormat::JSON:
         return j.dump();
     case MessageFormat::BSON:
-        v = json::to_bson(j);
+        v = nlohmann::json::to_bson(j);
         return std::string(v.begin(), v.end());
     case MessageFormat::MSGPACK:
-        v = json::to_msgpack(j);
+        v = nlohmann::json::to_msgpack(j);
         return std::string(v.begin(), v.end());
     case MessageFormat::CBOR:
-        v = json::to_cbor(j);
+        v = nlohmann::json::to_cbor(j);
         return std::string(v.begin(), v.end());
     }
     return std::string();
@@ -145,7 +145,7 @@ LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
     : m_handler(handler)
     , m_converter(MessageFormat::JSON)
 {
-    m_writeFunc = [this](json j) {
+    m_writeFunc = [this](nlohmann::json j) {
         std::string data = m_converter.toString(j);
         if(m_handler) {
             m_handler->handleMessage(data);
@@ -153,8 +153,8 @@ LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
     };
 }
 
-void LoopbackWriter::writeMessage(json j) {
-    m_writeFunc(j);
+void LoopbackWriter::writeMessage(nlohmann::json j) {
+    m_writeFunc(j.dump());
 }
 
 WriteMessageFunc& LoopbackWriter::writeFunc() {

@@ -28,12 +28,9 @@
 #include <stdlib.h>
 #include <map>
 #include <list>
-
 #include "nlohmann/json.hpp"
 
 namespace ApiGear { namespace ObjectLink {
-
-using json = nlohmann::json;
 
 class Name {
 public:
@@ -72,8 +69,8 @@ class MessageConverter {
 public:
     MessageConverter(MessageFormat format);
     void setMessageFormat(MessageFormat format);
-    json fromString(std::string message);
-    std::string toString(json j);
+    nlohmann::json fromString(std::string message);
+    std::string toString(nlohmann::json j);
 private:
     MessageFormat m_format;
 };
@@ -108,7 +105,7 @@ typedef std::function<void(std::string msg)> WriteMessageFunc;
 class LoopbackWriter {
 public:
     LoopbackWriter(IMessageHandler* handler=nullptr);
-    void writeMessage(json j);
+    void writeMessage(nlohmann::json j);
     WriteMessageFunc& writeFunc();
 private:
     IMessageHandler *m_handler;
@@ -121,7 +118,7 @@ private:
 class InvokeReplyArg {
 public:
     std::string name;
-    json value;
+    nlohmann::json value;
 };
 
 typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;

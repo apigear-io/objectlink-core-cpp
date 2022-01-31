@@ -50,12 +50,12 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    void olinkOnSignal(std::string name, json args) override {
+    void olinkOnSignal(std::string name, nlohmann::json args) override {
         std::cout << "onSignal" << name  << args.dump() << std::endl;
         events.push_back({name, args});
 
     }
-    void olinkOnPropertyChanged(std::string name, json value) override {
+    void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
         std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::pathFromName(name);
         if(path == "total") {
@@ -66,7 +66,7 @@ public:
         }
 
     }
-    void olinkOnInit(std::string name, json props, IClientNode *client) override {
+    void olinkOnInit(std::string name, nlohmann::json props, IClientNode *client) override {
         std::cout << "CalcSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
@@ -82,7 +82,7 @@ public:
         m_client = nullptr;
     }
 public:
-    std::list<json> events;
+    std::list<nlohmann::json> events;
 private:
     IClientNode *m_client;
     int m_total;

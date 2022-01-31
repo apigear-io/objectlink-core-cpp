@@ -147,12 +147,12 @@ void ClientNode::unlinkNode(std::string name)
 
 
 
-void ClientNode::invokeRemote(std::string name, json args, InvokeReplyFunc func)
+void ClientNode::invokeRemote(std::string name, nlohmann::json args, InvokeReplyFunc func)
 {
     emitLog(LogLevel::Info, "ClientNode.invokeRemote: " + name);
     int requestId = nextRequestId();
     m_invokesPending[requestId] = func;
-    json msg = Protocol::invokeMessage(requestId, name, args);
+    nlohmann::json msg = Protocol::invokeMessage(requestId, name, args);
     emitWrite(msg);
 }
 
@@ -163,10 +163,10 @@ int ClientNode::nextRequestId()
 }
 
 
-void ClientNode::setRemoteProperty(std::string name, json value)
+void ClientNode::setRemoteProperty(std::string name, nlohmann::json value)
 {
     emitLog(LogLevel::Info, "ClientNode.setRemoteProperty: " + name);
-    json msg = Protocol::setPropertyMessage(name, value);
+    nlohmann::json msg = Protocol::setPropertyMessage(name, value);
     emitWrite(msg);
 }
 
@@ -203,7 +203,7 @@ void ClientNode::unlinkRemote(std::string name)
     emitWrite(Protocol::unlinkMessage(name));
 }
 
-void ClientNode::handleInit(std::string name, json props)
+void ClientNode::handleInit(std::string name, nlohmann::json props)
 {
     emitLog(LogLevel::Info, "ClientNode.handleInit: " + name + props.dump());
     IObjectSink *s = getObjectSink(name);
@@ -213,7 +213,7 @@ void ClientNode::handleInit(std::string name, json props)
 }
 
 
-void ClientNode::handlePropertyChange(std::string name, json value)
+void ClientNode::handlePropertyChange(std::string name, nlohmann::json value)
 {
     emitLog(LogLevel::Info, "ClientNode.handlePropertyChange: " + name + value.dump());
     IObjectSink *s = getObjectSink(name);
@@ -222,7 +222,7 @@ void ClientNode::handlePropertyChange(std::string name, json value)
     }
 }
 
-void ClientNode::handleInvokeReply(int requestId, std::string name, json value)
+void ClientNode::handleInvokeReply(int requestId, std::string name, nlohmann::json value)
 {
     emitLog(LogLevel::Info, "ClientNode.handleInvokeReply: " + name + value.dump());
     if(m_invokesPending.count(requestId) == 1) {
@@ -237,7 +237,7 @@ void ClientNode::handleInvokeReply(int requestId, std::string name, json value)
     }
 }
 
-void ClientNode::handleSignal(std::string name, json args)
+void ClientNode::handleSignal(std::string name, nlohmann::json args)
 {
     emitLog(LogLevel::Info, "ClientNode.handleSignal: " + name);
     IObjectSink *s = getObjectSink(name);
