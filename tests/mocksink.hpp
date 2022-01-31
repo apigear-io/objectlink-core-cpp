@@ -20,7 +20,7 @@ public:
         assert(m_client);
         return m_client;
     }
-    void invoke(std::string name, json args) {
+    void invoke(std::string name, nlohmann::json args) {
         m_client->invokeRemote(name, args, [this](InvokeReplyArg arg) {
             m_events.push_back({{ "type", "invokeReply"}, { "name", arg.name}, { "value", arg.value }});
         });
@@ -29,18 +29,18 @@ public:
     std::string olinkObjectName() override {
         return "demo.Mock";
     }
-    void olinkOnSignal(std::string name, json args) override {
+    void olinkOnSignal(std::string name, nlohmann::json args) override {
         std::cout << "MockSink.olinkOnSignal" << name  << args.dump() << std::endl;
         m_events.push_back({ {"type", "signal"}, { "name", "name"}, { "args", args } });
 
     }
-    void olinkOnPropertyChanged(std::string name, json value) override {
+    void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
         std::cout << "MockSink.olinkOnPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::pathFromName(name);
         m_properties[path] = value;
         m_events.push_back({ {"type", "propertyChange"}, { "name", "name"}, { "value", value }});
     }
-    void olinkOnInit(std::string name, json props, IClientNode *client) override {
+    void olinkOnInit(std::string name, nlohmann::json props, IClientNode *client) override {
         std::cout << "MockSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
@@ -52,8 +52,8 @@ public:
         m_client = nullptr;
     }
 public:
-    std::list<json> m_events;
-    json m_properties;
+    std::list<nlohmann::json> m_events;
+    nlohmann::json m_properties;
     IClientNode *m_client;
     bool m_ready;
 

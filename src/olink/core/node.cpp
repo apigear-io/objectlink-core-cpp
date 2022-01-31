@@ -22,7 +22,7 @@ void BaseNode::onWrite(WriteMessageFunc func)
     m_writeFunc = func;
 }
 
-void BaseNode::emitWrite(json msg)
+void BaseNode::emitWrite(nlohmann::json msg)
 {
     const std::string& data = m_converter.toString(msg);
     emitLog(LogLevel::Debug, "writeMessage " + msg.dump());
@@ -36,7 +36,7 @@ void BaseNode::emitWrite(json msg)
 
 void BaseNode::handleMessage(std::string data)
 {
-    const json& j = m_converter.fromString(data);
+    const nlohmann::json& j = m_converter.fromString(data);
     m_protocol.handleMessage(j);
 }
 
@@ -50,33 +50,33 @@ void BaseNode::handleUnlink(std::string name)
     std::cout << "not implemented " << __func__ << name << std::endl;
 }
 
-void BaseNode::handleInvoke(int requestId, std::string name, json args)
+void BaseNode::handleInvoke(int requestId, std::string name, nlohmann::json args)
 {
     std::cout << "not implemented " << __func__ << requestId << name << args.dump() << std::endl;
 }
 
-void BaseNode::handleSetProperty(std::string name, json value)
+void BaseNode::handleSetProperty(std::string name, nlohmann::json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }
 
 
-void BaseNode::handleInit(std::string name, json props)
+void BaseNode::handleInit(std::string name, nlohmann::json props)
 {
     std::cout << "not implemented " << __func__ << name << props.dump() << std::endl;
 }
 
-void BaseNode::handleInvokeReply(int requestId, std::string name, json value)
+void BaseNode::handleInvokeReply(int requestId, std::string name, nlohmann::json value)
 {
     std::cout << "not implemented " << __func__ << requestId << name << value.dump() << std::endl;
 }
 
-void BaseNode::handleSignal(std::string name, json args)
+void BaseNode::handleSignal(std::string name, nlohmann::json args)
 {
     std::cout << "not implemented " << __func__ << name << args.dump()  << std::endl;
 }
 
-void BaseNode::handlePropertyChange(std::string name, json value)
+void BaseNode::handlePropertyChange(std::string name, nlohmann::json value)
 {
     std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
 }

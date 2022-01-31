@@ -21,11 +21,11 @@ public:
         return m_node;
     }
 
-    void notifyPropertyChange(std::string name, json value) {
+    void notifyPropertyChange(std::string name, nlohmann::json value) {
         remoteNode()->notifyPropertyChange(name, value);
     }
 
-    void notifySignal(std::string name, json args) {
+    void notifySignal(std::string name, nlohmann::json args) {
         remoteNode()->notifySignal(name, args);
     }
     // IServiceObjectListener interface
@@ -33,13 +33,13 @@ public:
     std::string olinkObjectName() override {
         return "demo.Mock";
     }
-    json olinkInvoke(std::string name, json args) override {
+    nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override {
         std::cout << "invoke" << name << args.dump();
         std::string path = Name::pathFromName(name);
         m_events.push_back({ {"type", "invoke"}, { "name", name}, {"args", args } });
         return 42;
     }
-    void olinkSetProperty(std::string name, json value) override {
+    void olinkSetProperty(std::string name, nlohmann::json value) override {
         std::cout << "setProperty" << name << value.dump();
         std::string path = Name::pathFromName(name);
         m_events.push_back({ {"type", "setProperty"}, { "name", name}, {"value", value } });
@@ -56,12 +56,12 @@ public:
         m_events.push_back({ {"type", "unlink"}, { "name", name} });
         m_node = nullptr;
     }
-    json olinkCollectProperties() override
+    nlohmann::json olinkCollectProperties() override
     {
         return m_properties;
     }
 private:
     IRemoteNode* m_node;
-    std::list<json> m_events;
-    json m_properties;
+    std::list<nlohmann::json> m_events;
+    nlohmann::json m_properties;
 };

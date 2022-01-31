@@ -38,12 +38,12 @@ public:
 
     virtual void handleLink(std::string name) = 0;
     virtual void handleUnlink(std::string name) = 0;
-    virtual void handleInit(std::string name, json props) = 0;
-    virtual void handleSetProperty(std::string name, json value) = 0;
-    virtual void handlePropertyChange(std::string name, json value) = 0;
-    virtual void handleInvoke(int requestId, std::string name, json args) = 0;
-    virtual void handleInvokeReply(int requestId, std::string name, json value) = 0;
-    virtual void handleSignal(std::string name, json args) = 0;
+    virtual void handleInit(std::string name, nlohmann::json props) = 0;
+    virtual void handleSetProperty(std::string name, nlohmann::json value) = 0;
+    virtual void handlePropertyChange(std::string name, nlohmann::json value) = 0;
+    virtual void handleInvoke(int requestId, std::string name, nlohmann::json args) = 0;
+    virtual void handleInvokeReply(int requestId, std::string name, nlohmann::json value) = 0;
+    virtual void handleSignal(std::string name, nlohmann::json args) = 0;
     virtual void handleError(int msgType, int requestId, std::string error) = 0;
 };
 
@@ -58,20 +58,20 @@ class Protocol : public Base
 public:
     Protocol(IProtocolListener *listener);
     // lifecycle
-    static json linkMessage(std::string name);
-    static json unlinkMessage(std::string name);
-    static json initMessage(std::string name, json props);
+    static nlohmann::json linkMessage(std::string name);
+    static nlohmann::json unlinkMessage(std::string name);
+    static nlohmann::json initMessage(std::string name, nlohmann::json props);
     // properties
-    static json setPropertyMessage(std::string name, json value);
-    static json propertyChangeMessage(std::string name, json value);
+    static nlohmann::json setPropertyMessage(std::string name, nlohmann::json value);
+    static nlohmann::json propertyChangeMessage(std::string name, nlohmann::json value);
     // remote invoke
-    static json invokeMessage(int requestId, std::string name, json args);
-    static json invokeReplyMessage(int requestId, std::string name, json value);
+    static nlohmann::json invokeMessage(int requestId, std::string name, nlohmann::json args);
+    static nlohmann::json invokeReplyMessage(int requestId, std::string name, nlohmann::json value);
     // signal
-    static json signalMessage(std::string name, json args);
+    static nlohmann::json signalMessage(std::string name, nlohmann::json args);
     // error
-    static json errorMessage(MsgType msgType, int requestId, std::string error);
-    bool handleMessage(json msg);
+    static nlohmann::json errorMessage(MsgType msgType, int requestId, std::string error);
+    bool handleMessage(nlohmann::json msg);
     std::string lastError();
 private:
     IProtocolListener *listener() const;

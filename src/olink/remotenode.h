@@ -38,8 +38,8 @@ class RemoteRegistry;
 class IRemoteNode {
 public:
     virtual ~IRemoteNode();
-    virtual void notifyPropertyChange(std::string name, json value) = 0;
-    virtual void notifySignal(std::string name, json args) = 0;
+    virtual void notifyPropertyChange(std::string name, nlohmann::json value) = 0;
+    virtual void notifySignal(std::string name, nlohmann::json args) = 0;
 };
 
 // impemented by source object
@@ -52,11 +52,11 @@ class IObjectSource {
 public:
     virtual ~IObjectSource();
     virtual std::string olinkObjectName() = 0;
-    virtual json olinkInvoke(std::string name, json args) = 0;
-    virtual void olinkSetProperty(std::string name, json value) = 0;
+    virtual nlohmann::json olinkInvoke(std::string name, nlohmann::json args) = 0;
+    virtual void olinkSetProperty(std::string name, nlohmann::json value) = 0;
     virtual void olinkLinked(std::string name, IRemoteNode* node) = 0;
     virtual void olinkUnlinked(std::string name) = 0;
-    virtual json olinkCollectProperties() = 0;
+    virtual nlohmann::json olinkCollectProperties() = 0;
 };
 
 
@@ -144,22 +144,22 @@ public: // IMessagesListener interface
     /**
      * handle SetProperty message from client
      */
-    void handleSetProperty(std::string name, json value) override;
+    void handleSetProperty(std::string name, nlohmann::json value) override;
     /**
      * handle Invoke message form client.
      * Calls the object source and returns the value using InvokeReply message
      */
-    void handleInvoke(int requestId, std::string name, json args) override;
+    void handleInvoke(int requestId, std::string name, nlohmann::json args) override;
 
 public: // IObjectSourceNode interface
     /**
      * Broadcasts property change message to all remote nodes registered to the source
      */
-    void notifyPropertyChange(std::string name, json value) override;
+    void notifyPropertyChange(std::string name, nlohmann::json value) override;
     /**
      * Broadcasts signal message to all remote nodes registered to the source
      */
-    void notifySignal(std::string name, json args) override;
+    void notifySignal(std::string name, nlohmann::json args) override;
 };
 
 
