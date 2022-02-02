@@ -30,9 +30,23 @@
 #include <list>
 #include "nlohmann/json.hpp"
 
+#if defined _WIN32 || defined __CYGWIN__
+#ifdef __GNUC__
+  #define OLINK_EXPORT __attribute__ ((dllexport))
+#else
+  #define OLINK_EXPORT __declspec(dllexport)
+#endif
+#else
+  #if __GNUC__ >= 4
+    #define OLINK_EXPORT __attribute__ ((visibility ("default")))
+  #else
+    #define OLINK_EXPORT
+  #endif
+#endif
+
 namespace ApiGear { namespace ObjectLink {
 
-class Name {
+class OLINK_EXPORT Name {
 public:
     // calc.Demo/add
     static std::string resourceFromName(std::string name);
@@ -65,7 +79,7 @@ enum MessageFormat
     CBOR = 4,
 };
 
-class MessageConverter {
+class OLINK_EXPORT MessageConverter {
 public:
     MessageConverter(MessageFormat format);
     void setMessageFormat(MessageFormat format);
@@ -76,7 +90,7 @@ private:
 };
 
 
-class IMessageHandler
+class OLINK_EXPORT IMessageHandler
 {
 public:
     virtual ~IMessageHandler();
@@ -124,7 +138,7 @@ public:
 typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;
 
 
-class Base {
+class OLINK_EXPORT Base {
 public:
     Base();
     virtual ~Base();

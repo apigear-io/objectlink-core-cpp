@@ -8,7 +8,7 @@ namespace ApiGear { namespace ObjectLink {
  * @brief A base class for client and remote nodes
  * Adds default handling of listener calls and a emits write message when required
  */
-class BaseNode: public Base, public IProtocolListener, public IMessageHandler {
+class OLINK_EXPORT BaseNode: public Base, public IProtocolListener, public IMessageHandler {
 public:
     BaseNode();
     void onWrite(WriteMessageFunc func);

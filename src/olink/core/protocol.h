@@ -31,7 +31,7 @@ namespace ApiGear { namespace ObjectLink {
 /**
  * @brief listener for the protocol.
  */
-class IProtocolListener
+class OLINK_EXPORT IProtocolListener
 {
 public:
     virtual ~IProtocolListener();
@@ -53,7 +53,7 @@ public:
  * On incoming messages the listeners is called.
  * A base implementation is available in BaseNode (see ndoe.h)
  */
-class Protocol : public Base
+class OLINK_EXPORT Protocol : public Base
 {
 public:
     Protocol(IProtocolListener *listener);

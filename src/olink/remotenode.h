@@ -48,7 +48,7 @@ public:
  * @brief Implemented by the object source
  * Interface is called by the remote node
  */
-class IObjectSource {
+class OLINK_EXPORT IObjectSource {
 public:
     virtual ~IObjectSource();
     virtual std::string olinkObjectName() = 0;
