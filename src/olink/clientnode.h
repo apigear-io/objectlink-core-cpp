@@ -12,7 +12,7 @@ class ClientRegistry;
 /**
  * @brief Interface exposed to object sinks to call client functions
  */
-class IClientNode {
+class OLINK_EXPORT IClientNode {
 public:
     virtual ~IClientNode();
     virtual void linkRemote(std::string name) = 0;
@@ -24,7 +24,7 @@ public:
 /**
  * @brief Interface to be implemented by object sinks
  */
-class IObjectSink
+class OLINK_EXPORT IObjectSink
 {
 public:
     virtual ~IObjectSink();
@@ -51,7 +51,7 @@ struct SinkToClientEntry {
 /**
  * @brief client side sink registry
  */
-class ClientRegistry : public Base {
+class OLINK_EXPORT ClientRegistry : public Base {
 private:
     ClientRegistry();
 public:
@@ -77,7 +77,7 @@ private:
  * A client node is associated with one socket to handle messages and to wrire messages.
  * The client node calls the correct sinks based on registry entries.
  */
-class ClientNode : public BaseNode, public IClientNode
+class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode
 {
 public:
     ClientNode();
