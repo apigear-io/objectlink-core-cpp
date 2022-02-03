@@ -7,15 +7,16 @@ using namespace ApiGear::ObjectLink;
 
 class CalcSink: public IObjectSink {
 public:
-    CalcSink()
+    CalcSink(ClientRegistry& registry)
         : m_client(nullptr)
+        , m_registry(&registry)
         , m_total(0)
         , m_ready(false)
     {
-        m_client = ClientNode::addObjectSink(this);
+        m_client = m_registry->addObjectSink(this);
     }
     virtual ~CalcSink() override {
-        ClientNode::removeObjectSink(this);
+        m_registry->removeObjectSink(this);
     }
     int total() const {
         return m_total;
@@ -85,6 +86,7 @@ public:
     std::list<nlohmann::json> events;
 private:
     IClientNode *m_client;
+    ClientRegistry* m_registry;
     int m_total;
     bool m_ready;
 

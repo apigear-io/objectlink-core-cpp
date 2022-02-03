@@ -7,14 +7,15 @@ using namespace ApiGear::ObjectLink;
 
 class MockSink: public IObjectSink {
 public:
-    MockSink()
+    MockSink(ClientRegistry& registry)
         : m_client(nullptr)
         , m_ready(false)
+        , m_registry(&registry)
     {
-        m_client = ClientNode::addObjectSink(this);
+        m_client = m_registry->addObjectSink(this);
     }
     virtual ~MockSink() override {
-        ClientNode::removeObjectSink(this);
+        m_registry->removeObjectSink(this);
     }
     IClientNode *client() const {
         assert(m_client);
@@ -56,5 +57,6 @@ public:
     nlohmann::json m_properties;
     IClientNode *m_client;
     bool m_ready;
+    ClientRegistry* m_registry;
 
 };

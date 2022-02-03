@@ -26,10 +26,11 @@ TEST_CASE("protocol")
     std::string error = "failed";
 
     ConsoleLogger log;
-    MockSink sink;
+    ClientRegistry clientRegistry;
+    MockSink sink(clientRegistry);
     RemoteRegistry registry;
     MockSource source(registry);
-    ClientNode client;
+    ClientNode client(clientRegistry);
     client.onLog(log.logFunc());
     RemoteNode remote(registry);
     remote.onLog(log.logFunc());
