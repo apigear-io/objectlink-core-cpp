@@ -35,7 +35,7 @@ class RemoteRegistry;
 /**
  * @brief exposed to object source to call remote node functions
  */
-class IRemoteNode {
+class OLINK_EXPORT IRemoteNode {
 public:
     virtual ~IRemoteNode();
     virtual void notifyPropertyChange(std::string name, nlohmann::json value) = 0;
@@ -64,7 +64,7 @@ public:
  * @brief manages associations of object source and nodes
  * One source can be linked to many nodes
  */
-struct SourceToNodesEntry {
+struct OLINK_EXPORT SourceToNodesEntry {
     SourceToNodesEntry()
         : source(nullptr)
     {}
@@ -77,7 +77,7 @@ struct SourceToNodesEntry {
  * Only one registry exists
  * Remote side all object sources must be unique for the whole process.
  */
-class RemoteRegistry: public Base {
+class OLINK_EXPORT RemoteRegistry: public Base {
 private:
 public:
     RemoteRegistry();
@@ -102,7 +102,7 @@ private:
  * A remote node is associated with one socket to handle messages and to write messages.
  * The remote node calls the object sources based on remote registry entries.
  */
-class RemoteNode: public BaseNode, public IRemoteNode {
+class OLINK_EXPORT RemoteNode: public BaseNode, public IRemoteNode {
 public:
     RemoteNode(RemoteRegistry& registry);
     virtual ~RemoteNode() override;
