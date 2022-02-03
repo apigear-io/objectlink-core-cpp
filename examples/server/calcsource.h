@@ -6,7 +6,7 @@ using namespace ApiGear::ObjectLink;
 
 class CalcSource: public IObjectSource {
 public:
-    CalcSource();
+    CalcSource(RemoteRegistry& registry);
     virtual ~CalcSource() override;
 
     IRemoteNode *node() const;
@@ -19,13 +19,14 @@ public:
     // IObjectSource interface
 public:
     std::string olinkObjectName() override;
-    json olinkInvoke(std::string name, json args) override;
-    void olinkSetProperty(std::string name, json value) override;
+    nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override;
+    void olinkSetProperty(std::string name, nlohmann::json value) override;
     void olinkLinked(std::string name, IRemoteNode *node) override;
     void olinkUnlinked(std::string name) override;
-    json olinkCollectProperties() override;
+    nlohmann::json olinkCollectProperties() override;
 private:
     IRemoteNode* m_node;
     int m_total;
+    RemoteRegistry* m_registry;
 };
 

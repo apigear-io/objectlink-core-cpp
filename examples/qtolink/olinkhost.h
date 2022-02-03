@@ -34,7 +34,7 @@ class OLinkHost :public QObject
 {
     Q_OBJECT
 public:
-    explicit OLinkHost(QObject *parent=nullptr);
+    explicit OLinkHost(ApiGear::ObjectLink::RemoteRegistry& registry, QObject *parent);
     virtual ~OLinkHost() override;
     void listen(const QString& host, int port);
     void onNewConnection();
@@ -45,4 +45,5 @@ public:
 
 private:
     QWebSocketServer* m_wss;
+    ApiGear::ObjectLink::RemoteRegistry* m_registry;
 };

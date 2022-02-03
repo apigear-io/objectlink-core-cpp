@@ -23,14 +23,16 @@
 */
 #include <QtCore>
 #include "../qtolink/olinkhost.h"
+#include "olink/remotenode.h"
 #include "calcsource.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
-    OLinkHost server;
-    CalcSource source;
+    ApiGear::ObjectLink::RemoteRegistry registry;
+    OLinkHost server(registry, nullptr);
+    CalcSource source(registry);
     server.listen("localhost", 8182);
     return app.exec();
 }

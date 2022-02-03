@@ -1,9 +1,11 @@
 #include "olinkremote.h"
 
 
-OLinkRemote::OLinkRemote(QWebSocket *socket)
+OLinkRemote::OLinkRemote(QWebSocket *socket, ApiGear::ObjectLink::RemoteRegistry& registry)
     : QObject(socket)
     , m_socket(socket)
+    , m_registry(&registry)
+    , m_node(registry)
 {
     m_node.onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkRemote::handleMessage);

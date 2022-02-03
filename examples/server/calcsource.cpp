@@ -4,15 +4,16 @@
 using namespace ApiGear::ObjectLink;
 
 
-CalcSource::CalcSource()
+CalcSource::CalcSource(RemoteRegistry& registry)
     : m_node(nullptr)
     , m_total(1)
+    , m_registry(&registry)
 {
-    RemoteNode::addObjectSource(this);
+    m_registry->addObjectSource(this);
 }
 
 CalcSource::~CalcSource() {
-    RemoteNode::removeObjectSource(this);
+    m_registry->removeObjectSource(this);
 }
 
 IRemoteNode *CalcSource::node() const {
@@ -54,7 +55,7 @@ std::string CalcSource::olinkObjectName() {
     return "demo.Calc";
 }
 
-json CalcSource::olinkInvoke(std::string name, json args) {
+nlohmann::json CalcSource::olinkInvoke(std::string name, nlohmann::json args) {
     std::cout << "invoke" << name << args.dump();
     std::string path = Name::pathFromName(name);
     if(path == "add") {
@@ -67,12 +68,12 @@ json CalcSource::olinkInvoke(std::string name, json args) {
         return result;
     } else if(path == "clear") {
         clear();
-        return json{};
+        return nlohmann::json{};
     }
-    return json();
+    return nlohmann::json();
 }
 
-void CalcSource::olinkSetProperty(std::string name, json value) {
+void CalcSource::olinkSetProperty(std::string name, nlohmann::json value) {
     std::cout << "setProperty" << name << value.dump();
     std::string path = Name::pathFromName(name);
     if(path == "total") {
@@ -95,7 +96,7 @@ void CalcSource::olinkUnlinked(std::string name)
     m_node = nullptr;
 }
 
-json CalcSource::olinkCollectProperties()
+nlohmann::json CalcSource::olinkCollectProperties()
 {
     return {{ "total", m_total }};
 }
