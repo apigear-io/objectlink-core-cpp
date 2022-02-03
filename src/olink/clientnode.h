@@ -39,7 +39,7 @@ public:
  * @brief internal structure to manage sink/node associations
  * one onject sink can only be linked to one node
  */
-struct SinkToClientEntry {
+struct OLINK_EXPORT SinkToClientEntry {
     SinkToClientEntry()
         : sink(nullptr)
         , node(nullptr)

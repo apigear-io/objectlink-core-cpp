@@ -104,7 +104,7 @@ enum LogLevel {
     Error
 };
 
-class ILogger
+class OLINK_EXPORT ILogger
 {
 public:
     virtual ~ILogger();
@@ -116,7 +116,7 @@ typedef std::function<void(LogLevel level, std::string msg)> WriteLogFunc;
 typedef std::function<void(std::string msg)> WriteMessageFunc;
 
 
-class LoopbackWriter {
+class OLINK_EXPORT LoopbackWriter {
 public:
     LoopbackWriter(IMessageHandler* handler=nullptr);
     void writeMessage(nlohmann::json j);
@@ -129,7 +129,7 @@ private:
 
 
 
-class InvokeReplyArg {
+class OLINK_EXPORT InvokeReplyArg {
 public:
     std::string name;
     nlohmann::json value;
