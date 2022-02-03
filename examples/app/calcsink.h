@@ -9,6 +9,17 @@ using json = nlohmann::json;
 
 using namespace ApiGear::ObjectLink;
 
+class QClientRegistry: public QObject, public ApiGear::ObjectLink::ClientRegistry
+{
+    Q_OBJECT
+    QClientRegistry() {};
+public:
+    static QClientRegistry& getInstance(){
+        static QClientRegistry r;
+        return r;
+    };
+};
+
 class CalcSink
     : public QObject
     , public IObjectSink

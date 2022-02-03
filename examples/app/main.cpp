@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
-    OLinkClient client;
+    OLinkClient client(nullptr, QClientRegistry::getInstance(), nullptr);
     client.connectToHost(QUrl("ws://127.0.0.1:8182"));
     client.linkObjectSource("demo.Calc");
 

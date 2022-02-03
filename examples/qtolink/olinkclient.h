@@ -35,7 +35,7 @@ class OLinkClient
 {
     Q_OBJECT
 public:
-    explicit OLinkClient(QWebSocket *socket=nullptr, QObject *parent=nullptr);
+    explicit OLinkClient(QWebSocket *socket, ApiGear::ObjectLink::ClientRegistry& registry, QObject *parent);
     virtual ~OLinkClient() override;
     void connectToHost(QUrl url);
     ClientNode &node();
@@ -49,6 +49,7 @@ public:
 
 private:
     QWebSocket *m_socket;
+    ApiGear::ObjectLink::ClientRegistry* m_registry;
     ClientNode m_node;
     QQueue<std::string> m_queue;
 };

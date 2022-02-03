@@ -26,9 +26,11 @@
 
 using namespace ApiGear::ObjectLink;
 
-OLinkClient::OLinkClient(QWebSocket *socket, QObject *parent)
+OLinkClient::OLinkClient(QWebSocket *socket, ApiGear::ObjectLink::ClientRegistry& registry, QObject *parent)
     : QObject(parent)
     , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
+    , m_registry(&registry)
+    , m_node(registry)
 {
     m_node.onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::connected, this, &OLinkClient::onConnected);
