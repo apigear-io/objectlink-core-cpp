@@ -52,12 +52,6 @@ RemoteRegistry::RemoteRegistry()
 {
 }
 
-RemoteRegistry &RemoteRegistry::get()
-{
-    static RemoteRegistry r;
-    return r;
-}
-
 void RemoteRegistry::addObjectSource(IObjectSource *source)
 {
     std::string name = source->olinkObjectName();
@@ -135,31 +129,31 @@ void RemoteRegistry::removeEntry(std::string name)
 // ********************************************************************
 // RemoteNode
 // ********************************************************************
-
-RemoteNode::RemoteNode()
+RemoteNode::RemoteNode(RemoteRegistry& registry)
     : BaseNode()
+    , m_registry(&registry)
 {
-    registry().attachRemoteNode(this);
+    m_registry->attachRemoteNode(this);
 }
 
 RemoteNode::~RemoteNode()
 {
-    registry().detachRemoteNode(this);
+    m_registry->detachRemoteNode(this);
 }
 
 IObjectSource *RemoteNode::getObjectSource(std::string name)
 {
-    return registry().getObjectSource(name);
+    return m_registry->getObjectSource(name);
 }
 
 void RemoteNode::addObjectSource(IObjectSource *source)
 {
-    RemoteRegistry::get().addObjectSource(source);
+    m_registry->addObjectSource(source);
 }
 
 void RemoteNode::removeObjectSource(IObjectSource *source)
 {
-    RemoteRegistry::get().removeObjectSource(source);
+    m_registry->removeObjectSource(source);
 }
 
 
@@ -168,7 +162,7 @@ void RemoteNode::handleLink(std::string name)
     emitLog(LogLevel::Info, "handleLink name: " + name);
     IObjectSource* s = getObjectSource(name);
     if(s) {
-        registry().linkRemoteNode(name, this);
+        m_registry->linkRemoteNode(name, this);
         s->olinkLinked(name, this);
         nlohmann::json props = s->olinkCollectProperties();
         emitWrite(Protocol::initMessage(name, props));
@@ -182,7 +176,7 @@ void RemoteNode::handleUnlink(std::string name)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
-        registry().unlinkRemoteNode(name, this);
+        m_registry->unlinkRemoteNode(name, this);
         s->olinkUnlinked(name);
     }
 }
@@ -206,31 +200,31 @@ void RemoteNode::handleInvoke(int requestId, std::string name, nlohmann::json ar
 
 void RemoteNode::notifyPropertyChange(std::string name, nlohmann::json value)
 {
-    for(auto node: registry().getRemoteNodes(name)) {
+    for(auto node: m_registry->getRemoteNodes(name)) {
         node->emitWrite(Protocol::propertyChangeMessage(name, value));
     }
 }
 
 void RemoteNode::notifySignal(std::string name, nlohmann::json args)
 {
-    for(auto node: registry().getRemoteNodes(name)) {
+    for(auto node: m_registry->getRemoteNodes(name)) {
         node->emitWrite(Protocol::signalMessage(name, args));
     }
 }
 
 RemoteRegistry &RemoteNode::registry()
 {
-    return RemoteRegistry::get();
+    return *m_registry;
 }
 
 void RemoteNode::linkNode(std::string name)
 {
-    registry().linkRemoteNode(name, this);
+    m_registry->linkRemoteNode(name, this);
 }
 
 void RemoteNode::unlinkNode(std::string name)
 {
-    registry().unlinkRemoteNode(name, this);
+    m_registry->unlinkRemoteNode(name, this);
 }
 
 } } // Apigear::ObjectLink

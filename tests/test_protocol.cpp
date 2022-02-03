@@ -6,6 +6,7 @@
 
 #include <list>
 #include <string>
+#include <memory>
 #include "mocksink.hpp"
 #include "mocksource.hpp"
 #include "olink/consolelogger.h"
@@ -26,10 +27,11 @@ TEST_CASE("protocol")
 
     ConsoleLogger log;
     MockSink sink;
-    MockSource source;
+    RemoteRegistry registry;
+    MockSource source(registry);
     ClientNode client;
     client.onLog(log.logFunc());
-    RemoteNode remote;
+    RemoteNode remote(registry);
     remote.onLog(log.logFunc());
     SECTION("link") {
         json msg = Protocol::linkMessage(name);
