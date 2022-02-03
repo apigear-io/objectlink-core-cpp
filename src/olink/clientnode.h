@@ -52,11 +52,9 @@ struct SinkToClientEntry {
  * @brief client side sink registry
  */
 class OLINK_EXPORT ClientRegistry : public Base {
-private:
-    ClientRegistry();
 public:
+    ClientRegistry();
     virtual ~ClientRegistry() override;
-    static ClientRegistry& get();
     void attachClientNode(ClientNode *node);
     void detachClientNode(ClientNode *node);
     void linkClientNode(std::string name, ClientNode *node);
@@ -80,7 +78,7 @@ private:
 class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode
 {
 public:
-    ClientNode();
+    ClientNode(ClientRegistry& registry);
     virtual ~ClientNode() override;
     /**
      * link client node to object source by name
@@ -124,11 +122,11 @@ public: // sink registry
      * Adds object sink to global registry.
      * Return a client node, when previously registered using linkNode
      */
-    static ClientNode *addObjectSink(IObjectSink *sink);
+    ClientNode *addObjectSink(IObjectSink *sink);
     /**
      * Removed object sink from global registry.
      */
-    static void removeObjectSink(IObjectSink *sink);
+    void removeObjectSink(IObjectSink *sink);
     /**
      * Gets object sink using unique sink name
      */
@@ -168,6 +166,7 @@ protected:
 private:
     int m_nextRequestId;
     std::map<int,InvokeReplyFunc> m_invokesPending;
+    ClientRegistry* m_registry;
 };
 
 

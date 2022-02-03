@@ -24,16 +24,17 @@ TEST_CASE("link")
 {
     RemoteRegistry registry;
     registry.onLog(ConsoleLogger::logFunc());
-    ClientRegistry::get().onLog(ConsoleLogger::logFunc());
+    ClientRegistry clientRegistry;
+    clientRegistry.onLog(ConsoleLogger::logFunc());
     // setup service
     RemoteNode remote(registry);
 
     CalcSource source(registry);
 
     // setup client
-    ClientNode client;
+    ClientNode client(clientRegistry);
     client.onLog(ConsoleLogger::logFunc());
-    CalcSink sink;
+    CalcSink sink(clientRegistry);
 
     WriteMessageFunc clientWriteFunc = [&remote](std::string msg) {
         remote.handleMessage(msg);
@@ -76,9 +77,10 @@ TEST_CASE("setProperty")
 
     // setup client
 //    ObjectSinkRegistry clientRegistry("client1");
-    ClientNode client;
+    ClientRegistry clientRegistry;
+    ClientNode client(clientRegistry);
     client.onLog(log.logFunc());
-    CalcSink sink;
+    CalcSink sink(clientRegistry);
 
     WriteMessageFunc sinkWriteFunc = [&remote](std::string msg) {
         remote.handleMessage(msg);
@@ -118,9 +120,10 @@ TEST_CASE("signal")
 
     // setup client
 //    ObjectSinkRegistry clientRegistry("client1");
-    ClientNode client;
+    ClientRegistry clientRegistry;
+    ClientNode client(clientRegistry);
     client.onLog(log.logFunc());
-    CalcSink sink;
+    CalcSink sink(clientRegistry);
 
     WriteMessageFunc sinkWriteFunc = [&remote](std::string msg) {
         remote.handleMessage(msg);
@@ -160,9 +163,10 @@ TEST_CASE("invoke")
 
     // setup client
 //    ObjectSinkRegistry sinkRegistry("client1");
-    ClientNode client;
+    ClientRegistry clientRegistry;
+    ClientNode client(clientRegistry);
     client.onLog(log.logFunc());
-    CalcSink sink;
+    CalcSink sink(clientRegistry);
 
     WriteMessageFunc clientWriteFunc = [&remote](std::string msg) {
         remote.handleMessage(msg);
