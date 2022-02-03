@@ -79,9 +79,10 @@ struct SourceToNodesEntry {
  */
 class RemoteRegistry: public Base {
 private:
-    RemoteRegistry();
 public:
-    static RemoteRegistry& get();
+    RemoteRegistry();
+    virtual ~RemoteRegistry() = default;
+
     void addObjectSource(IObjectSource *source);
     void removeObjectSource(IObjectSource *source);
     IObjectSource* getObjectSource(std::string name);
@@ -103,7 +104,7 @@ private:
  */
 class RemoteNode: public BaseNode, public IRemoteNode {
 public:
-    RemoteNode();
+    RemoteNode(RemoteRegistry& registry);
     virtual ~RemoteNode() override;
     /**
      * get object source from registry by name
@@ -127,11 +128,11 @@ public: // source registry
     /**
      * Add object source to global registry
      */
-    static void addObjectSource(IObjectSource *source);
+    void addObjectSource(IObjectSource *source);
     /**
      * Remove object source from global registry
      */
-    static void removeObjectSource(IObjectSource *source);
+    void removeObjectSource(IObjectSource *source);
 public: // IMessagesListener interface
     /**
      * handle Link message from client
@@ -160,6 +161,8 @@ public: // IObjectSourceNode interface
      * Broadcasts signal message to all remote nodes registered to the source
      */
     void notifySignal(std::string name, nlohmann::json args) override;
+private:
+    RemoteRegistry* m_registry;
 };
 
 

@@ -7,13 +7,14 @@ using namespace ApiGear::ObjectLink;
 
 class MockSource: public IObjectSource {
 public:
-    MockSource()
+    MockSource(RemoteRegistry& registry)
         : m_node(nullptr)
+        , m_registry(&registry)
     {
-        RemoteNode::addObjectSource(this);
+        m_registry->addObjectSource(this);
     }
     virtual ~MockSource() override {
-        RemoteNode::removeObjectSource(this);
+        m_registry->removeObjectSource(this);
     }
 
     IRemoteNode* remoteNode() const {
@@ -62,6 +63,7 @@ public:
     }
 private:
     IRemoteNode* m_node;
+    RemoteRegistry* m_registry;
     std::list<nlohmann::json> m_events;
     nlohmann::json m_properties;
 };

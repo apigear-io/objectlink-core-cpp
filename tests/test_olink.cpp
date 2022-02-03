@@ -11,6 +11,7 @@
 
 #include <list>
 #include <string>
+#include <memory>
 
 #include "sinkobject.hpp"
 #include "sourceobject.hpp"
@@ -21,12 +22,13 @@ using namespace ApiGear::ObjectLink;
 
 TEST_CASE("link")
 {
-    RemoteRegistry::get().onLog(ConsoleLogger::logFunc());
+    RemoteRegistry registry;
+    registry.onLog(ConsoleLogger::logFunc());
     ClientRegistry::get().onLog(ConsoleLogger::logFunc());
     // setup service
-    RemoteNode remote;
+    RemoteNode remote(registry);
 
-    CalcSource source;
+    CalcSource source(registry);
 
     // setup client
     ClientNode client;
@@ -67,9 +69,10 @@ TEST_CASE("setProperty")
 {
     ConsoleLogger log;
     // setup service
-    RemoteNode remote;
+    RemoteRegistry registry;
+    RemoteNode remote(registry);
     remote.onLog(log.logFunc());
-    CalcSource source;
+    CalcSource source(registry);
 
     // setup client
 //    ObjectSinkRegistry clientRegistry("client1");
@@ -108,9 +111,10 @@ TEST_CASE("signal")
 {
     ConsoleLogger log;
     // setup service
-    RemoteNode remote;
+    RemoteRegistry registry;
+    RemoteNode remote(registry);
     remote.onLog(log.logFunc());
-    CalcSource source;
+    CalcSource source(registry);
 
     // setup client
 //    ObjectSinkRegistry clientRegistry("client1");
@@ -149,9 +153,10 @@ TEST_CASE("invoke")
     ConsoleLogger log;
     // setup service
 //    ObjectSourceRegistry sourceRegistry("host1");
-    RemoteNode remote;
+    RemoteRegistry registry;
+    RemoteNode remote(registry);
     remote.onLog(log.logFunc());
-    CalcSource source;
+    CalcSource source(registry);
 
     // setup client
 //    ObjectSinkRegistry sinkRegistry("client1");

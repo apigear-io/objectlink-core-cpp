@@ -7,14 +7,15 @@ using namespace ApiGear::ObjectLink;
 
 class CalcSource: public IObjectSource {
 public:
-    CalcSource()
+    CalcSource(RemoteRegistry& registry)
         : m_node(nullptr)
+        , m_registry(&registry)
         , m_total(1)
     {
-        RemoteNode::addObjectSource(this);
+        m_registry->addObjectSource(this);
     }
     virtual ~CalcSource() override {
-        RemoteNode::removeObjectSource(this);
+        m_registry->removeObjectSource(this);
     }
 
     IRemoteNode* remoteNode() const {
@@ -89,6 +90,7 @@ public:
     }
 private:
     IRemoteNode* m_node;
+    RemoteRegistry* m_registry;
     int m_total;
     std::vector<nlohmann::json> m_events;
 };
