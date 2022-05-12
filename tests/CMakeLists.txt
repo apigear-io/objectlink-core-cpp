@@ -3,13 +3,18 @@ set(SPDLOG_TRACE_ON true)
 
 Include(FetchContent)
 
-# pull catch2 as dependency
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v2.13.8)
-
-FetchContent_MakeAvailable(Catch2)
+find_package(Catch2 QUIET)
+if(NOT Catch2_FOUND)
+  # pull catch2 as dependency
+  message(STATUS "Catch2 NOT FOUND, fetching the git repository")
+  include(FetchContent)
+  FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG        v2.13.8
+    GIT_SHALLOW    TRUE)
+  FetchContent_MakeAvailable(Catch2)
+endif()
 
 set(TEST_OLINK_SOURCES
     test_main.cpp
