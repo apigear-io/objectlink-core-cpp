@@ -1,14 +1,14 @@
 set(SPDLOG_DEBUG_ON true)
 set(SPDLOG_TRACE_ON true)
 
-# pull nlohmann json as dependency
-include(FetchContent)
-
-FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-  GIT_TAG v3.9.1)
-
-FetchContent_MakeAvailable(json)
+find_package(nlohmann_json QUIET)
+if(NOT nlohmann_json_FOUND)
+  # pull nlohmann json as dependency
+  include(FetchContent)
+  set(JSON_Install ON)
+  FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz)
+  FetchContent_MakeAvailable(json)
+endif()
 
 set(OLINK_SOURCES
     olink/core/types.cpp
