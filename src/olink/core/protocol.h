@@ -23,62 +23,188 @@
 */
 #pragma once
 
+#include "olink_common.h"
 #include "types.h"
+#include "nlohmann/json.hpp"
+#include <cstring>
 
 namespace ApiGear { namespace ObjectLink {
 
 
 /**
- * @brief listener for the protocol.
+ * Listener for the ObjectLink Protocol messages.
+ * Provides handlers for received and decoded messages.
+ * Contains handlers for all messages in protocol.
+ * Not all handlers have to have full implementation for the protocol listener object,
+ * some messages should be handled by server side, some by client side.
  */
 class OLINK_EXPORT IProtocolListener
 {
 public:
-    virtual ~IProtocolListener();
+    virtual ~IProtocolListener() = default;
 
-    virtual void handleLink(std::string name) = 0;
-    virtual void handleUnlink(std::string name) = 0;
-    virtual void handleInit(std::string name, nlohmann::json props) = 0;
-    virtual void handleSetProperty(std::string name, nlohmann::json value) = 0;
-    virtual void handlePropertyChange(std::string name, nlohmann::json value) = 0;
-    virtual void handleInvoke(int requestId, std::string name, nlohmann::json args) = 0;
-    virtual void handleInvokeReply(int requestId, std::string name, nlohmann::json value) = 0;
-    virtual void handleSignal(std::string name, nlohmann::json args) = 0;
-    virtual void handleError(int msgType, int requestId, std::string error) = 0;
+    /**
+     * Server side handler, handles link message.
+     * @param objectId Id of an object for which link message was received.
+     */
+    virtual void handleLink(const std::string& objectId) = 0;
+    /**
+     * Server side handler, handles unlink message.
+     * @param objectId Id of an object for which unlink message was received.
+     */
+    virtual void handleUnlink(const std::string& objectId) = 0;
+    /**
+     * Client side handler, handles remote init message.
+     * @param objectId Id of an object for which Init message was received
+     * @param props Current values of properties for object service.
+     */
+    virtual void handleInit(const std::string& objectId, const nlohmann::json& props) = 0;
+    /**
+     * Server side handler, handles setProperty message.
+     * @param propertyId Unambiguously describes property in object for which setProperty message was received.
+     * @param value A value to which client request a property to be set.
+     */
+    virtual void handleSetProperty(const std::string& propertyId, const nlohmann::json& value) = 0;
+    /**
+     * Client side handler, handles propertyChange message.
+     * @param propertyId Unambiguously describes property in object for which propertyChange message was received.
+     * @param value A current value of property on server side
+     */
+    virtual void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) = 0;
+    /**
+     * Server side handler, handles Invoke message.
+     * @param requestId Id of a invoke request, which should be sent back with the response.
+     * @param methodId Unambiguously describes method in object for which invoke message was received.
+     * @param args Arguments with which method should be invoked.
+     */
+    virtual void handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args) = 0;
+    /**
+     * Client side handler, handles invokeReply message.
+     * @param requestId Identifier of a request with which the client requested method invocation.
+     *    should be used to deliver the result to a caller.
+     * @param methodId Unambiguously describes method in object for which invokeReply message was received.
+     * @param value Method's result value.
+     */
+    virtual void handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value) = 0;
+    /**
+     * Client side handler, handles signal message.
+     * @param signalId Unambiguously describes signal in object for which signal message was received.
+     * @param args Arguments with which signal was emitted.
+     */
+    virtual void handleSignal(const std::string& signalId, const nlohmann::json& args) = 0;
+    /**
+     * Handles error message.
+     * @param msgType Type of a message for which error occurred.
+     * @param requestId If error is for method invocation message, this parameter holds the requestId of the invoke message.
+     *   It should be used to inform the caller that the response for this call will never arrive and it should not wait for it.
+     * @param error The error message.
+     */
+    virtual void handleError(int msgType, int requestId, const std::string& error) = 0;
 };
 
 /**
- * @brief The ObjectLink protocol
- * Functions to create olik messages and to handle all olink messages
- * On incoming messages the listeners is called.
- * A base implementation is available in BaseNode (see ndoe.h)
+ * The ObjectLink protocol
+ * Functions to create olink messages and to translate message from network and dispatch it to 
+ * handlers provided by IProtocolListener.
  */
-class OLINK_EXPORT Protocol : public Base
+class OLINK_EXPORT Protocol : public LoggerBase
 {
 public:
-    Protocol(IProtocolListener *listener);
-    // lifecycle
-    static nlohmann::json linkMessage(std::string name);
-    static nlohmann::json unlinkMessage(std::string name);
-    static nlohmann::json initMessage(std::string name, nlohmann::json props);
-    // properties
-    static nlohmann::json setPropertyMessage(std::string name, nlohmann::json value);
-    static nlohmann::json propertyChangeMessage(std::string name, nlohmann::json value);
-    // remote invoke
-    static nlohmann::json invokeMessage(int requestId, std::string name, nlohmann::json args);
-    static nlohmann::json invokeReplyMessage(int requestId, std::string name, nlohmann::json value);
-    // signal
-    static nlohmann::json signalMessage(std::string name, nlohmann::json args);
-    // error
-    static nlohmann::json errorMessage(MsgType msgType, int requestId, std::string error);
-    bool handleMessage(nlohmann::json msg);
+    /**
+    * Life-cycle message.
+    * Composes a link message for given objectId.
+    * Send this message from client side to inform the server, that a client wants to connect to service object described with objectId.
+    * @param objectId Id of a service object to which client wants to connect.
+    * @return Composed linkMessage in json format.
+    */
+    static nlohmann::json linkMessage(const std::string& objectId);
+    /**
+    * Life-cycle message.
+    * Composes an unlink message for given objectId.
+    * Send this message from client side to inform the server, that a client will no longer use the service object described wit objectId.
+    * @param objectId Id of a service that client no longer wants to use. 
+    * @return Composed unlinkMessage in json format.
+    */
+    static nlohmann::json unlinkMessage(const std::string& objectId);
+    /**
+    * Life-cycle message.
+    * Composes an init message for given objectId and payload in json format.
+    * Send this message from server side to inform the client, that a service confirmed connection, 
+    * The message carries the current state of service.
+    * @param objectId Id of an object for which message is dedicated.
+    * @param props Current state of the properties provided by service.
+    * @return Composed initMessage in json format.
+    */
+    static nlohmann::json initMessage(const std::string& objectId, const nlohmann::json& props);
+    /**
+    * Properties message.
+    * Composes request a change of property described with propretyId.
+    * Send this message from client side to request property change.
+    * @param propretyId Id describing a property in an object. Consists of property name and objectID.
+    * @param value Requested value of the property.
+    * @return Composed setPropertyMessage in json format.
+    */
+    static nlohmann::json setPropertyMessage(const std::string& propertyId, const nlohmann::json& value);
+    /**
+    * Properties message.
+    * Composes a notification message for change of property described with propretyId.
+    * Send this message from server side to inform clients about property change.
+    * @param propretyId Id describing a property in an object. Consists of property name and objectId.
+    * @param value Current value of the property.
+    * @return Composed propertyChangeMessage in json format.
+    */
+    static nlohmann::json propertyChangeMessage(const std::string& propertyId, const nlohmann::json& value);
+    /**
+    * Method message.
+    * Composes a request of method invocation message for a methodId.
+    * Send this message from client side to request method invocation.
+    * @param requestId Id of a request, unique for the client object, client expects this id for the response.
+    * @param methodId Id describing a method in an object. Consists of method name and objectId.
+    * @param args Arguments with which method should be invoked.
+    * @return Composed invokeMessage in json format.
+    */
+    static nlohmann::json invokeMessage(int requestId, const std::string& methodId, const nlohmann::json& args);
+    /**
+    * Method message.
+    * Composes a response to a method invocation message for a methodId.
+    * Send this message from server side to inform about method result (for non void methods).
+    * @param requestId Id of a request, should match requestId send in invocation request.
+    * @param methodId Id describing a method in an object. Consists of method name and objectId.
+    * @param value Value that is an outcome of method invocation.
+    * @return Composed invokeReplyMessage in json format.
+    */
+    static nlohmann::json invokeReplyMessage(int requestId, const std::string& methodId, const nlohmann::json& value);
+    /**
+    * Signal message.
+    * Composes a notification message for signal emitted for signalId.
+    * Send this message from server side to inform clients about signal emission.
+    * @param signalId Id describing a signal in an object. Consists of signal name and objectId.
+    * @param args Arguments with which the signal was emitted.
+    * @return Composed signalMessage in json format.
+    */
+    static nlohmann::json signalMessage(const std::string& signalId, const nlohmann::json& args);
+    /**
+    * Error message.
+    * Send this message to inform that message was not accepted.
+    * @param requestId Filled for error of method invocation - should match requestId send in method invocation request.
+    * @param error Error description.
+    * @return Composed error message in json format.
+    */
+    static nlohmann::json errorMessage(MsgType msgType, int requestId, const std::string&error);
+
+    /**
+    * Decodes the message and calls appropriate function handler with decoded arguments.
+    * @param msg A message payload in json format. 
+    * @param listener An object providing handlers for protocol messages.
+    * @return true if message translation was successful and a proper listener handler was called, false otherwise.
+    */
+    bool handleMessage(const nlohmann::json& msg, IProtocolListener& listener);
+    
+    /** @return error for most recent handleMessage execution*/
     std::string lastError();
 private:
-    IProtocolListener *listener() const;
-private:
-    IProtocolListener* m_listener;
+    /** Error for most recent handleMessage execution*/
     std::string m_lastError;
 };
 
 } } // Apigear::ObjectLink
-

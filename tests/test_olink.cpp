@@ -6,10 +6,8 @@
 #include "olink/clientnode.h"
 #include "olink/remotenode.h"
 
-
 #include "nlohmann/json.hpp"
 
-#include <list>
 #include <string>
 #include <memory>
 
@@ -50,7 +48,7 @@ TEST_CASE("link")
     // register source object
     remote.addObjectSource(&source);
     // register sink object
-    client.addObjectSink(&sink);
+    clientRegistry.addSink(sink);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
@@ -63,7 +61,7 @@ TEST_CASE("link")
         REQUIRE( sink.total() == 1);
     }
 //    remote.removeObjectSource(&source);
-//    client.removeObjectSink(&sink);
+//    client.removeSink(olinkObjectName());
 }
 
 TEST_CASE("setProperty")
@@ -94,7 +92,7 @@ TEST_CASE("setProperty")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
 
     REQUIRE( sink.isReady() == true );
@@ -106,7 +104,7 @@ TEST_CASE("setProperty")
         REQUIRE( sink.total() == 3);
     }
 //    remote.removeObjectSource(&source);
-//    client.removeObjectSink(&sink);
+//    client.removeSink(olinkObjectName());
 }
 
 TEST_CASE("signal")
@@ -137,7 +135,7 @@ TEST_CASE("signal")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
@@ -147,7 +145,7 @@ TEST_CASE("signal")
         REQUIRE( sink.events.size() == 1);
     }
 //    remote.removeObjectSource(&source);
-//    client.removeObjectSink(&sink);
+//    client.removeSink(olinkObjectName());
 }
 
 
@@ -181,7 +179,7 @@ TEST_CASE("invoke")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
@@ -191,5 +189,5 @@ TEST_CASE("invoke")
         REQUIRE( sink.total() == 6);
     }
 //    remote.removeObjectSource(&source);
-//    client.removeObjectSink(&sink);
+//    client.removeSink(olinkObjectName());
 }

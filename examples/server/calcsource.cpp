@@ -57,7 +57,7 @@ std::string CalcSource::olinkObjectName() {
 
 nlohmann::json CalcSource::olinkInvoke(std::string name, nlohmann::json args) {
     std::cout << "invoke" << name << args.dump();
-    std::string path = Name::pathFromName(name);
+    std::string path = Name::getMemberName(name);
     if(path == "add") {
         int a = args[0].get<int>();
         int result = add(a);
@@ -75,7 +75,7 @@ nlohmann::json CalcSource::olinkInvoke(std::string name, nlohmann::json args) {
 
 void CalcSource::olinkSetProperty(std::string name, nlohmann::json value) {
     std::cout << "setProperty" << name << value.dump();
-    std::string path = Name::pathFromName(name);
+    std::string path = Name::getMemberName(name);
     if(path == "total") {
         int total = value.get<int>();
         if(m_total != total) {

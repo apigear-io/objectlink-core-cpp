@@ -24,104 +24,76 @@
 
 #include "protocol.h"
 #include "nlohmann/json.hpp"
+#include <string>
 
 
 namespace ApiGear { namespace ObjectLink {
 
-
-// ********************************************************************
-// IProtocolListener
-// ********************************************************************
-
-
-IProtocolListener::~IProtocolListener()
-{
-
-}
-
-// ********************************************************************
-// Protocol
-// ********************************************************************
-
-
-Protocol::Protocol(IProtocolListener *listener)
-    : Base()
-    , m_listener(listener)
-{
-    assert(m_listener);
-}
-
-nlohmann::json Protocol::linkMessage(std::string name)
+nlohmann::json Protocol::linkMessage(const std::string& objectId)
 {
     return nlohmann::json::array(
-                { MsgType::Link, name }
+                { MsgType::Link, objectId }
                 );
 }
 
-nlohmann::json Protocol::unlinkMessage(std::string name)
+nlohmann::json Protocol::unlinkMessage(const std::string& objectId)
 {
     return nlohmann::json::array(
-                { MsgType::Unlink, name }
+                { MsgType::Unlink, objectId }
                 );
 }
 
-nlohmann::json Protocol::initMessage(std::string name, nlohmann::json props)
+nlohmann::json Protocol::initMessage(const std::string& objectId, const nlohmann::json& props)
 {
     return nlohmann::json::array(
-                { MsgType::Init, name, props }
+                { MsgType::Init, objectId, props }
                 );
 }
 
-nlohmann::json Protocol::setPropertyMessage(std::string name, nlohmann::json value)
+nlohmann::json Protocol::setPropertyMessage(const std::string& propertyId, const nlohmann::json& value)
 {
     return nlohmann::json::array(
-                { MsgType::SetProperty, name, value }
+                { MsgType::SetProperty, propertyId, value }
                 );
 
 }
 
-nlohmann::json Protocol::propertyChangeMessage(std::string name, nlohmann::json value)
+nlohmann::json Protocol::propertyChangeMessage(const std::string& propertyId, const nlohmann::json& value)
 {
     return nlohmann::json::array(
-                { MsgType::PropertyChange, name, value }
+                { MsgType::PropertyChange, propertyId, value }
                 );
 }
 
-nlohmann::json Protocol::invokeMessage(int requestId, std::string name, nlohmann::json args)
+nlohmann::json Protocol::invokeMessage(int requestId, const std::string& methodId, const nlohmann::json& args)
 {
     return nlohmann::json::array(
-                { MsgType::Invoke, requestId, name, args }
+                { MsgType::Invoke, requestId, methodId, args }
                 );
 }
 
-nlohmann::json Protocol::invokeReplyMessage(int requestId, std::string name, nlohmann::json value)
+nlohmann::json Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const nlohmann::json& value)
 {
     return nlohmann::json::array(
-                { MsgType::InvokeReply, requestId, name, value }
+                { MsgType::InvokeReply, requestId, methodId, value }
                 );
 }
 
-nlohmann::json Protocol::signalMessage(std::string name, nlohmann::json args)
+nlohmann::json Protocol::signalMessage(const std::string& signalId , const nlohmann::json& args)
 {
     return nlohmann::json::array(
-                { MsgType::Signal, name, args }
+                { MsgType::Signal, signalId, args }
                 );
 }
 
-nlohmann::json Protocol::errorMessage(MsgType msgType, int requestId, std::string error)
+nlohmann::json Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
 {
     return nlohmann::json::array(
                 { MsgType::Error, msgType, requestId, error }
                 );
 }
 
-IProtocolListener *Protocol::listener() const
-{
-    assert(m_listener);
-    return m_listener;
-}
-
-bool Protocol::handleMessage(nlohmann::json msg) {
+bool Protocol::handleMessage(const nlohmann::json& msg, IProtocolListener& listener) {
 
     m_lastError = "";
     if(!msg.is_array()) {
@@ -131,58 +103,58 @@ bool Protocol::handleMessage(nlohmann::json msg) {
     const int msgType = msg[0].get<int>();
     switch(msgType) {
     case int(MsgType::Link): {
-        const std::string name = msg[1].get<std::string>();
-        listener()->handleLink(name);
+        const auto& objectId = msg[1].get<std::string>();
+        listener.handleLink(objectId);
         break;
     }
     case int(MsgType::Init): {
-        const std::string name = msg[1].get<std::string>();
-        const nlohmann::json props = msg[2].get<nlohmann::json>();
-        if(listener()) listener()->handleInit(name, props);
+        const auto& objectId = msg[1].get<std::string>();
+        const auto& props = msg[2].get<nlohmann::json>();
+        listener.handleInit(objectId, props);
         break;
     }
     case int(MsgType::Unlink): {
-        const std::string name = msg[1].get<std::string>();
-        if(listener()) listener()->handleUnlink(name);
+        const auto& objectId = msg[1].get<std::string>();
+        listener.handleUnlink(objectId);
         break;
     }
     case int(MsgType::SetProperty): {
-        const std::string name = msg[1].get<std::string>();
-        const nlohmann::json value = msg[2].get<nlohmann::json>();
-        if(listener()) listener()->handleSetProperty(name, value);
+        const auto& propertyId = msg[1].get<std::string>();
+        const auto& value = msg[2].get<nlohmann::json>();
+        listener.handleSetProperty(propertyId, value);
         break;
     }
     case int(MsgType::PropertyChange): {
-        const std::string name = msg[1].get<std::string>();
-        const nlohmann::json value = msg[2].get<nlohmann::json>();
-        if(listener()) listener()->handlePropertyChange(name, value);
+        const auto& propertyId = msg[1].get<std::string>();
+        const auto& value = msg[2].get<nlohmann::json>();
+        listener.handlePropertyChange(propertyId, value);
         break;
     }
     case int(MsgType::Invoke): {
-        const int id = msg[1].get<int>();
-        const std::string name = msg[2].get<std::string>();
-        const nlohmann::json args = msg[3].get<nlohmann::json>();
-        if(listener()) listener()->handleInvoke(id, name, args);
+        const auto& id = msg[1].get<int>();
+        const auto& methodId = msg[2].get<std::string>();
+        const auto& args = msg[3].get<nlohmann::json>();
+        listener.handleInvoke(id, methodId, args);
         break;
     }
     case int(MsgType::InvokeReply): {
-        const int id = msg[1].get<int>();
-        const std::string name = msg[2].get<std::string>();
-        const nlohmann::json value = msg[3].get<nlohmann::json>();
-        listener()->handleInvokeReply(id, name, value);
+        const auto& id = msg[1].get<int>();
+        const auto& methodId = msg[2].get<std::string>();
+        const auto& value = msg[3].get<nlohmann::json>();
+        listener.handleInvokeReply(id, methodId, value);
         break;
     }
     case int(MsgType::Signal): {
-        const std::string name = msg[1].get<std::string>();
-        const nlohmann::json args = msg[2].get<nlohmann::json>();
-        listener()->handleSignal(name, args);
+        const auto& signalId = msg[1].get<std::string>();
+        const auto& args = msg[2].get<nlohmann::json>();
+        listener.handleSignal(signalId, args);
         break;
     }
     case int(MsgType::Error): {
-        const int msgTypeErr = msg[1].get<int>();
-        const int requestId = msg[2].get<int>();
-        const std::string error = msg[3].get<std::string>();
-        listener()->handleError(msgTypeErr, requestId, error);
+        const auto& msgTypeErr = msg[1].get<int>();
+        const auto& requestId = msg[2].get<int>();
+        const auto& error = msg[3].get<std::string>();
+        listener.handleError(msgTypeErr, requestId, error);
         break;
     }
     default:
@@ -190,6 +162,11 @@ bool Protocol::handleMessage(nlohmann::json msg) {
         return false;
     }
     return true;
+}
+
+std::string Protocol::lastError()
+{
+    return m_lastError;
 }
 
 } } // ApiGear::ObjectLink

@@ -23,38 +23,17 @@
 */
 #pragma once
 
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <map>
-#include <list>
+#include "olink_common.h"
 #include "nlohmann/json.hpp"
-
-#if defined _WIN32 || defined __CYGWIN__
-#ifdef __GNUC__
-  #define OLINK_EXPORT __attribute__ ((dllexport))
-#else
-  #define OLINK_EXPORT __declspec(dllexport)
-#endif
-#else
-  #if __GNUC__ >= 4
-    #define OLINK_EXPORT __attribute__ ((visibility ("default")))
-  #else
-    #define OLINK_EXPORT
-  #endif
-#endif
+#include <string>
 
 namespace ApiGear { namespace ObjectLink {
 
-class OLINK_EXPORT Name {
-public:
-    // calc.Demo/add
-    static std::string resourceFromName(std::string name);
-    static std::string pathFromName(std::string name);
-    static bool hasPath(std::string name);
-    static std::string createName(std::string resource, std::string path);
-};
 
+/**
+* Olink protocol message types.
+* see more https://docs.apigear.io/objectlink/#message-types
+*/
 enum class MsgType : int
 {
     Link = 10,
@@ -68,9 +47,14 @@ enum class MsgType : int
     Error = 99,
 };
 
+/**
+* Use this function to convert message type to string with the message name.
+*/
 std::string toString(MsgType type);
 
-
+/**
+* Choose one of the available message formats for object link protocol messages.
+*/
 enum MessageFormat
 {
     JSON = 1,
@@ -79,73 +63,127 @@ enum MessageFormat
     CBOR = 4,
 };
 
-class OLINK_EXPORT MessageConverter {
-public:
-    MessageConverter(MessageFormat format);
-    void setMessageFormat(MessageFormat format);
-    nlohmann::json fromString(std::string message);
-    std::string toString(nlohmann::json j);
-private:
-    MessageFormat m_format;
-};
-
-
-class OLINK_EXPORT IMessageHandler
-{
-public:
-    virtual ~IMessageHandler();
-    virtual void handleMessage(std::string message) = 0;
-};
-
-enum LogLevel {
+/**
+* Logging levels for logs across the application.
+*/
+enum class LogLevel {
     Info,
     Debug,
     Warning,
     Error
 };
 
-class OLINK_EXPORT ILogger
+/**
+* Provides functions to convert between member id (properties, signals, methods) and
+* object id with member name.
+*/
+class OLINK_EXPORT Name {
+public:
+    /** Use this function to get an object Id from a memberId
+    * @return the objectId extracted from given memberId or the input parameter memberId
+    * in case input parameter doesn't follow the protocol requirement for member id.
+    */
+    static std::string getObjectId(const std::string& memberId);
+    /** Use this function to get a member name from a membreId
+    * @return a member name extracted from given memberId or the empty string
+    * in case input parameter doesn't follow the protocol requirement for member id.
+    */
+    static std::string getMemberName(const std::string& memberId);
+    /** Use this function to check if given string fulfills the syntax of a memberId 
+    * @return true if given string fulfills the syntax for memberId, false otherwise.
+    */
+    static bool isMemberId(const std::string& id);
+    /** Use this function to combines the given objectId and a member name into a memberId according to protocol*/
+    static std::string createMemberId(const std::string& objectId, const std::string& memberName);
+};
+
+/**
+* 
+*/
+class OLINK_EXPORT MessageConverter {
+public:
+    /**ctor
+    * @param network message format used for packing messages
+    */
+    MessageConverter(MessageFormat format);
+    /**
+    * Change network format used for message packing.
+    * @param format. Requested message format.
+    */
+    void setMessageFormat(MessageFormat format);
+    /**
+    * Unpacks message received from network according to selected message format.
+    * @param message A message received from network.
+    * @return Unpacked message in json format.
+    */
+    nlohmann::json fromString(const std::string& message);
+    /**
+    * Formats message to selected network message format.
+    * @param message Message to send, not formated.
+    * @return message in network message format.
+    */
+    std::string toString(const nlohmann::json& j);
+private:
+    /**Currently used network message format*/
+    MessageFormat m_format;
+};
+
+/**
+* Interface for handling network messages.
+*/
+class OLINK_EXPORT IMessageHandler
 {
 public:
-    virtual ~ILogger();
-    virtual void writeLog(LogLevel level, std::string message) = 0;
+    virtual ~IMessageHandler() = default;
+    /**
+    * Use this function to translate message from network format
+    * and then according to a protocol.
+    * @param message from network still in network format.
+    */
+    virtual void handleMessage(const std::string& message) = 0;
 };
 
-typedef std::function<void(LogLevel level, std::string msg)> WriteLogFunc;
-
-typedef std::function<void(std::string msg)> WriteMessageFunc;
-
-
-class OLINK_EXPORT LoopbackWriter {
-public:
-    LoopbackWriter(IMessageHandler* handler=nullptr);
-    void writeMessage(nlohmann::json j);
-    WriteMessageFunc& writeFunc();
-private:
-    IMessageHandler *m_handler;
-    MessageConverter m_converter;
-    WriteMessageFunc m_writeFunc;
-};
-
-
-
+/**
+* Helper structure for handling invoke reply message.
+*/
 class OLINK_EXPORT InvokeReplyArg {
 public:
-    std::string name;
+    /**Consists of invoked method name and objectId of an object it was invoked on*/
+    std::string methodId;
+    /** Result of the method invocation. */
     nlohmann::json value;
 };
 
-typedef std::function<void(InvokeReplyArg)> InvokeReplyFunc;
+/** A type of function for handling invokeReply message*/
+using InvokeReplyFunc = std::function<void(InvokeReplyArg)>;
 
+/** A type of function to log*/
+using WriteLogFunc = std::function<void(LogLevel level, const std::string& msg)>;
 
-class OLINK_EXPORT Base {
+/** A type of function to write messages to network, should be provided by network endpoint implementation
+@param message formated to network format.
+*/
+using WriteMessageFunc = std::function<void(const std::string& msg)>;
+
+/**
+* Helper base class enabling consistent logging behavior.
+*/
+class OLINK_EXPORT LoggerBase {
 public:
-    Base();
-    virtual ~Base();
+    virtual ~LoggerBase() = default;
+    /**
+    * Use this function to set a logger writer.
+    */
     void onLog(WriteLogFunc func);
-    void emitLog(LogLevel level, std::string msg);
+    /**
+    * Use this function to log any message using set logger function.
+    */
+    void emitLog(LogLevel level, const std::string& msg);
 private:
-    WriteLogFunc m_logFunc;
+    /**
+    * User provided function that writes a log into user defined endpoint.
+    */
+    WriteLogFunc m_logFunc = nullptr;
 };
 
 } } // ApiGear::ObjectLink

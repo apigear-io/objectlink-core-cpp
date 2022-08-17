@@ -4,7 +4,7 @@ project(objectlink-core-cpp LANGUAGES CXX)
 include(CTest)
 option(BUILD_EXAMPLES "Build examples" FALSE)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 

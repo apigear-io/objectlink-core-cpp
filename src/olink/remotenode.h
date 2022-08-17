@@ -23,7 +23,7 @@
 */
 #pragma once
 
-#include "core/node.h"
+#include "core/basenode.h"
 #include <set>
 
 namespace ApiGear { namespace ObjectLink {
@@ -42,7 +42,7 @@ public:
     virtual void notifySignal(std::string name, nlohmann::json args) = 0;
 };
 
-// impemented by source object
+// implemented by source object
 // called from object link
 /**
  * @brief Implemented by the object source
@@ -77,10 +77,9 @@ struct OLINK_EXPORT SourceToNodesEntry {
  * Only one registry exists
  * Remote side all object sources must be unique for the whole process.
  */
-class OLINK_EXPORT RemoteRegistry: public Base {
+class OLINK_EXPORT RemoteRegistry: public LoggerBase {
 private:
 public:
-    RemoteRegistry();
     virtual ~RemoteRegistry() = default;
 
     void addObjectSource(IObjectSource *source);
@@ -137,20 +136,20 @@ public: // IMessagesListener interface
     /**
      * handle Link message from client
      */
-    void handleLink(std::string name) override;
+    void handleLink(const std::string& name) override;
     /**
      * handle Unlink message from client
      */
-    void handleUnlink(std::string name) override;
+    void handleUnlink(const std::string& name) override;
     /**
      * handle SetProperty message from client
      */
-    void handleSetProperty(std::string name, nlohmann::json value) override;
+    void handleSetProperty(const std::string& name, const nlohmann::json& value) override;
     /**
      * handle Invoke message form client.
      * Calls the object source and returns the value using InvokeReply message
      */
-    void handleInvoke(int requestId, std::string name, nlohmann::json args) override;
+    void handleInvoke(int requestId, const std::string& name, const nlohmann::json& args) override;
 
 public: // IObjectSourceNode interface
     /**

@@ -44,9 +44,9 @@ signals:
     void minReached(int value);
 public: // IObjectLinkSink
     virtual std::string olinkObjectName() override;
-    virtual void olinkOnSignal(std::string name, json args) override;
-    virtual void olinkOnPropertyChanged(std::string name, json value) override;
-    virtual void olinkOnInit(std::string name, json props, IClientNode *node) override;
+    virtual void olinkOnSignal(const std::string& name, const json& args) override;
+    virtual void olinkOnPropertyChanged(const std::string& name, const json& value) override;
+    virtual void olinkOnInit(const std::string& name, const json& props, IClientNode *node) override;
     virtual void olinkOnRelease() override;
 private:
     int m_total;

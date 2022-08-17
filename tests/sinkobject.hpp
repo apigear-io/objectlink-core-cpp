@@ -1,7 +1,10 @@
 #pragma once
 
 #include "olink/clientnode.h"
+#include "olink/iobjectsink.h"
+#include "olink/clientregistry.h"
 #include <iostream>
+#include <list>
 
 using namespace ApiGear::ObjectLink;
 
@@ -9,14 +12,14 @@ class CalcSink: public IObjectSink {
 public:
     CalcSink(ClientRegistry& registry)
         : m_client(nullptr)
-        , m_registry(&registry)
+        , m_registry(registry)
         , m_total(0)
         , m_ready(false)
     {
-        m_client = m_registry->addObjectSink(this);
+        m_registry.addSink(*this);
     }
     virtual ~CalcSink() override {
-        m_registry->removeObjectSink(this);
+        m_registry.removeSink(olinkObjectName());
     }
     int total() const {
         return m_total;
@@ -26,7 +29,7 @@ public:
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply" << arg.name << arg.value.dump();
+            std::cout << "invoke reply" << arg.methodId << arg.value.dump();
         };
         client()->invokeRemote("demo.Calc/add", { a }, func);
 
@@ -34,7 +37,7 @@ public:
     }
     int sub(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply " << arg.name << arg.value.dump();
+            std::cout << "invoke reply " << arg.methodId << arg.value.dump();
         };
         client()->invokeRemote("demo.Calc/sub", { a }, func);
         return -1;
@@ -51,14 +54,14 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    void olinkOnSignal(std::string name, nlohmann::json args) override {
+    void olinkOnSignal(const std::string& name, const nlohmann::json& args) override {
         std::cout << "onSignal" << name  << args.dump() << std::endl;
         events.push_back({name, args});
 
     }
-    void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
+    void olinkOnPropertyChanged(const std::string& name, const nlohmann::json& value) override {
         std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
-        std::string path = Name::pathFromName(name);
+        std::string path = Name::getMemberName(name);
         if(path == "total") {
             int total = value.get<int>();
             if(m_total != total) {
@@ -67,7 +70,7 @@ public:
         }
 
     }
-    void olinkOnInit(std::string name, nlohmann::json props, IClientNode *client) override {
+    void olinkOnInit(const std::string& name, const nlohmann::json& props, IClientNode* client) override {
         std::cout << "CalcSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;
@@ -86,7 +89,7 @@ public:
     std::list<nlohmann::json> events;
 private:
     IClientNode *m_client;
-    ClientRegistry* m_registry;
+    ClientRegistry& m_registry;
     int m_total;
     bool m_ready;
 
