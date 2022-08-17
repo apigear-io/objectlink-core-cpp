@@ -13,21 +13,24 @@ endif()
 
 set(OLINK_SOURCES
     olink/core/types.cpp
-    olink/core/node.cpp
+        olink/core/basenode.cpp
     olink/core/protocol.cpp
     olink/consolelogger.cpp
     olink/clientnode.cpp
     olink/remotenode.cpp
-)
+    olink/clientregistry.cpp)
 
 SET(OLINK_HEADERS
     olink/core/types.h
-    olink/core/node.h
+        olink/core/basenode.h
     olink/core/protocol.h
     olink/consolelogger.h
     olink/clientnode.h
     olink/remotenode.h
-)
+    olink/clientregistry.h
+    olink/iobjectsink.h
+    olink/core/olink_common.h
+    olink/iclientnode.h)
 
 
 add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})

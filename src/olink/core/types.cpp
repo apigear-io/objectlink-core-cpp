@@ -25,8 +25,6 @@
 
 #include <string>
 #include <map>
-#include <list>
-#include "iostream"
 
 
 namespace ApiGear { namespace ObjectLink {

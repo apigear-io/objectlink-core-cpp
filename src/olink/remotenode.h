@@ -23,7 +23,7 @@
 */
 #pragma once
 
-#include "core/node.h"
+#include "core/basenode.h"
 #include <set>
 
 namespace ApiGear { namespace ObjectLink {

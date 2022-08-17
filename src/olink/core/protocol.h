@@ -23,7 +23,10 @@
 */
 #pragma once
 
+#include "olink_common.h"
 #include "types.h"
+#include "nlohmann/json.hpp"
+#include <cstring>
 
 namespace ApiGear { namespace ObjectLink {
 

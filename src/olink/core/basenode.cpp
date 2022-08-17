@@ -1,4 +1,4 @@
-#include "node.h"
+#include "basenode.h"
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {

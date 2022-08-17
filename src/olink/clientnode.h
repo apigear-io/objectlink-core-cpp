@@ -1,74 +1,16 @@
 #pragma once
 
-#include "core/types.h"
-#include "core/node.h"
+#include "core/olink_common.h"
+#include "iclientnode.h"
+#include "core/basenode.h"
+#include <map>
 
 
 namespace ApiGear { namespace ObjectLink {
 
 class ClientNode;
 class ClientRegistry;
-
-/**
- * @brief Interface exposed to object sinks to call client functions
- */
-class OLINK_EXPORT IClientNode {
-public:
-    virtual ~IClientNode();
-    virtual void linkRemote(std::string name) = 0;
-    virtual void unlinkRemote(std::string name) = 0;
-    virtual void invokeRemote(std::string name, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) = 0;
-    virtual void setRemoteProperty(std::string name, nlohmann::json value) = 0;
-};
-
-/**
- * @brief Interface to be implemented by object sinks
- */
-class OLINK_EXPORT IObjectSink
-{
-public:
-    virtual ~IObjectSink();
-    virtual std::string olinkObjectName() = 0;
-    virtual void olinkOnSignal(std::string name, nlohmann::json args) = 0;
-    virtual void olinkOnPropertyChanged(std::string name, nlohmann::json value) = 0;
-    virtual void olinkOnInit(std::string name, nlohmann::json props, IClientNode* node) = 0;
-    virtual void olinkOnRelease() = 0;
-};
-
-/**
- * @brief internal structure to manage sink/node associations
- * one onject sink can only be linked to one node
- */
-struct OLINK_EXPORT SinkToClientEntry {
-    SinkToClientEntry()
-        : sink(nullptr)
-        , node(nullptr)
-    {}
-    IObjectSink *sink;
-    ClientNode *node;
-};
-
-/**
- * @brief client side sink registry
- */
-class OLINK_EXPORT ClientRegistry : public Base {
-public:
-    ClientRegistry();
-    virtual ~ClientRegistry() override;
-    void attachClientNode(ClientNode *node);
-    void detachClientNode(ClientNode *node);
-    void linkClientNode(std::string name, ClientNode *node);
-    void unlinkClientNode(std::string name, ClientNode *node);
-    ClientNode *addObjectSink(IObjectSink *sink);
-    void removeObjectSink(IObjectSink *sink);
-    IObjectSink *getObjectSink(std::string name);
-    ClientNode *getClientNode(std::string name);
-    ClientNode *getClientNode(IObjectSink *sink);
-    SinkToClientEntry &entry(std::string name);
-    void removeEntry(std::string name);
-private:
-    std::map<std::string, SinkToClientEntry> m_entries;
-};
+class IObjectSink;
 
 /**
  * @brief client side node to handle sinks and olink messages
@@ -122,7 +64,7 @@ public: // sink registry
      * Adds object sink to global registry.
      * Return a client node, when previously registered using linkNode
      */
-    ClientNode *addObjectSink(IObjectSink *sink);
+    ClientNode* addObjectSink(IObjectSink* sink);
     /**
      * Removed object sink from global registry.
      */

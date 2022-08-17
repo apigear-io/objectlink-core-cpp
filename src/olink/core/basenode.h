@@ -1,6 +1,10 @@
 #pragma once
 
 #include "protocol.h"
+#include "types.h"
+#include "olink_common.h"
+#include "nlohmann/json.hpp"
+#include <cstring>
 
 namespace ApiGear { namespace ObjectLink {
 
