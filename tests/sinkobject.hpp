@@ -1,6 +1,8 @@
 #pragma once
 
 #include "olink/clientnode.h"
+#include "olink/iobjectsink.h"
+#include "olink/clientregistry.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
@@ -9,14 +11,14 @@ class CalcSink: public IObjectSink {
 public:
     CalcSink(ClientRegistry& registry)
         : m_client(nullptr)
-        , m_registry(&registry)
+        , m_registry(registry)
         , m_total(0)
         , m_ready(false)
     {
-        m_client = m_registry->addObjectSink(this);
+        m_registry.addObjectSink(*this);
     }
     virtual ~CalcSink() override {
-        m_registry->removeObjectSink(this);
+        m_registry.removeObjectSink(*this);
     }
     int total() const {
         return m_total;
@@ -58,7 +60,7 @@ public:
     }
     void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
         std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
-        std::string path = Name::pathFromName(name);
+        std::string path = Name::getMemberName(name);
         if(path == "total") {
             int total = value.get<int>();
             if(m_total != total) {
@@ -86,7 +88,7 @@ public:
     std::list<nlohmann::json> events;
 private:
     IClientNode *m_client;
-    ClientRegistry* m_registry;
+    ClientRegistry& m_registry;
     int m_total;
     bool m_ready;
 

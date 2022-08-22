@@ -3,6 +3,7 @@
 #include "core/olink_common.h"
 #include "core/basenode.h"
 #include <map>
+#include <vector>
 
 
 namespace ApiGear {
@@ -32,31 +33,31 @@ public:
 
     ClientRegistry();
 
-    virtual ~ ClientRegistry() = default;
+    virtual ~ClientRegistry() = default;
 
-    void attachClientNode(ClientNode* node);
+    // TODO remove the function
+    void attachClientNode(ClientNode& node);
+    // TODO rename unlinkClientNodeForAllSinks, or remove and instead use ~ foreach(getObjects()) {unlinkClientNode(object, node}
+    void detachClientNode(ClientNode& node);
 
-    void detachClientNode(ClientNode* node);
+    void linkClientNode(const std::string& interfaceId, ClientNode& node);
 
-    void linkClientNode(std::string name, ClientNode* node);
+    void unlinkClientNode(const std::string& interfaceId, ClientNode& node);
+    // TODO rename: createRecord(sink)
+    void addObjectSink(IObjectSink& sink);
+    // TODO rename: removeRecord(interfaceId)
+    void removeObjectSink(IObjectSink& sink);
 
-    void unlinkClientNode(std::string name, ClientNode* node);
+    IObjectSink* getObjectSink(const std::string& interfaceId);
 
-    ClientNode* addObjectSink(IObjectSink* sink);
+    std::vector<std::string> getObjects(ClientNode& node);
 
-    void removeObjectSink(IObjectSink* sink);
-
-    IObjectSink* getObjectSink(std::string name);
-
-    ClientNode* getClientNode(std::string name);
-
-    ClientNode* getClientNode(IObjectSink* sink);
-
-    SinkToClientEntry& entry(std::string name);
-
-    void removeEntry(std::string name);
+    ClientNode* getClientNode(const std::string& interfaceId);
 
 private:
+    void removeEntry(const std::string& interfaceId);
+    SinkToClientEntry& entry(const std::string& interfaceId);
+
     std::map <std::string, SinkToClientEntry> m_entries;
 };
 

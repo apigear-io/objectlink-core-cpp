@@ -107,7 +107,7 @@ void RemoteRegistry::unlinkRemoteNode(std::string name, RemoteNode *node)
 
 SourceToNodesEntry &RemoteRegistry::entry(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
+    std::string resource = Name::getInterfaceId(name);
     if(m_entries.count(resource) == 0) {
         emitLog(LogLevel::Info, "RemoteRegistry.entry: new entry" + resource);
         m_entries[resource] = SourceToNodesEntry();
@@ -117,7 +117,7 @@ SourceToNodesEntry &RemoteRegistry::entry(std::string name)
 
 void RemoteRegistry::removeEntry(std::string name)
 {
-    std::string resource = Name::resourceFromName(name);
+    std::string resource = Name::getInterfaceId(name);
     if(m_entries.count(resource) > 0) {
         m_entries.erase(resource);
     }
@@ -157,7 +157,7 @@ void RemoteNode::removeObjectSource(IObjectSource *source)
 }
 
 
-void RemoteNode::handleLink(std::string name)
+void RemoteNode::handleLink(const std::string& name)
 {
     emitLog(LogLevel::Info, "handleLink name: " + name);
     IObjectSource* s = getObjectSource(name);
@@ -172,7 +172,7 @@ void RemoteNode::handleLink(std::string name)
 
 }
 
-void RemoteNode::handleUnlink(std::string name)
+void RemoteNode::handleUnlink(const std::string& name)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
@@ -181,7 +181,7 @@ void RemoteNode::handleUnlink(std::string name)
     }
 }
 
-void RemoteNode::handleSetProperty(std::string name, nlohmann::json value)
+void RemoteNode::handleSetProperty(const std::string& name, const nlohmann::json& value)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {
@@ -189,7 +189,7 @@ void RemoteNode::handleSetProperty(std::string name, nlohmann::json value)
     }
 }
 
-void RemoteNode::handleInvoke(int requestId, std::string name, nlohmann::json args)
+void RemoteNode::handleInvoke(int requestId, const std::string& name, const nlohmann::json& args)
 {
     IObjectSource* s = getObjectSource(name);
     if(s) {

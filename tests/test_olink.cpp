@@ -50,7 +50,7 @@ TEST_CASE("link")
     // register source object
     remote.addObjectSource(&source);
     // register sink object
-    client.addObjectSink(&sink);
+    clientRegistry.addObjectSink(sink);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
@@ -94,7 +94,7 @@ TEST_CASE("setProperty")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addObjectSink(sink);
     client.linkRemote("demo.Calc");
 
     REQUIRE( sink.isReady() == true );
@@ -137,7 +137,7 @@ TEST_CASE("signal")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addObjectSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
@@ -181,7 +181,7 @@ TEST_CASE("invoke")
 
     // register source object
     remote.addObjectSource(&source);
-    client.addObjectSink(&sink);
+    clientRegistry.addObjectSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 

@@ -33,24 +33,24 @@ namespace ApiGear { namespace ObjectLink {
 // Name
 // ********************************************************************
 
-std::string Name::resourceFromName(std::string name)
+std::string Name::getInterfaceId(const std::string& memberId)
 {
-    return name.substr(0, name.find("/"));
+    return memberId.substr(0, memberId.find("/"));
 }
 
-std::string Name::pathFromName(std::string name)
+std::string Name::getMemberName(const std::string& memberId)
 {
-    return name.substr(name.find("/")+1);
+    return memberId.substr(memberId.find("/")+1);
 }
 
-bool Name::hasPath(std::string name)
+bool Name::isMemberId(const std::string& id)
 {
-    return name.find("/") != std::string::npos;
+    return id.find("/") != std::string::npos;
 }
 
-std::string Name::createName(std::string resource, std::string path)
+std::string Name::createMemberId(const std::string& interfaceId, const std::string& memberName)
 {
-    return resource + "/" + path;
+    return interfaceId + "/" + memberName;
 }
 
 // ********************************************************************
@@ -67,7 +67,7 @@ void MessageConverter::setMessageFormat(MessageFormat format)
     m_format = format;
 }
 
-nlohmann::json MessageConverter::fromString(std::string message)
+nlohmann::json MessageConverter::fromString(const std::string& message)
 {
     switch(m_format) {
     case MessageFormat::JSON:
@@ -83,7 +83,7 @@ nlohmann::json MessageConverter::fromString(std::string message)
     return nlohmann::json();
 }
 
-std::string MessageConverter::toString(nlohmann::json j)
+std::string MessageConverter::toString(const nlohmann::json& j)
 {
     std::vector<uint8_t> v;
     switch(m_format) {

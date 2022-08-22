@@ -32,10 +32,10 @@ namespace ApiGear { namespace ObjectLink {
 class OLINK_EXPORT Name {
 public:
     // calc.Demo/add
-    static std::string resourceFromName(std::string name);
-    static std::string pathFromName(std::string name);
-    static bool hasPath(std::string name);
-    static std::string createName(std::string resource, std::string path);
+    static std::string getInterfaceId(const std::string& memberId);
+    static std::string getMemberName(const std::string& memberId);
+    static bool isMemberId(const std::string& id);
+    static std::string createMemberId(const std::string& interfaceId, const std::string& memberName);
 };
 
 enum class MsgType : int
@@ -66,8 +66,8 @@ class OLINK_EXPORT MessageConverter {
 public:
     MessageConverter(MessageFormat format);
     void setMessageFormat(MessageFormat format);
-    nlohmann::json fromString(std::string message);
-    std::string toString(nlohmann::json j);
+    nlohmann::json fromString(const std::string& message);
+    std::string toString(const nlohmann::json& j);
 private:
     MessageFormat m_format;
 };
@@ -77,7 +77,7 @@ class OLINK_EXPORT IMessageHandler
 {
 public:
     virtual ~IMessageHandler();
-    virtual void handleMessage(std::string message) = 0;
+    virtual void handleMessage(const std::string& message) = 0;
 };
 
 enum LogLevel {

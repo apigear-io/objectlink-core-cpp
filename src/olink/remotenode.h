@@ -137,20 +137,20 @@ public: // IMessagesListener interface
     /**
      * handle Link message from client
      */
-    void handleLink(std::string name) override;
+    void handleLink(const std::string& name) override;
     /**
      * handle Unlink message from client
      */
-    void handleUnlink(std::string name) override;
+    void handleUnlink(const std::string& name) override;
     /**
      * handle SetProperty message from client
      */
-    void handleSetProperty(std::string name, nlohmann::json value) override;
+    void handleSetProperty(const std::string& name, const nlohmann::json& value) override;
     /**
      * handle Invoke message form client.
      * Calls the object source and returns the value using InvokeReply message
      */
-    void handleInvoke(int requestId, std::string name, nlohmann::json args) override;
+    void handleInvoke(int requestId, const std::string& name, const nlohmann::json& args) override;
 
 public: // IObjectSourceNode interface
     /**

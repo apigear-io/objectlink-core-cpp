@@ -39,15 +39,40 @@ class OLINK_EXPORT IProtocolListener
 public:
     virtual ~IProtocolListener();
 
-    virtual void handleLink(std::string name) = 0;
-    virtual void handleUnlink(std::string name) = 0;
-    virtual void handleInit(std::string name, nlohmann::json props) = 0;
-    virtual void handleSetProperty(std::string name, nlohmann::json value) = 0;
-    virtual void handlePropertyChange(std::string name, nlohmann::json value) = 0;
-    virtual void handleInvoke(int requestId, std::string name, nlohmann::json args) = 0;
-    virtual void handleInvokeReply(int requestId, std::string name, nlohmann::json value) = 0;
-    virtual void handleSignal(std::string name, nlohmann::json args) = 0;
-    virtual void handleError(int msgType, int requestId, std::string error) = 0;
+    virtual void handleLink(const std::string&interfaceId) = 0;
+    virtual void handleUnlink(const std::string&interfaceId) = 0;
+    /**
+     * Should be implemented by client side.
+     * handles remote init message.
+     * Calls the object sink init function.
+     */
+    virtual void handleInit(const std::string&interfaceId , const nlohmann::json& props) = 0;
+    virtual void handleSetProperty(const std::string&propertyId , const nlohmann::json& value) = 0;
+    /**
+     * Should be implemented by client side.
+     * handles remote property change message
+     * Calls the object sink property change function
+     */
+    virtual void handlePropertyChange(const std::string&propertyId , const nlohmann::json& value) = 0;
+    virtual void handleInvoke(int requestId, const std::string&methodId , const nlohmann::json& args) = 0;
+    /**
+     * Should be implemented by client side.
+     * handles remote invoke reply message
+     * Lookups the reply func and calls the function to deliver the value
+     */
+    virtual void handleInvokeReply(int requestId, const std::string&methodId , const nlohmann::json& value) = 0;
+    /**
+     * Should be implemented by client side.
+     * handles remote signal message
+     * Calls the object sink signal function
+     */
+    virtual void handleSignal(const std::string&signalId , const nlohmann::json& args) = 0;
+    /**
+     * Should be implemented by both client and server side.
+     * handles remote error message
+     * Stores the error function. If request id, removes also the reply handler.
+     */
+    virtual void handleError(int msgType, int requestId, const std::string&error) = 0;
 };
 
 /**
@@ -61,20 +86,20 @@ class OLINK_EXPORT Protocol : public Base
 public:
     Protocol(IProtocolListener *listener);
     // lifecycle
-    static nlohmann::json linkMessage(std::string name);
-    static nlohmann::json unlinkMessage(std::string name);
-    static nlohmann::json initMessage(std::string name, nlohmann::json props);
+    static nlohmann::json linkMessage(const std::string&interfaceId);
+    static nlohmann::json unlinkMessage(const std::string&interfaceId);
+    static nlohmann::json initMessage(const std::string&interfaceId , const nlohmann::json& props);
     // properties
-    static nlohmann::json setPropertyMessage(std::string name, nlohmann::json value);
-    static nlohmann::json propertyChangeMessage(std::string name, nlohmann::json value);
+    static nlohmann::json setPropertyMessage(const std::string&propertyId , const nlohmann::json& value);
+    static nlohmann::json propertyChangeMessage(const std::string&methodId , const nlohmann::json& value);
     // remote invoke
-    static nlohmann::json invokeMessage(int requestId, std::string name, nlohmann::json args);
-    static nlohmann::json invokeReplyMessage(int requestId, std::string name, nlohmann::json value);
+    static nlohmann::json invokeMessage(int requestId, const std::string&methodId , const nlohmann::json& args);
+    static nlohmann::json invokeReplyMessage(int requestId, const std::string&methodId , const nlohmann::json& value);
     // signal
-    static nlohmann::json signalMessage(std::string name, nlohmann::json args);
+    static nlohmann::json signalMessage(const std::string&signalId , const nlohmann::json& args);
     // error
-    static nlohmann::json errorMessage(MsgType msgType, int requestId, std::string error);
-    bool handleMessage(nlohmann::json msg);
+    static nlohmann::json errorMessage(MsgType msgType, int requestId, const std::string&error);
+    bool handleMessage(const nlohmann::json& msg);
     std::string lastError();
 private:
     IProtocolListener *listener() const;

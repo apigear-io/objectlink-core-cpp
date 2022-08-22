@@ -54,7 +54,7 @@ std::string CalcSink::olinkObjectName() {
 
 void CalcSink::olinkOnSignal(std::string name, json args)
 {
-    std::string path = Name::pathFromName(name);
+    std::string path = Name::getMemberName(name);
     if(path == "maxReached") {
         int value = args[0].get<int>();
         emit maxReached(value);
@@ -67,7 +67,7 @@ void CalcSink::olinkOnSignal(std::string name, json args)
 void CalcSink::olinkOnPropertyChanged(std::string name, json value)
 {
     qDebug() << "property changed: " << QString::fromStdString(name);
-    std::string path = Name::pathFromName(name);
+    std::string path = Name::getMemberName(name);
     if(path == "total") {
         int total = value.get<int>();
         if(m_total != total) {

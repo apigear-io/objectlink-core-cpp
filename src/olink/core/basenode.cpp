@@ -34,54 +34,54 @@ void BaseNode::emitWrite(nlohmann::json msg)
 }
 
 
-void BaseNode::handleMessage(std::string data)
+void BaseNode::handleMessage(const std::string& data)
 {
     const nlohmann::json& j = m_converter.fromString(data);
     m_protocol.handleMessage(j);
 }
 
-void BaseNode::handleLink(std::string name)
+void BaseNode::handleLink(const std::string& interfaceId)
 {
-    std::cout << "not implemented " << __func__ << name << std::endl;
+    std::cout << "not implemented " << __func__ << interfaceId << std::endl;
 }
 
-void BaseNode::handleUnlink(std::string name)
+void BaseNode::handleUnlink(const std::string& interfaceId)
 {
-    std::cout << "not implemented " << __func__ << name << std::endl;
+    std::cout << "not implemented " << __func__ << interfaceId << std::endl;
 }
 
-void BaseNode::handleInvoke(int requestId, std::string name, nlohmann::json args)
+void BaseNode::handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args)
 {
-    std::cout << "not implemented " << __func__ << requestId << name << args.dump() << std::endl;
+    std::cout << "not implemented " << __func__ << requestId << methodId << args.dump() << std::endl;
 }
 
-void BaseNode::handleSetProperty(std::string name, nlohmann::json value)
+void BaseNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
+    std::cout << "not implemented " << __func__ << propertyId << value.dump() << std::endl;
 }
 
 
-void BaseNode::handleInit(std::string name, nlohmann::json props)
+void BaseNode::handleInit(const std::string& interfaceId, const nlohmann::json& props)
 {
-    std::cout << "not implemented " << __func__ << name << props.dump() << std::endl;
+    std::cout << "not implemented " << __func__ << interfaceId << props.dump() << std::endl;
 }
 
-void BaseNode::handleInvokeReply(int requestId, std::string name, nlohmann::json value)
+void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << requestId << name << value.dump() << std::endl;
+    std::cout << "not implemented " << __func__ << requestId << methodId << value.dump() << std::endl;
 }
 
-void BaseNode::handleSignal(std::string name, nlohmann::json args)
+void BaseNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
 {
-    std::cout << "not implemented " << __func__ << name << args.dump()  << std::endl;
+    std::cout << "not implemented " << __func__ << signalId << args.dump()  << std::endl;
 }
 
-void BaseNode::handlePropertyChange(std::string name, nlohmann::json value)
+void BaseNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << name << value.dump() << std::endl;
+    std::cout << "not implemented " << __func__ << propertyId << value.dump() << std::endl;
 }
 
-void BaseNode::handleError(int msgType, int requestId, std::string error)
+void BaseNode::handleError(int msgType, int requestId, const std::string& error)
 {
     std::cout << "not implemented " << __func__ << msgType << requestId << error << std::endl;
 }

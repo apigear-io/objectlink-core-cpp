@@ -36,13 +36,13 @@ public:
     }
     nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override {
         std::cout << "invoke" << name << args.dump();
-        std::string path = Name::pathFromName(name);
+        std::string path = Name::getMemberName(name);
         m_events.push_back({ {"type", "invoke"}, { "name", name}, {"args", args } });
         return 42;
     }
     void olinkSetProperty(std::string name, nlohmann::json value) override {
         std::cout << "setProperty" << name << value.dump();
-        std::string path = Name::pathFromName(name);
+        std::string path = Name::getMemberName(name);
         m_events.push_back({ {"type", "setProperty"}, { "name", name}, {"value", value } });
         m_properties[name] = value;
     }

@@ -12,79 +12,103 @@ ClientRegistry::ClientRegistry()
 {
 }
 
-void ClientRegistry::attachClientNode(ClientNode* node)
+void ClientRegistry::attachClientNode(ClientNode& node)
 {
     emitLog(LogLevel::Info, "ClientRegistry.attachClientNode");
     // nothing
 }
 
-void ClientRegistry::detachClientNode(ClientNode* node)
+void ClientRegistry::detachClientNode(ClientNode& node)
 {
     emitLog(LogLevel::Info, "ClientRegistry.detachClientNode");
     for (auto& link : m_entries) {
-        if (link.second.node == node) {
+        if (link.second.node == &node) {
             link.second.node = nullptr;
         }
     }
 }
 
-void ClientRegistry::linkClientNode(std::string name, ClientNode* node)
+void ClientRegistry::linkClientNode(const std::string& interfaceId, ClientNode& node)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.linkClientNode: " + name);
-    entry(name).node = node;
-}
-
-void ClientRegistry::unlinkClientNode(std::string name, ClientNode* node)
-{
-    emitLog(LogLevel::Info, "ClientRegistry.unlinkClientNode: " + name);
-    entry(name).node = nullptr;
-}
-
-ClientNode* ClientRegistry::addObjectSink(IObjectSink* sink)
-{
-    std::string name = sink->olinkObjectName();
-    emitLog(LogLevel::Info, "ClientRegistry.addObjectSink: " + name);
-    SinkToClientEntry& e = entry(name);
-    e.sink = sink;
-    return e.node;
-}
-
-void ClientRegistry::removeObjectSink(IObjectSink* sink)
-{
-    std::string name = sink->olinkObjectName();
-    emitLog(LogLevel::Info, "ClientRegistry.removeObjectSink: " + name);
-    removeEntry(name);
-}
-
-IObjectSink* ClientRegistry::getObjectSink(std::string name)
-{
-    emitLog(LogLevel::Info, "ClientRegistry.getObjectSink: " + name);
-    return entry(name).sink;
-}
-
-ClientNode* ClientRegistry::getClientNode(std::string name)
-{
-    emitLog(LogLevel::Info, "ClientRegistry.getClientNode: " + name);
-    return entry(name).node;
-}
-
-ClientNode* ClientRegistry::getClientNode(IObjectSink* sink) {
-    return getClientNode(sink->olinkObjectName());
-}
-
-SinkToClientEntry& ClientRegistry::entry(std::string name) {
-    std::string resource = Name::resourceFromName(name);
-    if (m_entries.count(resource) == 0) {
-        m_entries[resource] = SinkToClientEntry();
+    emitLog(LogLevel::Info, "ClientRegistry.linkClientNode: " + interfaceId);
+    auto& foundEntry = entry(interfaceId);
+    if (foundEntry.node == nullptr)
+    {
+        foundEntry.node = &node;
     }
-    return m_entries[resource];
+    else
+    {
+        emitLog(LogLevel::Warning, "Trying to add client node for " + interfaceId + " but node already added. Node NOT added.");
+    }
 }
 
-void ClientRegistry::removeEntry(std::string name)
+void ClientRegistry::unlinkClientNode(const std::string& interfaceId, ClientNode& node)
 {
-    std::string resource = Name::resourceFromName(name);
-    if (m_entries.count(resource) > 0) {
-        m_entries.erase(resource);
+    emitLog(LogLevel::Info, "ClientRegistry.unlinkClientNode: " + interfaceId);
+    auto foundEntry = m_entries.find(interfaceId);
+    if (foundEntry != m_entries.end() &&
+        foundEntry->second.node  == &node)
+    {
+        foundEntry->second.node == nullptr;
+    }
+}
+
+void ClientRegistry::addObjectSink(IObjectSink& sink)
+{
+    const auto& interfaceId = sink.olinkObjectName();
+    emitLog(LogLevel::Info, "ClientRegistry.addObjectSink: " + interfaceId);
+    auto& foundEntry = entry(interfaceId);
+    if (foundEntry.sink == nullptr)
+    {
+        foundEntry.sink = &sink;
+    }
+    else
+    {
+        emitLog(LogLevel::Warning, "Trying to add client node for " + interfaceId + " but node already added. Node NOT added.");
+    }
+}
+
+void ClientRegistry::removeObjectSink(IObjectSink& sink)
+{
+    const auto& interfaceId = sink.olinkObjectName();
+    emitLog(LogLevel::Info, "ClientRegistry.removeObjectSink: " + interfaceId);
+    removeEntry(interfaceId);
+}
+
+IObjectSink* ClientRegistry::getObjectSink(const std::string& interfaceId)
+{
+    emitLog(LogLevel::Info, "ClientRegistry.getObjectSink: " + interfaceId);
+    return entry(interfaceId).sink;
+}
+
+std::vector<std::string> ClientRegistry::getObjects(ClientNode& node)
+{
+    std::vector<std::string> sinks;
+    for (auto& entry : m_entries) {
+        if (entry.second.node == &node && entry.second.sink) {
+            sinks.push_back(entry.first);
+        }
+    }
+    return sinks;
+}
+
+ClientNode* ClientRegistry::getClientNode(const std::string& interfaceId)
+{
+    emitLog(LogLevel::Info, "ClientRegistry.getClientNode: " + interfaceId);
+    return entry(interfaceId).node;
+}
+
+SinkToClientEntry& ClientRegistry::entry(const std::string& interfaceId) {
+    if (m_entries.count(interfaceId) == 0) {
+        m_entries[interfaceId] = SinkToClientEntry();
+    }
+    return m_entries[interfaceId];
+}
+
+void ClientRegistry::removeEntry(const std::string& interfaceId)
+{
+    if (m_entries.count(interfaceId) > 0) {
+        m_entries.erase(interfaceId);
     }
 }
 
