@@ -13,51 +13,104 @@ class IObjectSink;
 class ClientNode;
 
 /**
- * @brief internal structure to manage sink/node associations
- * one onject sink can only be linked to one node
+ * A Registry is a global storage to keep track of objects stored as objectSink for the messages 
+ * and a client connection node associated with that objectSink.
+ * Each object can use only one connection node.
+ * Each object is registerd with its id, available with olinkObjectName() call.
+ * This id has to be unique in the registry, only first object with same id will be registerd.
+ * A connection node may be used for many objects.
+ * Register your object and a client node separately: an object with addObject function and 
+ * the client node with linkToObject, which requires also the target objectId.
+ * The order of registration is not relevant, as long as is completed before receiving init message message from a server.
  */
-struct OLINK_EXPORT SinkToClientEntry{
-    SinkToClientEntry()
-        : sink(nullptr)
-        , node(nullptr)
-        {}
-    IObjectSink *sink;
-    ClientNode *node;
-};
-
-/**
- * @brief client side sink registry
- */
-class OLINK_EXPORT ClientRegistry: public Base {
+class OLINK_EXPORT ClientRegistry: public LoggerBase {
 public:
-
+    /**ctor*/
     ClientRegistry();
-
+    /**dtor*/
     virtual ~ClientRegistry() = default;
 
-    // TODO remove the function
-    void attachClientNode(ClientNode& node);
-    // TODO rename unlinkClientNodeForAllSinks, or remove and instead use ~ foreach(getObjects()) {unlinkClientNode(object, node}
-    void detachClientNode(ClientNode& node);
+    /**
+    * Adds ClientNode to registry for objectId.
+    * @param objectId An id of object, for which the node should be added.
+    *   If node exist for given objectId node is not added.
+    */
+    void linkToObject(ClientNode& node, const std::string& objectId);
+    /**
+    * Removes ClientNode from registry for objectId.
+    * @param objectId An id of object, for which the node should be removed.
+    *   If there is no node registerd for objectId, or reqistered node is different, no action is taken.
+    *   If entry was found for given objectId and the node is the same object, the node is removed,
+    *  but entry stays in the registry. The sink is still registered.
+    */
+    void unlinkFromObject(ClientNode& node, const std::string& objectId);
 
-    void linkClientNode(const std::string& interfaceId, ClientNode& node);
+    /**
+    * Registers a SinkObject with its objectId.
+    * SinkObject must provide objectId that is uniqe in this registry.
+    * @param objectId An id of object, for which the node should be added.
+    *   If object already exist for given objectId this sinkObject is not added.
+    */
+    void addObject(IObjectSink& sink);
 
-    void unlinkClientNode(const std::string& interfaceId, ClientNode& node);
-    // TODO rename: createRecord(sink)
-    void addObjectSink(IObjectSink& sink);
-    // TODO rename: removeRecord(interfaceId)
-    void removeObjectSink(IObjectSink& sink);
+    /**
+    * Removes ClientNode from registry for objectId.
+    * @param objectId An id of object, for which the node should be removed.
+    *   If there is no node registerd for objectId, or reqistered node is different, no action is taken.
+    *   If entry was found for given objectId and the node is the same object, the node is removed,
+    *  but entry stays in the registry. The sink is still registered.
+    */
+    void removeObject(const std::string& objectId);
 
-    IObjectSink* getObjectSink(const std::string& interfaceId);
+    /**
+    * Returns an object sink for the given objectId.
+    * @param objectId Identifier of an objectSink.
+    * @return ObjectSink with given objectId.
+    */
+    IObjectSink* getObjectSink(const std::string& objectId);
 
-    std::vector<std::string> getObjects(ClientNode& node);
+    /**
+    * Returns Ids of all objects that are using given node.
+    * @param node A node for which objects using it should be found.
+    * @return a collection of Ids of all the objects that use given node.
+    */
+    std::vector<std::string> getObjectsId(ClientNode& node);
 
-    ClientNode* getClientNode(const std::string& interfaceId);
-
+    /**
+    * Returns ClientNode for given objectId.
+    * @param objectId An id of object, for which the node should be searched.
+    * @return A node found for an objectId or nullptr if there is no objectId in registry.
+    */
+    ClientNode* getClientNode(const std::string& objectId);
 private:
-    void removeEntry(const std::string& interfaceId);
-    SinkToClientEntry& entry(const std::string& interfaceId);
+    /**
+     * Internal structure to manage sink/node associations
+     * one object sink can only be linked to one node
+     */
+    struct OLINK_EXPORT SinkToClientEntry{
+        IObjectSink* sink = nullptr;
+        ClientNode* node = nullptr;
+    };
 
+    /**
+    * Removes entry for given objectId.
+    * @param objectId. Identifier for which an entry would be removed.
+    * If entry not found no action is made.
+    */
+    void removeEntry(const std::string& objectId);
+    /**
+    * Returns an entry for given objectId.
+    * If no entry found, a new empty SinkToClientEntry is added for objectId
+    * @param objectId unique objectId, for which ClientNode or IObjectSink were registered.
+    * @return entry for objectId.
+    */
+    SinkToClientEntry& entry(const std::string& objectId);
+
+    /**
+    * Collection of registered ObjectSinks for given objectId with ClientNodes they use.
+    * They objectId must be uniqe for whole registry, only one Object sink and one ClientNode
+    * can be registered for one objectId
+    */
     std::map <std::string, SinkToClientEntry> m_entries;
 };
 

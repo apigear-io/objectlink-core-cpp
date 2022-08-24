@@ -107,7 +107,7 @@ void RemoteRegistry::unlinkRemoteNode(std::string name, RemoteNode *node)
 
 SourceToNodesEntry &RemoteRegistry::entry(std::string name)
 {
-    std::string resource = Name::getInterfaceId(name);
+    std::string resource = Name::getObjectId(name);
     if(m_entries.count(resource) == 0) {
         emitLog(LogLevel::Info, "RemoteRegistry.entry: new entry" + resource);
         m_entries[resource] = SourceToNodesEntry();
@@ -117,7 +117,7 @@ SourceToNodesEntry &RemoteRegistry::entry(std::string name)
 
 void RemoteRegistry::removeEntry(std::string name)
 {
-    std::string resource = Name::getInterfaceId(name);
+    std::string resource = Name::getObjectId(name);
     if(m_entries.count(resource) > 0) {
         m_entries.erase(resource);
     }

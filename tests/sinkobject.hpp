@@ -15,10 +15,10 @@ public:
         , m_total(0)
         , m_ready(false)
     {
-        m_registry.addObjectSink(*this);
+        m_registry.addObject(*this);
     }
     virtual ~CalcSink() override {
-        m_registry.removeObjectSink(*this);
+        m_registry.removeObject(olinkObjectName());
     }
     int total() const {
         return m_total;
@@ -53,12 +53,12 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    void olinkOnSignal(std::string name, nlohmann::json args) override {
+    void olinkOnSignal(const std::string& name, const nlohmann::json& args) override {
         std::cout << "onSignal" << name  << args.dump() << std::endl;
         events.push_back({name, args});
 
     }
-    void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
+    void olinkOnPropertyChanged(const std::string& name, const nlohmann::json& value) override {
         std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::getMemberName(name);
         if(path == "total") {
@@ -69,7 +69,7 @@ public:
         }
 
     }
-    void olinkOnInit(std::string name, nlohmann::json props, IClientNode *client) override {
+    void olinkOnInit(const std::string& name, const nlohmann::json& props, IClientNode* client) override {
         std::cout << "CalcSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;

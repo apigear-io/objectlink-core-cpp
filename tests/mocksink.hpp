@@ -14,10 +14,10 @@ public:
         , m_ready(false)
         , m_registry(registry)
     {
-        m_registry.addObjectSink(*this);
+        m_registry.addObject(*this);
     }
     virtual ~MockSink() override {
-        m_registry.removeObjectSink(*this);
+        m_registry.removeObject(olinkObjectName());
     }
     IClientNode *client() const {
         assert(m_client);
@@ -32,18 +32,18 @@ public:
     std::string olinkObjectName() override {
         return "demo.Mock";
     }
-    void olinkOnSignal(std::string name, nlohmann::json args) override {
+    void olinkOnSignal(const std::string& name, const nlohmann::json& args) override {
         std::cout << "MockSink.olinkOnSignal" << name  << args.dump() << std::endl;
         m_events.push_back({ {"type", "signal"}, { "name", "name"}, { "args", args } });
 
     }
-    void olinkOnPropertyChanged(std::string name, nlohmann::json value) override {
+    void olinkOnPropertyChanged(const std::string& name, const nlohmann::json& value) override {
         std::cout << "MockSink.olinkOnPropertyChanged" << name << value.dump() << std::endl;
         std::string path = Name::getMemberName(name);
         m_properties[path] = value;
         m_events.push_back({ {"type", "propertyChange"}, { "name", "name"}, { "value", value }});
     }
-    void olinkOnInit(std::string name, nlohmann::json props, IClientNode *client) override {
+    void olinkOnInit(const std::string& name, const nlohmann::json& props, IClientNode *client) override {
         std::cout << "MockSink.olinkOnInit: " << name << props.dump() << std::endl;
         m_client = client;
         m_ready = true;

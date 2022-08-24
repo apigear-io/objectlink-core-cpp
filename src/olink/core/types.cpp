@@ -33,24 +33,28 @@ namespace ApiGear { namespace ObjectLink {
 // Name
 // ********************************************************************
 
-std::string Name::getInterfaceId(const std::string& memberId)
+std::string Name::getObjectId(const std::string& memberId)
 {
     return memberId.substr(0, memberId.find("/"));
 }
 
 std::string Name::getMemberName(const std::string& memberId)
 {
-    return memberId.substr(memberId.find("/")+1);
+    std::string memberName = "";
+    if (isMemberId(memberId)){
+        memberName = memberId.substr(memberId.find_last_of("/")+1);
+    }
+    return memberName;
 }
 
 bool Name::isMemberId(const std::string& id)
 {
-    return id.find("/") != std::string::npos;
+    return id.find("/") != std::string::npos && id.find_first_of("/") == id.find_last_of("/");
 }
 
-std::string Name::createMemberId(const std::string& interfaceId, const std::string& memberName)
+std::string Name::createMemberId(const std::string& objectId, const std::string& memberName)
 {
-    return interfaceId + "/" + memberName;
+    return objectId + "/" + memberName;
 }
 
 // ********************************************************************
@@ -124,64 +128,14 @@ std::string toString(MsgType type) {
 }
 
 // ********************************************************************
-// IMessageHandler
+// LoggerBase
 // ********************************************************************
 
-
-IMessageHandler::~IMessageHandler() {}
-
-// ********************************************************************
-// ILogger
-// ********************************************************************
-
-ILogger::~ILogger() {}
-
-
-
-
-LoopbackWriter::LoopbackWriter(IMessageHandler *handler)
-    : m_handler(handler)
-    , m_converter(MessageFormat::JSON)
-{
-    m_writeFunc = [this](nlohmann::json j) {
-        std::string data = m_converter.toString(j);
-        if(m_handler) {
-            m_handler->handleMessage(data);
-        }
-    };
-}
-
-void LoopbackWriter::writeMessage(nlohmann::json j) {
-    m_writeFunc(j.dump());
-}
-
-WriteMessageFunc& LoopbackWriter::writeFunc() {
-    return m_writeFunc;
-}
-
-
-
-// ********************************************************************
-// Base
-// ********************************************************************
-
-Base::Base()
-    : m_logFunc(nullptr)
-{
-
-}
-
-Base::~Base()
-{
-}
-
-void Base::onLog(WriteLogFunc func)
-{
+void LoggerBase::onLog(WriteLogFunc func){
     m_logFunc = func;
 }
 
-void Base::emitLog(LogLevel level, std::string msg)
-{
+void LoggerBase::emitLog(LogLevel level, const std::string& msg){
     if(m_logFunc) {
         m_logFunc(level, msg);
     }

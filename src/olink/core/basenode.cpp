@@ -10,10 +10,7 @@ namespace ApiGear { namespace ObjectLink {
 
 
 BaseNode::BaseNode()
-    : Base()
-    , m_writeFunc(nullptr)
-    , m_converter(MessageFormat::JSON)
-    , m_protocol(this)
+    : m_protocol(this)
 {
 }
 
@@ -22,72 +19,68 @@ void BaseNode::onWrite(WriteMessageFunc func)
     m_writeFunc = func;
 }
 
-void BaseNode::emitWrite(nlohmann::json msg)
+void BaseNode::emitWrite(const nlohmann::json& msg)
 {
-    const std::string& data = m_converter.toString(msg);
     emitLog(LogLevel::Debug, "writeMessage " + msg.dump());
     if(m_writeFunc) {
-        m_writeFunc(data);
+        m_writeFunc(m_converter.toString(msg));
     } else {
         emitLog(LogLevel::Warning, "no writer set, can not write");
     }
 }
-
+void BaseNode::setMessageFormat(MessageFormat format)
+{
+    m_converter.setMessageFormat(format);
+}
 
 void BaseNode::handleMessage(const std::string& data)
 {
-    const nlohmann::json& j = m_converter.fromString(data);
-    m_protocol.handleMessage(j);
+    m_protocol.handleMessage(m_converter.fromString(data), *this);
 }
 
-void BaseNode::handleLink(const std::string& interfaceId)
+void BaseNode::handleLink(const std::string& objectId)
 {
-    std::cout << "not implemented " << __func__ << interfaceId << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + objectId);
 }
 
-void BaseNode::handleUnlink(const std::string& interfaceId)
+void BaseNode::handleUnlink(const std::string& objectId)
 {
-    std::cout << "not implemented " << __func__ << interfaceId << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + objectId);
 }
 
 void BaseNode::handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args)
 {
-    std::cout << "not implemented " << __func__ << requestId << methodId << args.dump() << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + methodId + " args " + args.dump());
 }
 
 void BaseNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << propertyId << value.dump() << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + propertyId + " value " + value.dump());
 }
 
-
-void BaseNode::handleInit(const std::string& interfaceId, const nlohmann::json& props)
+void BaseNode::handleInit(const std::string& objectId, const nlohmann::json& props)
 {
-    std::cout << "not implemented " << __func__ << interfaceId << props.dump() << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + objectId + " props " + props.dump());
 }
 
 void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << requestId << methodId << value.dump() << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + methodId +" requestId " + std::to_string(requestId) + " value " + value.dump());
 }
 
 void BaseNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
 {
-    std::cout << "not implemented " << __func__ << signalId << args.dump()  << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + signalId + " args " + args.dump());
 }
 
 void BaseNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
-    std::cout << "not implemented " << __func__ << propertyId << value.dump() << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + propertyId + " value " + value.dump());
 }
 
 void BaseNode::handleError(int msgType, int requestId, const std::string& error)
 {
-    std::cout << "not implemented " << __func__ << msgType << requestId << error << std::endl;
+    emitLog(LogLevel::Warning, "not implemented " + std::string(__func__) + " requestId " + std::to_string(requestId) + " error " + error);
 }
-
-
-
-
 
 } } // ApiGear::ObjectLink

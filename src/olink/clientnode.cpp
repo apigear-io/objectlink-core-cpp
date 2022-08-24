@@ -11,22 +11,23 @@ ClientNode::ClientNode(ClientRegistry& registry)
     , m_nextRequestId(0)
     , m_registry(registry)
 {
-    m_registry.attachClientNode(*this);
 }
 
 ClientNode::~ClientNode()
 {
+    auto objects = m_registry.getObjectsId(*this);
+    for (auto& objectId : objects) {
+        auto sink = m_registry.getObjectSink(objectId);
+        if (sink){
+            sink->olinkOnRelease();
+        }
+    }
     connectionToBeReleased();
-}
-
-void ClientNode::linkNode(const std::string& interfaceId)
-{
-    m_registry.linkClientNode(interfaceId, *this);
 }
 
 void ClientNode::connectionEstablished()
 {
-    auto names = m_registry.getObjects(*this);
+    auto names = m_registry.getObjectsId(*this);
     for (auto& objectName : names) {
         linkRemote(objectName);
     }
@@ -34,26 +35,23 @@ void ClientNode::connectionEstablished()
 
 void ClientNode::connectionToBeReleased()
 {
-    auto names = m_registry.getObjects(*this);
-    for (auto& name : names) {
-        auto sink = m_registry.getObjectSink(name);
-        if (sink){
-            sink->olinkOnRelease();
-        }
+    auto objects = m_registry.getObjectsId(*this);
+    for (auto& objectId : objects) {
+        unlinkRemote(objectId);
+        m_registry.unlinkFromObject(*this, objectId);
     }
-    m_registry.detachClientNode(*this);
 }
 
-void ClientNode::linkRemote(const std::string& interfaceId)
+void ClientNode::linkRemote(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientNode.linkRemote: " + interfaceId);
-    emitWrite(Protocol::linkMessage(interfaceId));
+    emitLog(LogLevel::Info, "ClientNode.linkRemote: " + objectId);
+    emitWrite(Protocol::linkMessage(objectId));
 }
 
-void ClientNode::unlinkRemote(const std::string& interfaceId)
+void ClientNode::unlinkRemote(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientNode.unlinkRemote: " + interfaceId);
-    emitWrite(Protocol::unlinkMessage(interfaceId));
+    emitLog(LogLevel::Info, "ClientNode.unlinkRemote: " + objectId);
+    emitWrite(Protocol::unlinkMessage(objectId));
 }
 
 void ClientNode::invokeRemote(const std::string& methodId, nlohmann::json args, InvokeReplyFunc func)
@@ -77,19 +75,19 @@ ClientRegistry& ClientNode::registry()
     return m_registry;
 }
 
-void ClientNode::handleInit(const std::string& interfaceId, const nlohmann::json& props)
+void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& props)
 {
-    emitLog(LogLevel::Info, "ClientNode.handleInit: " + interfaceId + props.dump());
-    auto sink = m_registry.getObjectSink(interfaceId);
+    emitLog(LogLevel::Info, "ClientNode.handleInit: " + objectId + props.dump());
+    auto sink = m_registry.getObjectSink(objectId);
     if(sink) {
-        sink->olinkOnInit(interfaceId, props, this);
+        sink->olinkOnInit(objectId, props, this);
     }
 }
 
 void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
     emitLog(LogLevel::Info, "ClientNode.handlePropertyChange: " + propertyId + value.dump());
-    auto sink = m_registry.getObjectSink(Name::getInterfaceId(propertyId));
+    auto sink = m_registry.getObjectSink(Name::getObjectId(propertyId));
     if(sink){
         sink->olinkOnPropertyChanged(propertyId, value);
     }
@@ -113,8 +111,9 @@ void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, c
 void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
 {
     emitLog(LogLevel::Info, "ClientNode.handleSignal: " + signalId);
-    auto sink = m_registry.getObjectSink(Name::getInterfaceId(signalId));
+    auto sink = m_registry.getObjectSink(Name::getObjectId(signalId));
     if(sink) {
+        sink->olinkOnSignal(signalId, args);
         sink->olinkOnSignal(signalId, args);
     }
 }

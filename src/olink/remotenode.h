@@ -77,7 +77,7 @@ struct OLINK_EXPORT SourceToNodesEntry {
  * Only one registry exists
  * Remote side all object sources must be unique for the whole process.
  */
-class OLINK_EXPORT RemoteRegistry: public Base {
+class OLINK_EXPORT RemoteRegistry: public LoggerBase {
 private:
 public:
     RemoteRegistry();

@@ -33,3 +33,7 @@
 
 # build directory
 build*/
+
+cmake-build-debug/*
+.vs/*
+.idea/*

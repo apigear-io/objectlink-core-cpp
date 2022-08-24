@@ -18,19 +18,19 @@ public:
     virtual ~IClientNode() = default;
     /**
      * Sends a message to request linking this client with a server side.
-     * @param interfaceId. An identifier of an interface, used to find service on server side with a matching interfaceId.
-     *   Contains the module name and the interface name.
+     * @param objectId. An identifier of an object, used to find service object on server side with a matching objectId.
+     *   Typically contains the module name and the object name.
      */
-    virtual void linkRemote(const std::string& interfaceId) = 0;
+    virtual void linkRemote(const std::string& objectId) = 0;
     /**
     * Sends a message to inform that client no longer uses the connection to server side.
-    * @param interfaceId. An identifier of an interface, used to find service on server side with a matching interfaceId.
-    *   Contains the module name and the interface name.
+    * @param objectId. An identifier of an object, used to find service object on server side with a matching objectId.
+    *   Typically contains the module name and the object name.
     */
-    virtual void unlinkRemote(const std::string& interfaceId) = 0;
+    virtual void unlinkRemote(const std::string& objectId) = 0;
     /**
      * Requests a service to invoke a method on a server side.
-     * @param methodId Identifier that consists of the interface identifier and the name of the method for which the ivoke request is sent.
+     * @param methodId Identifier that consists of the object identifier and the name of the method for which the invoke request is sent.
      * @param args The arguments with which method should be invoked on server side.
      * @param func a handler for a invokeReplyMessage.
      */
@@ -38,8 +38,11 @@ public:
     /**
      * Request a service on server side to change a property to requested value.
      * Once the request is accepted and property is changed the server side will send propertyChangeMessage.
-     * @param propertyId Identifier that consists of the interface identifier and the name of the property for which change request is sent.
+     * @param propertyId Identifier that consists of the objectId and the name of the property for which change request is sent.
      * @param value The value of property to set to.
+     * 
+     * see ApiGear::ObjectLink::Name::createMemberId to create propertyId 
+     * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
     virtual void setRemoteProperty(const std::string& propertyId, nlohmann::json value) = 0;
 };

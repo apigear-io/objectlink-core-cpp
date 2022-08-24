@@ -8,11 +8,11 @@ CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
     , m_node(nullptr)
 {
-    m_node = QClientRegistry::getInstance().addObjectSink(this);
+    m_node = QClientRegistry::getInstance().addObject(this);
 }
 
 CalcSink::~CalcSink() {
-    QClientRegistry::getInstance().removeObjectSink(this);
+    QClientRegistry::getInstance().removeObject(olinkObjectName());
     m_node = nullptr;
 }
 
@@ -52,7 +52,7 @@ std::string CalcSink::olinkObjectName() {
     return "demo.Calc";
 }
 
-void CalcSink::olinkOnSignal(std::string name, json args)
+void CalcSink::olinkOnSignal(const std::string& name, const json& args)
 {
     std::string path = Name::getMemberName(name);
     if(path == "maxReached") {
@@ -64,7 +64,7 @@ void CalcSink::olinkOnSignal(std::string name, json args)
         emit minReached(value);
     }
 }
-void CalcSink::olinkOnPropertyChanged(std::string name, json value)
+void CalcSink::olinkOnPropertyChanged(const std::string& name, const json& value)
 {
     qDebug() << "property changed: " << QString::fromStdString(name);
     std::string path = Name::getMemberName(name);
@@ -76,7 +76,7 @@ void CalcSink::olinkOnPropertyChanged(std::string name, json value)
         }
     }
 }
-void CalcSink::olinkOnInit(std::string name, json props, IClientNode *node)
+void CalcSink::olinkOnInit(const std::string& name, const json& props, IClientNode *node)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
     m_name = name;

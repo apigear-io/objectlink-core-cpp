@@ -12,44 +12,43 @@ class ClientNode;
 class ClientRegistry;
 class IObjectSink;
 
-/**
- * @brief client side node to handle sinks and olink messages
- * A client node is associated with one socket to handle messages and to wrire messages.
- * The client node calls the correct sinks based on registry entries.
- */
- /**
- * Registry which manages a client to sink associations.
- * Registry is global and only one sink with unique names can be registered.
- * A sink has always none or one client.
+/** 
+ * Client node separates the object sink from a network related implementation, it provides functionality 
+ * for sending and reciving messages. It is associated with one socket to handle incoming messages
+ * and to write messages requested by sinks that are using this client node.
+ * The network implementation should deliver a write function for the node  to allow sendign messages
+ * see BaseNode::emitWrite and BaseNode::onWrite.
+ * A sink to receive a handler call is chosen based on registry entries, and objectId retrived from incoming message.
+ * To use objectSink with this client, client needs to be registered in client registry for an object
+ * see ClientRegistry::ilnkToObject function.
  */
 class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode
 {
 public:
     ClientNode(ClientRegistry& registry);
+    /** dtor 
+    * informs the user on server side that connection is no longer used,
+    * also inform all the sinks that connection was released 
+    * and unlinks from registry for every object that used it.
+    */
     virtual ~ClientNode() override;
 
     /**
-     * Use this method to request linking this ClientNode with a Sink Object for given name.
-     * @param name. An identifier, unique in ClientRegistry, that is used to connect a ClientNode with Sink Object.
-     * This node will be registered for name identifier. Also it is expected that the sink is or will be registered
-     * in registry for this name.
-     */
-    void linkNode(const std::string& interfaceId);
-    /**
      * Use this function to inform the ClientNode that the connection is established.
-     * For all Sinks associated with this client there will be sent request to link with the service on server side.
+     * For all sinks associated with this client there will be sent request to link with the service on server side.
      */
     void connectionEstablished();
     /**
-     * Use this function to inform all the services on the server side that the client is no longer using the connection and
-     * inform the associated sinks that the link was released. 
+     * Use this function to inform all the services on the server side that the client is no longer using the connection
+     * and unlink from registry for every object that was using this node.
+     * The sink is not notified that the connection is closed.
      */
     void connectionToBeReleased();
 
     /** IClientNode::linkRemote implementation. */
-    void linkRemote(const std::string& interfaceId) override;
+    void linkRemote(const std::string& objectId) override;
     /** IClientNode::unlinkRemote implementation. */
-    void unlinkRemote(const std::string& interfaceId) override;
+    void unlinkRemote(const std::string& objectId) override;
     /** IClientNode::invokeRemote implementation. */
     void invokeRemote(const std::string& methodId, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
     /** IClientNode::setRemoteProperty implementation. */
@@ -57,9 +56,10 @@ public:
 
      /* The registry in which client is registerd*/
     ClientRegistry& registry();
+
 protected:
     /** IProtocolListener::handleInit implementation */
-    void handleInit(const std::string& interfaceId, const nlohmann::json& props) override;
+    void handleInit(const std::string& objectId, const nlohmann::json& props) override;
     /** IProtocolListener::handlePropertyChange implementation */
     void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
     /** IProtocolListener::handleInvokeReply implementation */
@@ -71,11 +71,11 @@ protected:
 
     /**
      * Returns a request id for outgoing messages.
-     * @return an unique, non negative id.
+     * @return a unique, non negative id.
      */
     int nextRequestId();
 private:
-    /* The registry in which client is registerd*/
+    /* The registry in which client is registerd and which provides sinks connected with this node*/
     ClientRegistry& m_registry;
 
     /* Value of lsat request id.*/
