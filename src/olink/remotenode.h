@@ -80,7 +80,6 @@ struct OLINK_EXPORT SourceToNodesEntry {
 class OLINK_EXPORT RemoteRegistry: public LoggerBase {
 private:
 public:
-    RemoteRegistry();
     virtual ~RemoteRegistry() = default;
 
     void addObjectSource(IObjectSource *source);

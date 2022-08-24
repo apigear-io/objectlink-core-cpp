@@ -17,8 +17,6 @@ class OLINK_EXPORT BaseNode: public LoggerBase,
                              public IProtocolListener,
                              public IMessageHandler {
 public:
-    /** ctor */
-    BaseNode();
     /**
     * Network layer implementation should deliver this function,
     * with which messages are sent through network.

@@ -25,7 +25,7 @@ public:
     }
     void invoke(std::string name, nlohmann::json args) {
         m_client->invokeRemote(name, args, [this](InvokeReplyArg arg) {
-            m_events.push_back({{ "type", "invokeReply"}, { "name", arg.name}, { "value", arg.value }});
+            m_events.push_back({{ "type", "invokeReply"}, { "name", arg.methodId}, { "value", arg.value }});
         });
     }
 public:

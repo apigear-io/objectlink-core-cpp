@@ -8,7 +8,7 @@ namespace ObjectLink {
 
 
 ClientRegistry::ClientRegistry()
-    : Base()
+    : LoggerBase()
 {
 }
 
@@ -16,12 +16,9 @@ void ClientRegistry::linkToObject(ClientNode& node, const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientRegistry.linkToObject: " + objectId);
     auto& foundEntry = entry(objectId);
-    if (foundEntry.node == nullptr)
-    {
+    if (foundEntry.node == nullptr){
         foundEntry.node = &node;
-    }
-    else
-    {
+    } else {
         emitLog(LogLevel::Warning, "Trying to add client node for " + objectId + " but node already added. Node NOT added.");
     }
 }
@@ -29,11 +26,9 @@ void ClientRegistry::linkToObject(ClientNode& node, const std::string& objectId)
 void ClientRegistry::unlinkFromObject(ClientNode& node, const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientRegistry.unlinkFromObject: " + objectId);
-    auto foundEntry = m_entries.find(objectId);
-    if (foundEntry != m_entries.end() &&
-        foundEntry->second.node  == &node)
-    {
-        foundEntry->second.node == nullptr;
+    auto& foundEntry = m_entries.find(objectId);
+    if (foundEntry != m_entries.end() &&  foundEntry->second.node  == &node){
+        foundEntry->second.node = nullptr;
     }
 }
 
@@ -41,13 +36,10 @@ void ClientRegistry::addObject(IObjectSink& sink)
 {
     const auto& objectId = sink.olinkObjectName();
     emitLog(LogLevel::Info, "ClientRegistry.addObject: " + objectId);
-    auto& foundEntry = entry(objectId);
-    if (foundEntry.sink == nullptr)
-    {
-        foundEntry.sink = &sink;
-    }
-    else
-    {
+    auto& entryForObject = entry(objectId);
+    if (entryForObject.sink == nullptr){
+        entryForObject.sink = &sink;
+    } else {
         emitLog(LogLevel::Warning, "Trying to add client node for " + objectId + " but node already added. Node NOT added.");
     }
 }

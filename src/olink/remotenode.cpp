@@ -47,11 +47,6 @@ IObjectSource::~IObjectSource()
 // RemoteRegistry
 // ********************************************************************
 
-RemoteRegistry::RemoteRegistry()
-    : Base()
-{
-}
-
 void RemoteRegistry::addObjectSource(IObjectSource *source)
 {
     std::string name = source->olinkObjectName();

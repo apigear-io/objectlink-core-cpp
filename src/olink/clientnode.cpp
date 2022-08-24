@@ -114,7 +114,6 @@ void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json&
     auto sink = m_registry.getObjectSink(Name::getObjectId(signalId));
     if(sink) {
         sink->olinkOnSignal(signalId, args);
-        sink->olinkOnSignal(signalId, args);
     }
 }
 

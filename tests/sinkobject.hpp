@@ -28,7 +28,7 @@ public:
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply" << arg.name << arg.value.dump();
+            std::cout << "invoke reply" << arg.methodId << arg.value.dump();
         };
         client()->invokeRemote("demo.Calc/add", { a }, func);
 
@@ -36,7 +36,7 @@ public:
     }
     int sub(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply " << arg.name << arg.value.dump();
+            std::cout << "invoke reply " << arg.methodId << arg.value.dump();
         };
         client()->invokeRemote("demo.Calc/sub", { a }, func);
         return -1;

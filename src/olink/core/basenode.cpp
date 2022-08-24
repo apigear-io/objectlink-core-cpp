@@ -8,12 +8,6 @@ namespace ApiGear { namespace ObjectLink {
 // BaseNode
 // ********************************************************************
 
-
-BaseNode::BaseNode()
-    : m_protocol(this)
-{
-}
-
 void BaseNode::onWrite(WriteMessageFunc func)
 {
     m_writeFunc = func;
