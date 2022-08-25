@@ -18,7 +18,8 @@ set(OLINK_SOURCES
     olink/consolelogger.cpp
     olink/clientnode.cpp
     olink/remotenode.cpp
-    olink/clientregistry.cpp "olink/core/loopbackwriter.cpp")
+    olink/clientregistry.cpp
+    olink/core/loopbackwriter.cpp)
 
 SET(OLINK_HEADERS
     olink/core/types.h
@@ -30,7 +31,8 @@ SET(OLINK_HEADERS
     olink/clientregistry.h
     olink/iobjectsink.h
     olink/core/olink_common.h
-    olink/iclientnode.h "olink/core/loopbackwriter.h")
+    olink/iclientnode.h 
+    olink/core/loopbackwriter.h)
 
 
 add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
