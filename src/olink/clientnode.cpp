@@ -21,11 +21,12 @@ ClientNode::~ClientNode()
         if (sink){
             sink->olinkOnRelease();
         }
+        unlinkRemote(objectId);
+        m_registry.unlinkFromObject(*this, objectId);
     }
-    connectionToBeReleased();
 }
 
-void ClientNode::connectionEstablished()
+void ClientNode::linkRemoteForAllSinks()
 {
     auto names = m_registry.getObjectsId(*this);
     for (auto& objectName : names) {
@@ -33,12 +34,11 @@ void ClientNode::connectionEstablished()
     }
 }
 
-void ClientNode::connectionToBeReleased()
+void ClientNode::unlinkRemoteForAllSinks()
 {
     auto objects = m_registry.getObjectsId(*this);
     for (auto& objectId : objects) {
         unlinkRemote(objectId);
-        m_registry.unlinkFromObject(*this, objectId);
     }
 }
 

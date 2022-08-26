@@ -34,16 +34,13 @@ public:
     virtual ~ClientNode() override;
 
     /**
-     * Use this function to inform the ClientNode that the connection is established.
-     * For all sinks associated with this client there will be sent request to link with the service on server side.
+     * Use this function to link remote all sinks associated with this client node.
      */
-    void connectionEstablished();
+    void linkRemoteForAllSinks();
     /**
-     * Use this function to inform all the services on the server side that the client is no longer using the connection
-     * and unlink from registry for every object that was using this node.
-     * The sink is not notified that the connection is closed.
+     * Use this function to unlink remote all sinks associated with this client node.
      */
-    void connectionToBeReleased();
+    void unlinkRemoteForAllSinks();
 
     /** IClientNode::linkRemote implementation. */
     void linkRemote(const std::string& objectId) override;
