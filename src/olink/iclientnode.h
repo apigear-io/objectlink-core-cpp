@@ -45,9 +45,6 @@ public:
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
     virtual void setRemoteProperty(const std::string& propertyId, nlohmann::json value) = 0;
-
-    /** Use this function to check whether the Client Node is ready to send messages through the network */
-    virtual bool hasNetworkConnection() = 0 ;
 };
 
 
