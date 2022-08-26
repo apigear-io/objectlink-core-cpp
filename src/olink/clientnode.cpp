@@ -27,7 +27,6 @@ ClientNode::~ClientNode()
 
 void ClientNode::connectionEstablished()
 {
-    m_hasNetworkConnection = true;
     auto names = m_registry.getObjectsId(*this);
     for (auto& objectName : names) {
         linkRemote(objectName);
@@ -36,7 +35,6 @@ void ClientNode::connectionEstablished()
 
 void ClientNode::connectionToBeReleased()
 {
-    m_hasNetworkConnection = false;
     auto objects = m_registry.getObjectsId(*this);
     for (auto& objectId : objects) {
         unlinkRemote(objectId);
@@ -70,11 +68,6 @@ void ClientNode::setRemoteProperty(const std::string& propertyId, nlohmann::json
     emitLog(LogLevel::Info, "ClientNode.setRemoteProperty: " + propertyId);
     nlohmann::json msg = Protocol::setPropertyMessage(propertyId, value);
     emitWrite(msg);
-}
-
-bool ClientNode::hasNetworkConnection()
-{
-    return m_hasNetworkConnection;
 }
 
 ClientRegistry& ClientNode::registry()

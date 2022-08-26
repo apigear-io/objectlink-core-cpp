@@ -53,8 +53,6 @@ public:
     void invokeRemote(const std::string& methodId, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
     /** IClientNode::setRemoteProperty implementation. */
     void setRemoteProperty(const std::string& propertyId, nlohmann::json value) override;
-    /** IClientNode::hasNetworkConnection implementation. */
-    bool hasNetworkConnection() override;
 
      /* The registry in which client is registerd*/
     ClientRegistry& registry();
@@ -79,8 +77,6 @@ protected:
 private:
     /* The registry in which client is registerd and which provides sinks connected with this node*/
     ClientRegistry& m_registry;
-    /** Stores information if connections is running*/
-    bool m_hasNetworkConnection = false;
 
     /* Value of lsat request id.*/
     int m_nextRequestId;
