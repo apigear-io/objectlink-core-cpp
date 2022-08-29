@@ -22,7 +22,7 @@ ClientNode::~ClientNode()
             sink->olinkOnRelease();
         }
         unlinkRemote(objectId);
-        m_registry.unlinkFromObject(*this, objectId);
+        m_registry.unsetNode(*this, objectId);
     }
 }
 

@@ -12,9 +12,9 @@ ClientRegistry::ClientRegistry()
 {
 }
 
-void ClientRegistry::linkToObject(ClientNode& node, const std::string& objectId)
+void ClientRegistry::setNode(ClientNode& node, const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.linkToObject: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.setNode: " + objectId);
     auto& foundEntry = entry(objectId);
     if (foundEntry.node == nullptr){
         foundEntry.node = &node;
@@ -23,9 +23,9 @@ void ClientRegistry::linkToObject(ClientNode& node, const std::string& objectId)
     }
 }
 
-void ClientRegistry::unlinkFromObject(ClientNode& node, const std::string& objectId)
+void ClientRegistry::unsetNode(ClientNode& node, const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.unlinkFromObject: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.unsetNode: " + objectId);
     auto& foundEntry = m_entries.find(objectId);
     if (foundEntry != m_entries.end() &&  foundEntry->second.node  == &node){
         foundEntry->second.node = nullptr;

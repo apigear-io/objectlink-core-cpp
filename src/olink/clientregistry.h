@@ -20,7 +20,7 @@ class ClientNode;
  * This id has to be unique in the registry, only first object with same id will be registerd.
  * A connection node may be used for many objects.
  * Register your object and a client node separately: an object with addObject function and 
- * the client node with linkToObject, which requires also the target objectId.
+ * the client node with setNode, which requires also the target objectId.
  * The order of registration is not relevant, as long as is completed before receiving init message message from a server.
  */
 class OLINK_EXPORT ClientRegistry: public LoggerBase {
@@ -35,7 +35,7 @@ public:
     * @param objectId An id of object, for which the node should be added.
     *   If node exist for given objectId node is not added.
     */
-    void linkToObject(ClientNode& node, const std::string& objectId);
+    void setNode(ClientNode& node, const std::string& objectId);
     /**
     * Removes ClientNode from registry for objectId.
     * @param objectId An id of object, for which the node should be removed.
@@ -43,7 +43,7 @@ public:
     *   If entry was found for given objectId and the node is the same object, the node is removed,
     *  but entry stays in the registry. The sink is still registered.
     */
-    void unlinkFromObject(ClientNode& node, const std::string& objectId);
+    void unsetNode(ClientNode& node, const std::string& objectId);
 
     /**
     * Registers a SinkObject with its objectId.
@@ -54,7 +54,7 @@ public:
     void addObject(IObjectSink& sink);
 
     /**
-    * Removes ClientNode from registry for objectId.
+    * Removes an object from registry for objectId.
     * @param objectId An id of object, for which the node should be removed.
     *   If there is no node registerd for objectId, or reqistered node is different, no action is taken.
     *   If entry was found for given objectId and the node is the same object, the node is removed,
