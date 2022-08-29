@@ -62,7 +62,7 @@ ClientNode &OLinkClient::node()
 void OLinkClient::linkObjectSource(std::string name)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
-    m_node.registry().linkToObject(&m_node, name);
+    m_node.registry().setNode(&m_node, name);
     m_node.linkRemote(name);
 }
 
