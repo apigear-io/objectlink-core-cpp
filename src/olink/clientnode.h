@@ -14,13 +14,13 @@ class IObjectSink;
 
 /** 
  * Client node separates the object sink from a network related implementation, it provides functionality 
- * for sending and reciving messages. It is associated with one socket to handle incoming messages
- * and to write messages requested by sinks that are using this client node.
- * The network implementation should deliver a write function for the node  to allow sendign messages
+ * for sending and reciving messages. Handles incoming messages and decodes them,
+ * allows to write messages requested by sinks that are using this client node and codes them.
+ * The network implementation should deliver a write function for the node  to allow sending messages
  * see BaseNode::emitWrite and BaseNode::onWrite.
- * A sink to receive a handler call is chosen based on registry entries, and objectId retrived from incoming message.
+ * A sink that receives a handler call is chosen based on registry entries and objectId retrived from incoming message.
  * To use objectSink with this client, client needs to be registered in client registry for an object
- * see ClientRegistry::ilnkToObject function.
+ * see ClientRegistry::setNode function.
  */
 class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode
 {

@@ -14,14 +14,14 @@ class ClientNode;
 
 /**
  * A Registry is a global storage to keep track of objects stored as objectSink for the messages 
- * and a client connection node associated with that objectSink.
- * Each object can use only one connection node.
+ * and a client node associated with that objectSink.
+ * Each object can use only one client node.
  * Each object is registerd with its id, available with olinkObjectName() call.
  * This id has to be unique in the registry, only first object with same id will be registerd.
- * A connection node may be used for many objects.
+ * A client node may be used for many objects.
  * Register your object and a client node separately: an object with addObject function and 
  * the client node with setNode, which requires also the target objectId.
- * The order of registration is not relevant, as long as is completed before receiving init message message from a server.
+ * The order of registration is not relevant.
  */
 class OLINK_EXPORT ClientRegistry: public LoggerBase {
 public:
