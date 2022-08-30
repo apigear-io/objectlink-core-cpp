@@ -93,7 +93,6 @@ public:
      */
     virtual void handleSignal(const std::string&signalId , const nlohmann::json& args) = 0;
     /**
-    /**
      * Handles error message.
      * @param msgType Type of a message for which error occured.
      * @param requestId If error is for method invocation message, this parameter holds the requestId of the invoke message.
