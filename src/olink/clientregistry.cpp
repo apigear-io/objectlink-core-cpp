@@ -9,7 +9,7 @@ namespace ObjectLink {
 void ClientRegistry::setNode(ClientNode& node, const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientRegistry.setNode: " + objectId);
-    auto& foundEntry = entry(objectId);
+    auto foundEntry = entry(objectId);
     if (foundEntry.node == nullptr){
         foundEntry.node = &node;
     } else {
@@ -20,7 +20,7 @@ void ClientRegistry::setNode(ClientNode& node, const std::string& objectId)
 void ClientRegistry::unsetNode(ClientNode& node, const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientRegistry.unsetNode: " + objectId);
-    auto& foundEntry = m_entries.find(objectId);
+    auto foundEntry = m_entries.find(objectId);
     if (foundEntry != m_entries.end() &&  foundEntry->second.node  == &node){
         foundEntry->second.node = nullptr;
     }
@@ -30,7 +30,7 @@ void ClientRegistry::addObject(IObjectSink& sink)
 {
     const auto& objectId = sink.olinkObjectName();
     emitLog(LogLevel::Info, "ClientRegistry.addObject: " + objectId);
-    auto& entryForObject = entry(objectId);
+    auto entryForObject = entry(objectId);
     if (entryForObject.sink == nullptr){
         entryForObject.sink = &sink;
     } else {
