@@ -112,8 +112,8 @@ public:
     */
     void setMessageFormat(MessageFormat format);
     /**
-    * Unpacks message recived from network according to selected message format.
-    * @param message A message recived from network.
+    * Unpacks message received from network according to selected message format.
+    * @param message A message received from network.
     * @return Unpacked message in json format.
     */
     nlohmann::json fromString(const std::string& message);

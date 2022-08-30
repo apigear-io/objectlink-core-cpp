@@ -13,7 +13,7 @@ endif()
 
 set(OLINK_SOURCES
     olink/core/types.cpp
-        olink/core/basenode.cpp
+    olink/core/basenode.cpp
     olink/core/protocol.cpp
     olink/consolelogger.cpp
     olink/clientnode.cpp
@@ -23,7 +23,7 @@ set(OLINK_SOURCES
 
 SET(OLINK_HEADERS
     olink/core/types.h
-        olink/core/basenode.h
+    olink/core/basenode.h
     olink/core/protocol.h
     olink/consolelogger.h
     olink/clientnode.h

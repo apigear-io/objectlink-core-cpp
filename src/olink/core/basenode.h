@@ -11,7 +11,7 @@ namespace ApiGear { namespace ObjectLink {
 /**
  * A base class for client and remote nodes.
  * Provides a functionality for sending and receiving messages according to object link protocol.
- * Translates the recived data and data to send according to selected message format.
+ * Translates the received data and data to send according to selected message format.
  */
 class OLINK_EXPORT BaseNode: public LoggerBase,
                              public IProtocolListener,

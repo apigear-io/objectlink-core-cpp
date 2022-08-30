@@ -3,11 +3,6 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-
-// ********************************************************************
-// BaseNode
-// ********************************************************************
-
 void BaseNode::onWrite(WriteMessageFunc func)
 {
     m_writeFunc = func;

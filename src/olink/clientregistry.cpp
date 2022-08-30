@@ -6,12 +6,6 @@
 namespace ApiGear {
 namespace ObjectLink {
 
-
-ClientRegistry::ClientRegistry()
-    : LoggerBase()
-{
-}
-
 void ClientRegistry::setNode(ClientNode& node, const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientRegistry.setNode: " + objectId);
@@ -40,7 +34,7 @@ void ClientRegistry::addObject(IObjectSink& sink)
     if (entryForObject.sink == nullptr){
         entryForObject.sink = &sink;
     } else {
-        emitLog(LogLevel::Warning, "Trying to add client node for " + objectId + " but node already added. Node NOT added.");
+        emitLog(LogLevel::Warning, "Trying to add object for " + objectId + " but object for this id is already registerd. New object NOT added.");
     }
 }
 

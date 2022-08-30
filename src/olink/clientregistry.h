@@ -25,8 +25,6 @@ class ClientNode;
  */
 class OLINK_EXPORT ClientRegistry: public LoggerBase {
 public:
-    /**ctor*/
-    ClientRegistry();
     /**dtor*/
     virtual ~ClientRegistry() = default;
 
@@ -39,7 +37,7 @@ public:
     /**
     * Removes ClientNode from registry for objectId.
     * @param objectId An id of object, for which the node should be removed.
-    *   If there is no node registerd for objectId, or reqistered node is different, no action is taken.
+    *   If there is no node registerd for objectId, or registered node is different, no action is taken.
     *   If entry was found for given objectId and the node is the same object, the node is removed,
     *  but entry stays in the registry. The sink is still registered.
     */
@@ -85,7 +83,6 @@ public:
 private:
     /**
      * Internal structure to manage sink/node associations
-     * one object sink can only be linked to one node
      */
     struct OLINK_EXPORT SinkToClientEntry{
         IObjectSink* sink = nullptr;

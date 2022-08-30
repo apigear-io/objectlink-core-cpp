@@ -209,4 +209,3 @@ private:
 };
 
 } } // Apigear::ObjectLink
-
