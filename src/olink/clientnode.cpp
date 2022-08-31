@@ -15,13 +15,9 @@ ClientNode::ClientNode(ClientRegistry& registry)
 
 ClientNode::~ClientNode()
 {
+    unlinkRemoteForAllSinks();
     auto objects = m_registry.getObjectsId(*this);
     for (auto& objectId : objects) {
-        auto sink = m_registry.getObjectSink(objectId);
-        if (sink){
-            sink->olinkOnRelease();
-        }
-        unlinkRemote(objectId);
         m_registry.unsetNode(*this, objectId);
     }
 }
@@ -51,6 +47,10 @@ void ClientNode::linkRemote(const std::string& objectId)
 void ClientNode::unlinkRemote(const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientNode.unlinkRemote: " + objectId);
+    auto sink = m_registry.getObjectSink(objectId);
+    if (sink){
+        sink->olinkOnRelease();
+    }
     emitWrite(Protocol::unlinkMessage(objectId));
 }
 
@@ -82,6 +82,9 @@ void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& p
     if(sink) {
         sink->olinkOnInit(objectId, props, this);
     }
+    else {
+        emitLog(LogLevel::Warning, "No sink found for id" + objectId);
+    }
 }
 
 void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
@@ -90,6 +93,9 @@ void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohm
     auto sink = m_registry.getObjectSink(Name::getObjectId(propertyId));
     if(sink){
         sink->olinkOnPropertyChanged(propertyId, value);
+    }
+    else {
+        emitLog(LogLevel::Warning, "No sink found for id" + Name::getObjectId(propertyId));
     }
 }
 
@@ -114,6 +120,8 @@ void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json&
     auto sink = m_registry.getObjectSink(Name::getObjectId(signalId));
     if(sink) {
         sink->olinkOnSignal(signalId, args);
+    } else {
+        emitLog(LogLevel::Warning, "No sink found for id" + Name::getObjectId(signalId));
     }
 }
 

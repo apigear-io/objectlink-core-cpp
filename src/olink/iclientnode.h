@@ -33,6 +33,7 @@ public:
      * @param methodId Identifier that consists of the object identifier and the name of the method for which the invoke request is sent.
      * @param args The arguments with which method should be invoked on service side.
      * @param func a handler for a invokeReplyMessage, called when a reply message will be returned from service.
+     * Make sure that the function is always valid to call, especially if the Sink is no longer available.
      *
      * see ApiGear::ObjectLink::Name::createMemberId to create methodId. 
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
