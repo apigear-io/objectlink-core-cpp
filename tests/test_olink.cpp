@@ -6,10 +6,8 @@
 #include "olink/clientnode.h"
 #include "olink/remotenode.h"
 
-
 #include "nlohmann/json.hpp"
 
-#include <list>
 #include <string>
 #include <memory>
 
