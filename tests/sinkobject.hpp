@@ -4,6 +4,7 @@
 #include "olink/iobjectsink.h"
 #include "olink/clientregistry.h"
 #include <iostream>
+#include <list>
 
 using namespace ApiGear::ObjectLink;
 
