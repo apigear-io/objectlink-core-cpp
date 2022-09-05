@@ -12,10 +12,10 @@ public:
         , m_registry(&registry)
         , m_total(1)
     {
-        m_registry->addObjectSource(this);
+        m_registry->addSinkSource(this);
     }
     virtual ~CalcSource() override {
-        m_registry->removeObjectSource(this);
+        m_registry->removeSinkSource(this);
     }
 
     IRemoteNode* remoteNode() const {

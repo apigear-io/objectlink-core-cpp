@@ -11,10 +11,10 @@ public:
         : m_node(nullptr)
         , m_registry(&registry)
     {
-        m_registry->addObjectSource(this);
+        m_registry->addSinkSource(this);
     }
     virtual ~MockSource() override {
-        m_registry->removeObjectSource(this);
+        m_registry->removeSinkSource(this);
     }
 
     IRemoteNode* remoteNode() const {

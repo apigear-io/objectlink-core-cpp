@@ -16,7 +16,7 @@ ClientNode::ClientNode(ClientRegistry& registry)
 ClientNode::~ClientNode()
 {
     unlinkRemoteForAllSinks();
-    auto objects = m_registry.getObjectsId(*this);
+    auto objects = m_registry.getObjectIds(*this);
     for (auto& objectId : objects) {
         m_registry.unsetNode(*this, objectId);
     }
@@ -24,7 +24,7 @@ ClientNode::~ClientNode()
 
 void ClientNode::linkRemoteForAllSinks()
 {
-    auto names = m_registry.getObjectsId(*this);
+    auto names = m_registry.getObjectIds(*this);
     for (auto& objectName : names) {
         linkRemote(objectName);
     }
@@ -32,7 +32,7 @@ void ClientNode::linkRemoteForAllSinks()
 
 void ClientNode::unlinkRemoteForAllSinks()
 {
-    auto objects = m_registry.getObjectsId(*this);
+    auto objects = m_registry.getObjectIds(*this);
     for (auto& objectId : objects) {
         unlinkRemote(objectId);
     }
@@ -47,14 +47,14 @@ void ClientNode::linkRemote(const std::string& objectId)
 void ClientNode::unlinkRemote(const std::string& objectId)
 {
     emitLog(LogLevel::Info, "ClientNode.unlinkRemote: " + objectId);
-    auto sink = m_registry.getObjectSink(objectId);
+    auto sink = m_registry.getSink(objectId);
     if (sink){
         sink->olinkOnRelease();
     }
     emitWrite(Protocol::unlinkMessage(objectId));
 }
 
-void ClientNode::invokeRemote(const std::string& methodId, nlohmann::json args, InvokeReplyFunc func)
+void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json& args, InvokeReplyFunc func)
 {
     emitLog(LogLevel::Info, "ClientNode.invokeRemote: " + methodId);
     int requestId = nextRequestId();
@@ -63,7 +63,7 @@ void ClientNode::invokeRemote(const std::string& methodId, nlohmann::json args, 
     emitWrite(msg);
 }
 
-void ClientNode::setRemoteProperty(const std::string& propertyId, nlohmann::json value)
+void ClientNode::setRemoteProperty(const std::string& propertyId, const nlohmann::json& value)
 {
     emitLog(LogLevel::Info, "ClientNode.setRemoteProperty: " + propertyId);
     nlohmann::json msg = Protocol::setPropertyMessage(propertyId, value);
@@ -78,7 +78,7 @@ ClientRegistry& ClientNode::registry()
 void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& props)
 {
     emitLog(LogLevel::Info, "ClientNode.handleInit: " + objectId + props.dump());
-    auto sink = m_registry.getObjectSink(objectId);
+    auto sink = m_registry.getSink(objectId);
     if(sink) {
         sink->olinkOnInit(objectId, props, this);
     }
@@ -90,7 +90,7 @@ void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& p
 void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
     emitLog(LogLevel::Info, "ClientNode.handlePropertyChange: " + propertyId + value.dump());
-    auto sink = m_registry.getObjectSink(Name::getObjectId(propertyId));
+    auto sink = m_registry.getSink(Name::getObjectId(propertyId));
     if(sink){
         sink->olinkOnPropertyChanged(propertyId, value);
     }
@@ -117,7 +117,7 @@ void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, c
 void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
 {
     emitLog(LogLevel::Info, "ClientNode.handleSignal: " + signalId);
-    auto sink = m_registry.getObjectSink(Name::getObjectId(signalId));
+    auto sink = m_registry.getSink(Name::getObjectId(signalId));
     if(sink) {
         sink->olinkOnSignal(signalId, args);
     } else {

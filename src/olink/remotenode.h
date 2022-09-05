@@ -42,7 +42,7 @@ public:
     virtual void notifySignal(std::string name, nlohmann::json args) = 0;
 };
 
-// impemented by source object
+// implemented by source object
 // called from object link
 /**
  * @brief Implemented by the object source
@@ -82,8 +82,8 @@ private:
 public:
     virtual ~RemoteRegistry() = default;
 
-    void addObjectSource(IObjectSource *source);
-    void removeObjectSource(IObjectSource *source);
+    void addSinkSource(IObjectSource *source);
+    void removeSinkSource(IObjectSource *source);
     IObjectSource* getObjectSource(std::string name);
     std::set<RemoteNode*> getRemoteNodes(std::string name);
     void attachRemoteNode(RemoteNode *node);
@@ -127,11 +127,11 @@ public: // source registry
     /**
      * Add object source to global registry
      */
-    void addObjectSource(IObjectSource *source);
+    void addSinkSource(IObjectSource *source);
     /**
      * Remove object source from global registry
      */
-    void removeObjectSource(IObjectSource *source);
+    void removeSinkSource(IObjectSource *source);
 public: // IMessagesListener interface
     /**
      * handle Link message from client

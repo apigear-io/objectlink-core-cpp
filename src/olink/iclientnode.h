@@ -11,7 +11,7 @@ namespace ObjectLink{
 
 /**
  * @brief Describes outgoing messages part of the protocol for client side.
- * Implementation should send apropiate messages to service side.
+ * Implementation should send appropriate messages to service side.
  */
 class OLINK_EXPORT IClientNode {
 public:
@@ -38,7 +38,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create methodId. 
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void invokeRemote(const std::string& methodId, nlohmann::json args = nlohmann::json{}, InvokeReplyFunc func = nullptr) = 0;
+    virtual void invokeRemote(const std::string& methodId, const nlohmann::json& args = nlohmann::json{}, InvokeReplyFunc func = nullptr) = 0;
     /**
      * Request a service to change a property to requested value.
      * Once the request is accepted and property is changed the service side will send propertyChangeMessage.
@@ -48,7 +48,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create propertyId .
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void setRemoteProperty(const std::string& propertyId, nlohmann::json value) = 0;
+    virtual void setRemoteProperty(const std::string& propertyId, const nlohmann::json& value) = 0;
 };
 
 }} // ApiGear::ObjectLink

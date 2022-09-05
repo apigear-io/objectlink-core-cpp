@@ -20,16 +20,16 @@ public:
     /**
     * Provides olink object identifier.
     * @return The olink object identifier used to connect the client side to the service side,
-    * therefore it has to be the same on both sides and has to allow unambigious linking clients to service side.
+    * therefore it has to be the same on both sides and has to allow unambiguous linking clients to service side.
     */
     virtual std::string olinkObjectName() = 0;
 
     /**
-    * Handler function for serving the singal emmited message from the service.
-    * @param signalId The signal identifier in object. Consists of the objectId and singal name.
-    * @param args Arguments with which the signal is emited.
+    * Handler function for serving the signal emitted message from the service.
+    * @param signalId The signal identifier in object. Consists of the objectId and signal name.
+    * @param args Arguments with which the signal is emitted.
     * 
-    * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and singal name
+    * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and signal name
     * see also: ApiGear::ObjectLink::Name::createMemberId
     */
     virtual void olinkOnSignal(const std::string& signalId, const nlohmann::json& args) = 0;

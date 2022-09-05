@@ -13,7 +13,7 @@ void ClientRegistry::setNode(ClientNode& node, const std::string& objectId)
     if (foundEntry.node == nullptr){
         foundEntry.node = &node;
     } else {
-        emitLog(LogLevel::Warning, "Trying to add client node for " + objectId + " but node already added. Node NOT added.");
+        emitLog(LogLevel::Warning, "Trying to set a client node for " + objectId + " but node is already set. Node was NOT changed.");
     }
 }
 
@@ -26,10 +26,10 @@ void ClientRegistry::unsetNode(ClientNode& node, const std::string& objectId)
     }
 }
 
-void ClientRegistry::addObject(IObjectSink& sink)
+void ClientRegistry::addSink(IObjectSink& sink)
 {
     const auto& objectId = sink.olinkObjectName();
-    emitLog(LogLevel::Info, "ClientRegistry.addObject: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.addSink: " + objectId);
     auto& entryForObject = entry(objectId);
     if (entryForObject.sink == nullptr){
         entryForObject.sink = &sink;
@@ -38,19 +38,19 @@ void ClientRegistry::addObject(IObjectSink& sink)
     }
 }
 
-void ClientRegistry::removeObject(const std::string& objectId)
+void ClientRegistry::removeSink(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.removeObject: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.removeSink: " + objectId);
     removeEntry(objectId);
 }
 
-IObjectSink* ClientRegistry::getObjectSink(const std::string& objectId)
+IObjectSink* ClientRegistry::getSink(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.getObjectSink: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.getSink: " + objectId);
     return entry(objectId).sink;
 }
 
-std::vector<std::string> ClientRegistry::getObjectsId(ClientNode& node)
+std::vector<std::string> ClientRegistry::getObjectIds(ClientNode& node)
 {
     std::vector<std::string> sinks;
     for (auto& entry : m_entries) {
@@ -61,9 +61,9 @@ std::vector<std::string> ClientRegistry::getObjectsId(ClientNode& node)
     return sinks;
 }
 
-ClientNode* ClientRegistry::getClientNode(const std::string& objectId)
+ClientNode* ClientRegistry::getNode(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "ClientRegistry.getClientNode: " + objectId);
+    emitLog(LogLevel::Info, "ClientRegistry.getNode: " + objectId);
     return entry(objectId).node;
 }
 

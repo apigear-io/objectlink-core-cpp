@@ -16,10 +16,10 @@ public:
         , m_total(0)
         , m_ready(false)
     {
-        m_registry.addObject(*this);
+        m_registry.addSink(*this);
     }
     virtual ~CalcSink() override {
-        m_registry.removeObject(olinkObjectName());
+        m_registry.removeSink(olinkObjectName());
     }
     int total() const {
         return m_total;

@@ -14,11 +14,11 @@ class IObjectSink;
 
 /** 
  * Client node separates the object sink from a network related implementation, it provides functionality 
- * for sending and reciving messages. Handles incoming messages and decodes them,
+ * for sending and receiving messages. Handles incoming messages and decodes them,
  * allows to write messages requested by sinks that are using this client node and codes them.
  * The network implementation should deliver a write function for the node  to allow sending messages
  * see BaseNode::emitWrite and BaseNode::onWrite.
- * A sink that receives a handler call is chosen based on registry entries and objectId retrived from incoming message.
+ * A sink that receives a handler call is chosen based on registry entries and objectId retrieved from incoming message.
  * To use objectSink with this client, client needs to be registered in client registry for an object
  * see ClientRegistry::setNode function.
  */
@@ -47,11 +47,11 @@ public:
     /** IClientNode::unlinkRemote implementation. */
     void unlinkRemote(const std::string& objectId) override;
     /** IClientNode::invokeRemote implementation. */
-    void invokeRemote(const std::string& methodId, nlohmann::json args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
+    void invokeRemote(const std::string& methodId, const nlohmann::json& args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
     /** IClientNode::setRemoteProperty implementation. */
-    void setRemoteProperty(const std::string& propertyId, nlohmann::json value) override;
+    void setRemoteProperty(const std::string& propertyId, const nlohmann::json& value) override;
 
-     /* The registry in which client is registerd*/
+     /* The registry in which client is registered*/
     ClientRegistry& registry();
 
 protected:
@@ -72,12 +72,12 @@ protected:
      */
     int nextRequestId();
 private:
-    /* The registry in which client is registerd and which provides sinks connected with this node*/
+    /* The registry in which client is registered and which provides sinks connected with this node*/
     ClientRegistry& m_registry;
 
-    /* Value of lsat request id.*/
+    /* Value of last request id.*/
     int m_nextRequestId;
-    /** Collection of callbacks for method replies that client is waiting for associated with the id for invokation request message.*/
+    /** Collection of callbacks for method replies that client is waiting for associated with the id for invocation request message.*/
     std::map<int,InvokeReplyFunc> m_invokesPending;
 };
 

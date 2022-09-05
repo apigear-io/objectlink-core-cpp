@@ -46,9 +46,9 @@ TEST_CASE("link")
 
 
     // register source object
-    remote.addObjectSource(&source);
+    remote.addSinkSource(&source);
     // register sink object
-    clientRegistry.addObject(sink);
+    clientRegistry.addSink(sink);
 
     SECTION("link ->, <- init") {
         // not initalized sink, with total=0
@@ -60,8 +60,8 @@ TEST_CASE("link")
         REQUIRE( sink.isReady() == true );
         REQUIRE( sink.total() == 1);
     }
-//    remote.removeObjectSource(&source);
-//    client.removeObject(olinkObjectName());
+//    remote.removeSinkSource(&source);
+//    client.removeSink(olinkObjectName());
 }
 
 TEST_CASE("setProperty")
@@ -91,8 +91,8 @@ TEST_CASE("setProperty")
     remote.onWrite(sourceWriteFunc);
 
     // register source object
-    remote.addObjectSource(&source);
-    clientRegistry.addObject(sink);
+    remote.addSinkSource(&source);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
 
     REQUIRE( sink.isReady() == true );
@@ -103,8 +103,8 @@ TEST_CASE("setProperty")
         sink.setTotal(3);
         REQUIRE( sink.total() == 3);
     }
-//    remote.removeObjectSource(&source);
-//    client.removeObject(olinkObjectName());
+//    remote.removeSinkSource(&source);
+//    client.removeSink(olinkObjectName());
 }
 
 TEST_CASE("signal")
@@ -134,8 +134,8 @@ TEST_CASE("signal")
     remote.onWrite(sourceWriteFunc);
 
     // register source object
-    remote.addObjectSource(&source);
-    clientRegistry.addObject(sink);
+    remote.addSinkSource(&source);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
@@ -144,8 +144,8 @@ TEST_CASE("signal")
         source.notifyShutdown(10);
         REQUIRE( sink.events.size() == 1);
     }
-//    remote.removeObjectSource(&source);
-//    client.removeObject(olinkObjectName());
+//    remote.removeSinkSource(&source);
+//    client.removeSink(olinkObjectName());
 }
 
 
@@ -178,8 +178,8 @@ TEST_CASE("invoke")
 
 
     // register source object
-    remote.addObjectSource(&source);
-    clientRegistry.addObject(sink);
+    remote.addSinkSource(&source);
+    clientRegistry.addSink(sink);
     client.linkRemote("demo.Calc");
     REQUIRE( sink.isReady() == true );
 
@@ -188,6 +188,6 @@ TEST_CASE("invoke")
         sink.add(5);
         REQUIRE( sink.total() == 6);
     }
-//    remote.removeObjectSource(&source);
-//    client.removeObject(olinkObjectName());
+//    remote.removeSinkSource(&source);
+//    client.removeSink(olinkObjectName());
 }

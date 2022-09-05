@@ -31,7 +31,7 @@ namespace ApiGear { namespace ObjectLink {
 
 
 /**
-* Olink protcol message types.
+* Olink protocol message types.
 * see more https://docs.apigear.io/objectlink/#message-types
 */
 enum class MsgType : int
@@ -53,7 +53,7 @@ enum class MsgType : int
 std::string toString(MsgType type);
 
 /**
-* Choose one of the available message formats for object link protocol mesages.
+* Choose one of the available message formats for object link protocol messages.
 */
 enum MessageFormat
 {
@@ -81,16 +81,16 @@ class OLINK_EXPORT Name {
 public:
     /** Use this function to get an object Id from a memberId
     * @return the objectId extracted from given memberId or the input parameter memberId
-    * in case input parameter doesn't follow the protocol reqirement for member id.
+    * in case input parameter doesn't follow the protocol requirement for member id.
     */
     static std::string getObjectId(const std::string& memberId);
     /** Use this function to get a member name from a membreId
     * @return a member name extracted from given memberId or the empty string
-    * in case input parameter doesn't follow the protocol reqirement for member id.
+    * in case input parameter doesn't follow the protocol requirement for member id.
     */
     static std::string getMemberName(const std::string& memberId);
-    /** Use this function to check if given string fulfills the flexion of a memberId 
-    * @return true if given string fulfills the flexion for memberId, false otherwise.
+    /** Use this function to check if given string fulfills the syntax of a memberId 
+    * @return true if given string fulfills the syntax for memberId, false otherwise.
     */
     static bool isMemberId(const std::string& id);
     /** Use this function to combines the given objectId and a member name into a memberId according to protocol*/
@@ -103,7 +103,7 @@ public:
 class OLINK_EXPORT MessageConverter {
 public:
     /**ctor
-    * @param network message format ised for packing messages
+    * @param network message format used for packing messages
     */
     MessageConverter(MessageFormat format);
     /**
@@ -119,7 +119,7 @@ public:
     nlohmann::json fromString(const std::string& message);
     /**
     * Formats message to selected network message format.
-    * @param message mesage to send, not formated.
+    * @param message Message to send, not formated.
     * @return message in network message format.
     */
     std::string toString(const nlohmann::json& j);
@@ -150,7 +150,7 @@ class OLINK_EXPORT InvokeReplyArg {
 public:
     /**Consists of invoked method name and objectId of an object it was invoked on*/
     std::string methodId;
-    /** Result of the method invokation. */
+    /** Result of the method invocation. */
     nlohmann::json value;
 };
 
@@ -181,7 +181,7 @@ public:
     void emitLog(LogLevel level, const std::string& msg);
 private:
     /**
-    * User provided function that writes a log into user defined endtpoint.
+    * User provided function that writes a log into user defined endpoint.
     */
     WriteLogFunc m_logFunc = nullptr;
 };

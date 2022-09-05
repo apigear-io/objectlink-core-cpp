@@ -29,24 +29,24 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-nlohmann::json Protocol::linkMessage(const std::string& methodId)
+nlohmann::json Protocol::linkMessage(const std::string& objectId)
 {
     return nlohmann::json::array(
-                { MsgType::Link, methodId }
+                { MsgType::Link, objectId }
                 );
 }
 
-nlohmann::json Protocol::unlinkMessage(const std::string& methodId)
+nlohmann::json Protocol::unlinkMessage(const std::string& objectId)
 {
     return nlohmann::json::array(
-                { MsgType::Unlink, methodId }
+                { MsgType::Unlink, objectId }
                 );
 }
 
-nlohmann::json Protocol::initMessage(const std::string& methodId, const nlohmann::json& props)
+nlohmann::json Protocol::initMessage(const std::string& objectId, const nlohmann::json& props)
 {
     return nlohmann::json::array(
-                { MsgType::Init, methodId, props }
+                { MsgType::Init, objectId, props }
                 );
 }
 
@@ -103,57 +103,57 @@ bool Protocol::handleMessage(const nlohmann::json& msg, IProtocolListener& liste
     const int msgType = msg[0].get<int>();
     switch(msgType) {
     case int(MsgType::Link): {
-        const auto objectId = msg[1].get<std::string>();
+        const auto& objectId = msg[1].get<std::string>();
         listener.handleLink(objectId);
         break;
     }
     case int(MsgType::Init): {
-        const auto objectId = msg[1].get<std::string>();
-        const auto props = msg[2].get<nlohmann::json>();
+        const auto& objectId = msg[1].get<std::string>();
+        const auto& props = msg[2].get<nlohmann::json>();
         listener.handleInit(objectId, props);
         break;
     }
     case int(MsgType::Unlink): {
-        const auto objectId = msg[1].get<std::string>();
+        const auto& objectId = msg[1].get<std::string>();
         listener.handleUnlink(objectId);
         break;
     }
     case int(MsgType::SetProperty): {
-        const auto propertyId = msg[1].get<std::string>();
-        const auto value = msg[2].get<nlohmann::json>();
+        const auto& propertyId = msg[1].get<std::string>();
+        const auto& value = msg[2].get<nlohmann::json>();
         listener.handleSetProperty(propertyId, value);
         break;
     }
     case int(MsgType::PropertyChange): {
-        const auto propertyId = msg[1].get<std::string>();
-        const auto value = msg[2].get<nlohmann::json>();
+        const auto& propertyId = msg[1].get<std::string>();
+        const auto& value = msg[2].get<nlohmann::json>();
         listener.handlePropertyChange(propertyId, value);
         break;
     }
     case int(MsgType::Invoke): {
-        const auto id = msg[1].get<int>();
-        const auto methodId = msg[2].get<std::string>();
-        const auto args = msg[3].get<nlohmann::json>();
+        const auto& id = msg[1].get<int>();
+        const auto& methodId = msg[2].get<std::string>();
+        const auto& args = msg[3].get<nlohmann::json>();
         listener.handleInvoke(id, methodId, args);
         break;
     }
     case int(MsgType::InvokeReply): {
-        const auto id = msg[1].get<int>();
-        const auto methodId = msg[2].get<std::string>();
-        const auto value = msg[3].get<nlohmann::json>();
+        const auto& id = msg[1].get<int>();
+        const auto& methodId = msg[2].get<std::string>();
+        const auto& value = msg[3].get<nlohmann::json>();
         listener.handleInvokeReply(id, methodId, value);
         break;
     }
     case int(MsgType::Signal): {
-        const auto signalId = msg[1].get<std::string>();
-        const auto args = msg[2].get<nlohmann::json>();
+        const auto& signalId = msg[1].get<std::string>();
+        const auto& args = msg[2].get<nlohmann::json>();
         listener.handleSignal(signalId, args);
         break;
     }
     case int(MsgType::Error): {
-        const auto msgTypeErr = msg[1].get<int>();
-        const auto requestId = msg[2].get<int>();
-        const auto error = msg[3].get<std::string>();
+        const auto& msgTypeErr = msg[1].get<int>();
+        const auto& requestId = msg[2].get<int>();
+        const auto& error = msg[3].get<std::string>();
         listener.handleError(msgTypeErr, requestId, error);
         break;
     }

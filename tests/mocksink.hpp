@@ -14,10 +14,10 @@ public:
         , m_ready(false)
         , m_registry(registry)
     {
-        m_registry.addObject(*this);
+        m_registry.addSink(*this);
     }
     virtual ~MockSink() override {
-        m_registry.removeObject(olinkObjectName());
+        m_registry.removeSink(olinkObjectName());
     }
     IClientNode *client() const {
         assert(m_client);

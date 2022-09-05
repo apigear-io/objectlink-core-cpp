@@ -8,11 +8,11 @@ CalcSink::CalcSink(QObject *parent)
     : QObject(parent)
     , m_node(nullptr)
 {
-    m_node = QClientRegistry::getInstance().addObject(this);
+    m_node = QClientRegistry::getInstance().addSink(this);
 }
 
 CalcSink::~CalcSink() {
-    QClientRegistry::getInstance().removeObject(olinkObjectName());
+    QClientRegistry::getInstance().removeSink(olinkObjectName());
     m_node = nullptr;
 }
 

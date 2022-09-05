@@ -9,11 +9,11 @@ CalcSource::CalcSource(RemoteRegistry& registry)
     , m_total(1)
     , m_registry(&registry)
 {
-    m_registry->addObjectSource(this);
+    m_registry->addSinkSource(this);
 }
 
 CalcSource::~CalcSource() {
-    m_registry->removeObjectSource(this);
+    m_registry->removeSinkSource(this);
 }
 
 IRemoteNode *CalcSource::node() const {
