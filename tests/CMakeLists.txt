@@ -1,6 +1,9 @@
 set(SPDLOG_DEBUG_ON true)
 set(SPDLOG_TRACE_ON true)
 
+if(BUILD_TESTING)
+enable_testing()
+
 Include(FetchContent)
 
 find_package(Catch2 QUIET)
@@ -27,5 +30,7 @@ set(TEST_OLINK_SOURCES
 )
 
 add_executable(tst_olink ${TEST_OLINK_SOURCES})
+add_test(tst_olink tst_olink)
 target_link_libraries(tst_olink PRIVATE olink_core Catch2::Catch2)
 
+endif() # BUILD_TESTING
