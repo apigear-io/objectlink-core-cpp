@@ -30,8 +30,7 @@ set(TEST_OLINK_SOURCES
     sourceobject.hpp
     mocksink.hpp
     mocksource.hpp
-    mocks.h
-         "test_client_node.cpp")
+    mocks.h)
 
 add_executable(tst_olink ${TEST_OLINK_SOURCES})
 
