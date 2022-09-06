@@ -13,7 +13,7 @@
 TEST_CASE("client registry")
 {
 
-    std::cout << "DOROTA   " << __cplusplus << std::endl;
+    std::cout << "  DOROTA   " << __cplusplus << std::endl;
     // Create two sink MOCK objects, that always return associated with them ids.
     SinkObjectMock sink1, sink2;
     std::string sink1Id= "tests.sink1";
