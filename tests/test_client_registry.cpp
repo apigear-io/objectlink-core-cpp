@@ -2,6 +2,9 @@
 #include <catch2/catch.hpp>
 #include "mocks.h"
 
+
+#include<iostream>
+
 #include "olink/iobjectsink.h"
 #include "olink/clientnode.h"
 #include "olink/clientregistry.h"
@@ -9,6 +12,8 @@
 
 TEST_CASE("client registry")
 {
+
+    std::cout << "DOROTA   " << __cplusplus << std::endl;
     // Create two sink MOCK objects, that always return associated with them ids.
     SinkObjectMock sink1, sink2;
     std::string sink1Id= "tests.sink1";
