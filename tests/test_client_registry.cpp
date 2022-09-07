@@ -2,9 +2,6 @@
 #include <catch2/catch.hpp>
 #include "mocks.h"
 
-
-#include<iostream>
-
 #include "olink/iobjectsink.h"
 #include "olink/clientnode.h"
 #include "olink/clientregistry.h"
@@ -12,9 +9,7 @@
 
 TEST_CASE("client registry")
 {
-
-    std::cout << "  DOROTA   " << __cplusplus << std::endl;
-    // Create two sink MOCK objects, that always return associated with them ids.
+    // Sink MOCK objects, that always return associated with them ids.
     SinkObjectMock sink1, sink2;
     std::string sink1Id= "tests.sink1";
     std::string sink2Id= "tests.sink2";
@@ -25,11 +20,12 @@ TEST_CASE("client registry")
     ALLOW_CALL(sink1, olinkOnRelease());
     ALLOW_CALL(sink2, olinkOnRelease());
 
+    ApiGear::ObjectLink::ClientRegistry clientRegistry;
+    clientRegistry.addSink(sink1);
 
     SECTION("Add object and set node for it") {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
+
         ApiGear::ObjectLink::ClientNode node1(clientRegistry);
-        clientRegistry.addSink(sink1);
 
         std::vector<std::string> empty = { };
         REQUIRE(clientRegistry.getObjectIds(node1) == empty);
@@ -43,9 +39,7 @@ TEST_CASE("client registry")
 
     SECTION("Sink can be added after setting node")
     {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
         ApiGear::ObjectLink::ClientNode node1(clientRegistry);
-        clientRegistry.addSink(sink1);
 
         REQUIRE(clientRegistry.getObjectIds(node1).size() == 0);
         clientRegistry.setNode(node1, sink1Id);
@@ -58,9 +52,7 @@ TEST_CASE("client registry")
 
     SECTION("Node can be set many sinks")
     {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
         ApiGear::ObjectLink::ClientNode node1(clientRegistry), node2(clientRegistry);
-        clientRegistry.addSink(sink1);
         clientRegistry.addSink(sink2);
 
         REQUIRE(clientRegistry.getObjectIds(node1).size() == 0);
@@ -72,11 +64,11 @@ TEST_CASE("client registry")
         std::vector<std::string> expectedIds = { sink1Id, sink2Id };
         REQUIRE_THAT(clientRegistry.getObjectIds(node1), Catch::Matchers::UnorderedEquals(expectedIds));
 
-        // For all id we're getting same node
+        // For all ids we're getting same node
         REQUIRE(clientRegistry.getNode(sink1Id) == &node1);
         REQUIRE(clientRegistry.getNode(sink2Id) == &node1);
         REQUIRE(clientRegistry.getNode(notExisitnigSinkId) == &node1);
-        // For all id's we're getting added objects
+        // For all ids we're getting added objects
         REQUIRE(clientRegistry.getSink(sink1Id) == &sink1);
         REQUIRE(clientRegistry.getSink(sink2Id) == &sink2);
         REQUIRE(clientRegistry.getSink(notExisitnigSinkId) == nullptr);
@@ -84,9 +76,7 @@ TEST_CASE("client registry")
 
     SECTION("Node can be changed for object only after unset.")
     {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
         ApiGear::ObjectLink::ClientNode node1(clientRegistry), node2(clientRegistry);
-        clientRegistry.addSink(sink1);
 
         clientRegistry.setNode(node1, sink1Id);
         REQUIRE(clientRegistry.getNode(sink1Id) == &node1);
@@ -112,9 +102,7 @@ TEST_CASE("client registry")
         ALLOW_CALL(differentSinkForId1, olinkOnRelease());
         ALLOW_CALL(differentSinkForId1, olinkObjectName()).RETURN(sink1Id);
 
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
         ApiGear::ObjectLink::ClientNode node1(clientRegistry);
-        clientRegistry.addSink(sink1);
         clientRegistry.setNode(node1, sink1Id);
 
         REQUIRE(clientRegistry.getSink(sink1Id) == &sink1);
@@ -138,28 +126,23 @@ TEST_CASE("client registry")
 
     SECTION("To unset node both, the node and id must match.")
     {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
         ApiGear::ObjectLink::ClientNode node1(clientRegistry), node2(clientRegistry);
-        clientRegistry.addSink(sink1);
-
         clientRegistry.setNode(node1, sink1Id);
         REQUIRE(clientRegistry.getNode(sink1Id) == &node1);
 
+        // node is still set, the node doesn't match.
         clientRegistry.unsetNode(node2, sink1Id);
         REQUIRE(clientRegistry.getNode(sink1Id) == &node1);
-
+        // node is still set, the id doesn't match.
         clientRegistry.unsetNode(node1, sink2Id);
         REQUIRE(clientRegistry.getNode(sink1Id) == &node1);
-
+        // successful unset
         clientRegistry.unsetNode(node1, sink1Id);
         REQUIRE(clientRegistry.getNode(sink1Id) == nullptr);
     }
 
     SECTION("Removing not existing object doesn't crash")
     {
-        ApiGear::ObjectLink::ClientRegistry clientRegistry;
-        clientRegistry.addSink(sink1);
-
         clientRegistry.removeSink("some otherId");
     }
 }
