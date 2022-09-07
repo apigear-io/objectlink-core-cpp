@@ -22,6 +22,7 @@ class ClientNode;
  * Register your object and a client node separately: an object with addSink function and 
  * the client node with setNode, which requires also the target objectId.
  * The order of registration is not relevant.
+ * Sink object should always be removed from registry before deleting it.
  */
 class OLINK_EXPORT ClientRegistry: public LoggerBase {
 public:

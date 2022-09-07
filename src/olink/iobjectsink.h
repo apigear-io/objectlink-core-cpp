@@ -12,6 +12,7 @@ class IClientNode;
 /**
  * @brief Describes incoming part of messages of the protocol for client side.
  * Implementation should handle messages from a service side.
+ * Implementation should always remove sink object from client registry before deleting the sink object.
  */
 class OLINK_EXPORT IObjectSink {
 public:
