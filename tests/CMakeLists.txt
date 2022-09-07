@@ -26,11 +26,13 @@ set(TEST_OLINK_SOURCES
     test_olink.cpp
     test_protocol.cpp
     test_client_registry.cpp
+    test_client_node.cpp
     sinkobject.hpp
     sourceobject.hpp
     mocksink.hpp
     mocksource.hpp
-    mocks.h)
+    mocks.h
+    matchers.h)
 
 add_executable(tst_olink ${TEST_OLINK_SOURCES})
 
