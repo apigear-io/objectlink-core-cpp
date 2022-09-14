@@ -47,17 +47,17 @@ IObjectSource::~IObjectSource()
 // RemoteRegistry
 // ********************************************************************
 
-void RemoteRegistry::addSinkSource(IObjectSource *source)
+void RemoteRegistry::addObjectSource(IObjectSource *source)
 {
     std::string name = source->olinkObjectName();
-    emitLog(LogLevel::Info, "RemoteRegistry.addSinkSource: " + name);
+    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + name);
     entry(name).source = source;
 }
 
-void RemoteRegistry::removeSinkSource(IObjectSource *source)
+void RemoteRegistry::removeObjectSource(IObjectSource *source)
 {
     std::string name = source->olinkObjectName();
-    emitLog(LogLevel::Info, "RemoteRegistry.removeSinkSource: " + name);
+    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + name);
     removeEntry(name);
 }
 
@@ -141,14 +141,14 @@ IObjectSource *RemoteNode::getObjectSource(std::string name)
     return m_registry->getObjectSource(name);
 }
 
-void RemoteNode::addSinkSource(IObjectSource *source)
+void RemoteNode::addObjectSource(IObjectSource *source)
 {
-    m_registry->addSinkSource(source);
+    m_registry->addObjectSource(source);
 }
 
-void RemoteNode::removeSinkSource(IObjectSource *source)
+void RemoteNode::removeObjectSource(IObjectSource *source)
 {
-    m_registry->removeSinkSource(source);
+    m_registry->removeObjectSource(source);
 }
 
 

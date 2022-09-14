@@ -82,8 +82,8 @@ private:
 public:
     virtual ~RemoteRegistry() = default;
 
-    void addSinkSource(IObjectSource *source);
-    void removeSinkSource(IObjectSource *source);
+    void addObjectSource(IObjectSource *source);
+    void removeObjectSource(IObjectSource *source);
     IObjectSource* getObjectSource(std::string name);
     std::set<RemoteNode*> getRemoteNodes(std::string name);
     void attachRemoteNode(RemoteNode *node);
@@ -127,11 +127,11 @@ public: // source registry
     /**
      * Add object source to global registry
      */
-    void addSinkSource(IObjectSource *source);
+    void addObjectSource(IObjectSource *source);
     /**
      * Remove object source from global registry
      */
-    void removeSinkSource(IObjectSource *source);
+    void removeObjectSource(IObjectSource *source);
 public: // IMessagesListener interface
     /**
      * handle Link message from client
