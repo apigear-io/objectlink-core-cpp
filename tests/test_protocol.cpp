@@ -2,14 +2,9 @@
 
 #include "olink/core/types.h"
 #include "olink/core/protocol.h"
-#include "nlohmann/json.hpp"
 
-#include <list>
 #include <string>
-#include <memory>
-#include "mocksink.hpp"
-#include "mocksource.hpp"
-#include "olink/consolelogger.h"
+#include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 using namespace ApiGear::ObjectLink;
@@ -25,15 +20,6 @@ TEST_CASE("protocol")
     MsgType msgType = MsgType::Invoke;
     std::string error = "failed";
 
-    ConsoleLogger log;
-    ClientRegistry clientRegistry;
-    MockSink sink(clientRegistry);
-    RemoteRegistry registry;
-    MockSource source(registry);
-    ClientNode client(clientRegistry);
-    client.onLog(log.logFunc());
-    RemoteNode remote(registry);
-    remote.onLog(log.logFunc());
     SECTION("link") {
         json msg = Protocol::linkMessage(name);
         REQUIRE(msg[0] == MsgType::Link);

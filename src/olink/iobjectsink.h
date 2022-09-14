@@ -1,7 +1,7 @@
 #pragma once
 
-#include "nlohmann/json.hpp"
 #include "core/olink_common.h"
+#include "nlohmann/json.hpp"
 #include <string>
 
 namespace ApiGear{
@@ -47,6 +47,7 @@ public:
     * Handler function for serving the Init message.
     * @param objectId The olink object identifier for which the connection was established.
     * @param props The current values for all the properties from service side.
+    * @param node The endpoint to with which client sends messages.
     */
     virtual void olinkOnInit(const std::string& objectId, const nlohmann::json& props, IClientNode* node) = 0;
     /**

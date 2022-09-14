@@ -54,7 +54,7 @@ std::vector<std::string> ClientRegistry::getObjectIds(ClientNode& node)
 {
     std::vector<std::string> sinks;
     for (auto& entry : m_entries) {
-        if (entry.second.node == &node && entry.second.sink) {
+        if (entry.second.node == &node) {
             sinks.push_back(entry.first);
         }
     }
