@@ -60,8 +60,7 @@ TEST_CASE("client registry")
         clientRegistry.setNode(node1, sink2Id);
         std::string notExisitnigSinkId = "notExisitnigSinkId";
         clientRegistry.setNode(node1, notExisitnigSinkId);
-        // No id for not existing sink, although it is added in registry.
-        std::vector<std::string> expectedIds = { sink1Id, sink2Id };
+        std::vector<std::string> expectedIds = { notExisitnigSinkId, sink1Id, sink2Id };
         REQUIRE_THAT(clientRegistry.getObjectIds(node1), Catch::Matchers::UnorderedEquals(expectedIds));
 
         // For all ids we're getting same node

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "olink/remotenode.h"
+#include "olink/remoteregistry.h"
+#include "olink/iobjectsource.h"
 #include <iostream>
 
 using namespace ApiGear::ObjectLink;
@@ -12,10 +14,9 @@ public:
         , m_registry(&registry)
         , m_total(1)
     {
-        m_registry->addObjectSource(this);
     }
     virtual ~CalcSource() override {
-        m_registry->removeObjectSource(this);
+        m_registry->removeSource(olinkObjectName());
     }
 
     IRemoteNode* remoteNode() const {
@@ -54,7 +55,7 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override {
+    nlohmann::json olinkInvoke(const std::string& name, const nlohmann::json& args) override {
         std::cout << "invoke" << name << args.dump();
         std::string path = Name::getMemberName(name);
         if(path == "add") {
@@ -64,7 +65,7 @@ public:
         }
         return nlohmann::json();
     }
-    void olinkSetProperty(std::string name, nlohmann::json value) override {
+    void olinkSetProperty(const std::string& name, const nlohmann::json& value) override {
         std::cout << "setProperty" << name << value.dump();
         std::string path = Name::getMemberName(name);
         if(path == "total") {
@@ -75,11 +76,11 @@ public:
             }
         }
     }
-    void olinkLinked(std::string name, IRemoteNode *node) override {
+    void olinkLinked(const std::string& name, IRemoteNode *node) override {
         std::cout << "linked" << name;
         m_node = node;
     }
-    void olinkUnlinked(std::string name) override
+    void olinkUnlinked(const std::string& name) override
     {
         std::cout << "unlinked" << name;
         m_node = nullptr;

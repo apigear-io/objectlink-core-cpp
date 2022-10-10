@@ -55,7 +55,7 @@ std::string CalcSource::olinkObjectName() {
     return "demo.Calc";
 }
 
-nlohmann::json CalcSource::olinkInvoke(std::string name, nlohmann::json args) {
+nlohmann::json CalcSource::olinkInvoke(const std::string& name, const nlohmann::json& args) {
     std::cout << "invoke" << name << args.dump();
     std::string path = Name::getMemberName(name);
     if(path == "add") {
@@ -73,7 +73,7 @@ nlohmann::json CalcSource::olinkInvoke(std::string name, nlohmann::json args) {
     return nlohmann::json();
 }
 
-void CalcSource::olinkSetProperty(std::string name, nlohmann::json value) {
+void CalcSource::olinkSetProperty(const std::string& name, const  nlohmann::json& value) {
     std::cout << "setProperty" << name << value.dump();
     std::string path = Name::getMemberName(name);
     if(path == "total") {
@@ -85,12 +85,12 @@ void CalcSource::olinkSetProperty(std::string name, nlohmann::json value) {
     }
 }
 
-void CalcSource::olinkLinked(std::string name, IRemoteNode *node) {
+void CalcSource::olinkLinked(const std::string& name, IRemoteNode *node) {
     std::cout << "linked" << name;
     m_node = node;
 }
 
-void CalcSource::olinkUnlinked(std::string name)
+void CalcSource::olinkUnlinked(const std::string& name)
 {
     std::cout << "unlinked" << name;
     m_node = nullptr;

@@ -19,10 +19,10 @@ public:
     // IObjectSource interface
 public:
     std::string olinkObjectName() override;
-    nlohmann::json olinkInvoke(std::string name, nlohmann::json args) override;
-    void olinkSetProperty(std::string name, nlohmann::json value) override;
-    void olinkLinked(std::string name, IRemoteNode *node) override;
-    void olinkUnlinked(std::string name) override;
+    nlohmann::json olinkInvoke(const std::string& name, const nlohmann::json& args) override;
+    void olinkSetProperty(const std::string& name, const nlohmann::json& value) override;
+    void olinkLinked(const std::string& name, IRemoteNode *node) override;
+    void olinkUnlinked(const std::string& name) override;
     nlohmann::json olinkCollectProperties() override;
 private:
     IRemoteNode* m_node;

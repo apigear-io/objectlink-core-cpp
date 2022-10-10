@@ -32,6 +32,7 @@ public:
     /**
     * Set ClientNode for a sink object registered with objectId
     * @param objectId An id of object, for which the node should be added.
+    * @param node A ClientNode that should be added for a source with given objectId.
     *   If node exist for given objectId node is not added.
     */
     void setNode(ClientNode& node, const std::string& objectId);
@@ -47,29 +48,27 @@ public:
     /**
     * Registers a Sink Object with its objectId.
     * Sink Object must provide objectId that is unique in this registry.
-    * @param objectId An id of object, for which the node should be added.
+    * @param sink A sink object added to registry.
     *   If object already exist for given objectId this sinkObject is not added.
     */
     void addSink(IObjectSink& sink);
 
     /**
     * Removes a Sink Object from registry for objectId.
-    * @param objectId An id of object, for which the node should be removed.
-    *   If there is no node registered for objectId, or registered node is different, no action is taken.
-    *   If entry was found for given objectId and the node is the same object, the node is removed,
-    *  but entry stays in the registry. The sink is still registered.
+    * @param objectId An id of object, for which the sink should be removed.
+    *   If there is no sink registered for objectId no action is taken.
     */
     void removeSink(const std::string& objectId);
 
     /**
     * Returns a sink object for the given objectId.
     * @param objectId Identifier of a sink Object.
-    * @return Sink Object with given objectId.
+    * @return Sink Object with given objectId or nullptr if no sink found for an objectId.
     */
     IObjectSink* getSink(const std::string& objectId);
 
     /**
-    * Returns List of ids of all objects that are using given node.
+    * Returns List of ids of all ids of objects for which a node was set.
     * @param node A node for which objects using it should be found.
     * @return a collection of Ids of all the objects that use given node.
     */
@@ -78,7 +77,8 @@ public:
     /**
     * Returns ClientNode for given objectId.
     * @param objectId An id of object, for which the node should be searched.
-    * @return A node found for an objectId or nullptr if there is no objectId in registry.
+    * @return A node found for an objectId or nullptr if there is no objectId in registry or sink 
+    * is currently not using any nodes.
     */
     ClientNode* getNode(const std::string& objectId);
 private:
