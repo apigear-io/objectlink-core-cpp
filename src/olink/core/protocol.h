@@ -45,6 +45,7 @@ public:
 
     /**
      * Server side handler, handles link message.
+     * After successful linking implementation should send initMessage back to the caller.
      * @param objectId Id of an object for which link message was received.
      */
     virtual void handleLink(const std::string& objectId) = 0;
@@ -72,7 +73,8 @@ public:
      */
     virtual void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) = 0;
     /**
-     * Server side handler, handles Invoke message.
+     * Server side handler, handles Invoke message. 
+     * Implementation shall call the method on object and return the result the invokeReplyMessage.
      * @param requestId Id of a invoke request, which should be sent back with the response.
      * @param methodId Unambiguously describes method in object for which invoke message was received.
      * @param args Arguments with which method should be invoked.

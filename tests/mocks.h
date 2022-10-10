@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 #include "olink/iobjectsink.h"
+#include "olink/iobjectsource.h"
 #include "olink/core/types.h"
 
 
@@ -14,6 +15,18 @@ public:
     IMPLEMENT_MOCK2(olinkOnPropertyChanged);
     IMPLEMENT_MOCK3(olinkOnInit);
     IMPLEMENT_MOCK0(olinkOnRelease);
+};
+
+
+class SourceObjectMock : public trompeloeil::mock_interface<ApiGear::ObjectLink::IObjectSource>
+{
+public:
+    IMPLEMENT_MOCK0(olinkObjectName);
+    IMPLEMENT_MOCK2(olinkInvoke);
+    IMPLEMENT_MOCK2(olinkSetProperty);
+    IMPLEMENT_MOCK2(olinkLinked);
+    IMPLEMENT_MOCK1(olinkUnlinked);
+    IMPLEMENT_MOCK0(olinkCollectProperties);
 };
 
 // Fake interface to Mock write and log function calls.
