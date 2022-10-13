@@ -4,13 +4,14 @@
 #include "core/basenode.h"
 #include <map>
 #include <vector>
+#include <mutex>
 
 
 namespace ApiGear {
 namespace ObjectLink {
 
 class IObjectSink;
-class ClientNode;
+class IClientNode;
 
 /**
  * A Registry is a global storage to keep track of objects stored as objectSink for the messages 
@@ -19,8 +20,8 @@ class ClientNode;
  * Each object is registered with its id, available with olinkObjectName() call.
  * This id has to be unique in the registry, only first object with same id will be registered.
  * A client node may be used for many objects.
- * Register your object and a client node separately: an object with addSink function and 
- * the client node with setNode, which requires also the target objectId.
+ * Register your object and a client node separately: an object with addSink function. 
+ * The client node will be added for node when linking sink with source objectId.
  * The order of registration is not relevant.
  * Sink object should always be removed from registry before deleting it.
  */
@@ -35,15 +36,12 @@ public:
     * @param node A ClientNode that should be added for a source with given objectId.
     *   If node exist for given objectId node is not added.
     */
-    void setNode(ClientNode& node, const std::string& objectId);
+    void setNode(std::weak_ptr<IClientNode> node, const std::string& objectId);
     /**
     * Unset the ClientNode from registry for objectId.
     * @param objectId An id of object, for which the node should be removed.
-    *   If there is no node registered for objectId, or registered node is different, no action is taken.
-    *   If entry was found for given objectId and the node is the same object, the node is removed from registry,
-    *  but entry stays - the sink is still registered.
     */
-    void unsetNode(ClientNode& node, const std::string& objectId);
+    void unsetNode(const std::string& objectId);
 
     /**
     * Registers a Sink Object with its objectId.
@@ -51,7 +49,7 @@ public:
     * @param sink A sink object added to registry.
     *   If object already exist for given objectId this sinkObject is not added.
     */
-    void addSink(IObjectSink& sink);
+    void addSink(std::weak_ptr<IObjectSink> sink);
 
     /**
     * Removes a Sink Object from registry for objectId.
@@ -65,14 +63,14 @@ public:
     * @param objectId Identifier of a sink Object.
     * @return Sink Object with given objectId or nullptr if no sink found for an objectId.
     */
-    IObjectSink* getSink(const std::string& objectId);
+    std::weak_ptr<IObjectSink> getSink(const std::string& objectId);
 
     /**
     * Returns List of ids of all ids of objects for which a node was set.
     * @param node A node for which objects using it should be found.
     * @return a collection of Ids of all the objects that use given node.
     */
-    std::vector<std::string> getObjectIds(ClientNode& node);
+    std::vector<std::string> getObjectIds(std::weak_ptr<IClientNode> node);
 
     /**
     * Returns ClientNode for given objectId.
@@ -80,29 +78,15 @@ public:
     * @return A node found for an objectId or nullptr if there is no objectId in registry or sink 
     * is currently not using any nodes.
     */
-    ClientNode* getNode(const std::string& objectId);
+    std::weak_ptr<IClientNode> getNode(const std::string& objectId);
 private:
     /**
      * Internal structure to manage sink/node associations
      */
     struct OLINK_EXPORT SinkToClientEntry{
-        IObjectSink* sink = nullptr;
-        ClientNode* node = nullptr;
+        std::weak_ptr<IObjectSink> sink;
+        std::weak_ptr<IClientNode> node;
     };
-
-    /**
-    * Removes entry for given objectId.
-    * @param objectId. Identifier for which an entry would be removed.
-    * If entry not found no action is made.
-    */
-    void removeEntry(const std::string& objectId);
-    /**
-    * Returns an entry for given objectId.
-    * If no entry found, a new empty SinkToClientEntry is added for objectId
-    * @param objectId unique objectId, for which ClientNode or IObjectSink were registered.
-    * @return entry for objectId.
-    */
-    SinkToClientEntry& entry(const std::string& objectId);
 
     /**
     * Collection of registered ObjectSinks for given objectId with ClientNodes they use.
@@ -110,6 +94,8 @@ private:
     * can be registered for one objectId
     */
     std::map <std::string, SinkToClientEntry> m_entries;
+    /* A mutex to guard operations on stored entries.*/
+    std::mutex m_entriesMutex;
 };
 
 } } // ApiGear::ObjectLink

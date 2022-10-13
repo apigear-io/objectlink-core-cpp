@@ -1,9 +1,12 @@
 #pragma once
 
 #include "core/olink_common.h"
+#include "core/types.h"
 #include "iclientnode.h"
 #include "core/basenode.h"
 #include <map>
+#include <mutex>
+#include <atomic>
 
 
 namespace ApiGear { namespace ObjectLink {
@@ -22,25 +25,21 @@ class IObjectSink;
  * To use objectSink with this client, client needs to be registered in client registry for an object
  * see ClientRegistry::setNode function.
  */
-class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode
+class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode, public std::enable_shared_from_this<ClientNode>
 {
-public:
+protected:
     ClientNode(ClientRegistry& registry);
-    /** dtor 
-    * informs the user on server side that connection is no longer used,
-    * also inform all the sinks that connection was released 
-    * and unlinks from registry for every object that used it.
+    /**
+    * protected constructor. Use createClientNode to make an instance of ClientNode.
+    * @param registry. A global registry for client nodes and object sinks
     */
-    virtual ~ClientNode() override;
 
+public:
     /**
-     * Use this function to link remote all sinks associated with this client node.
-     */
-    void linkRemoteForAllSinks();
-    /**
-     * Use this function to unlink remote all sinks associated with this client node.
-     */
-    void unlinkRemoteForAllSinks();
+    * Factory method to create a remote node.
+    * @return new ClientNode.
+    */
+    static std::shared_ptr<ClientNode> create(ClientRegistry& registry);
 
     /** IClientNode::linkRemote implementation. */
     void linkRemote(const std::string& objectId) override;
@@ -76,9 +75,10 @@ private:
     ClientRegistry& m_registry;
 
     /* Value of last request id.*/
-    int m_nextRequestId;
+    std::atomic<int> m_nextRequestId;
     /** Collection of callbacks for method replies that client is waiting for associated with the id for invocation request message.*/
     std::map<int,InvokeReplyFunc> m_invokesPending;
+    std::mutex m_pendingInvokesMutex;
 };
 
 

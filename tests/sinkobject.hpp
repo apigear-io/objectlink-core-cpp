@@ -15,9 +15,7 @@ public:
         , m_registry(registry)
         , m_total(0)
         , m_ready(false)
-    {
-        m_registry.addSink(*this);
-    }
+    {}
     virtual ~CalcSink() override {
         m_registry.removeSink(olinkObjectName());
     }
