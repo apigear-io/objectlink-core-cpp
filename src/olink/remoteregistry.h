@@ -106,7 +106,7 @@ private:
     */
     std::map<std::string, SourceToNodesEntry> m_entries;
 
-    std::timed_mutex m_entriesMutex;
+    std::mutex m_entriesMutex;
     
 };
 
