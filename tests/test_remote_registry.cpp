@@ -34,7 +34,7 @@ TEST_CASE("server registry simple tests without threads")
         REQUIRE(registry.getNodes(source1Id)[0].lock() == node1);
     }
 
-    SECTION("Node can be set many sources")
+    SECTION("One node can be set for many sources")
     {
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
         auto node2 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
