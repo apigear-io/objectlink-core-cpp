@@ -21,7 +21,6 @@ void RemoteRegistry::addSource(std::weak_ptr<IObjectSource> source)
     if (found == m_entries.end()){
         SourceToNodesEntry entry;
         entry.source = source;
-
         m_entries[objectId] = entry;
     }
     else if (alreadyAdded){
@@ -44,7 +43,6 @@ std::weak_ptr<IObjectSource> RemoteRegistry::getSource(const std::string& object
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     auto source = found != m_entries.end() ? found->second.source : std::weak_ptr<IObjectSource>();
-    lock.unlock();
     return source;
 }
 
@@ -56,11 +54,8 @@ std::vector< std::weak_ptr<IRemoteNode>> RemoteRegistry::getNodes(const std::str
     if (found != m_entries.end())
     {
         auto nodes = found->second.nodes;
-        lock.unlock();
         return nodes;
-    } else {
-        lock.unlock();
-    }
+    } 
     return {};
 }
 
@@ -79,7 +74,6 @@ std::vector<std::string> RemoteRegistry::getObjectIds(std::weak_ptr<IRemoteNode>
             ids.push_back(entry.first);
         }
     }
-    lock.unlock();
    
     return ids;
 }
@@ -106,7 +100,6 @@ void RemoteRegistry::addNodeForSource(std::weak_ptr<IRemoteNode> node, const std
         {
             foundEntry->second.nodes.push_back(node);
         }
-        lock.unlock();
     }
 }
 
@@ -124,7 +117,6 @@ void RemoteRegistry::removeNodeFromSource(std::weak_ptr<IRemoteNode> node, const
             found->second.nodes.erase(nodeInCollection);
         }
     }
-    lock.unlock();
 }
 
 void RemoteRegistry::removeEntry(const std::string& objectId)
@@ -134,7 +126,6 @@ void RemoteRegistry::removeEntry(const std::string& objectId)
     if (found != m_entries.end()) {
         m_entries.erase(found);
     }
-    lock.unlock();
 }
 
 } } // Apigear::ObjectLink
