@@ -58,7 +58,9 @@ void ClientRegistry::addSink(std::weak_ptr<IObjectSink> sink)
     auto entryForObject = m_entries.find(objectId);
     if (entryForObject == m_entries.end()){
         m_entries[objectId] = newEntry;
-    }  else if (entryForObject->second.sink.lock() != lockedSink){
+    } else if (entryForObject->second.sink.expired()){
+        m_entries[objectId].sink = lockedSink;
+    } else if (entryForObject->second.sink.lock() != lockedSink){
         lock.unlock();
         emitLog(LogLevel::Warning, "Trying to add object for " + objectId + " but object for this id is already registered. New object NOT added.");
     }
