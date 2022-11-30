@@ -126,6 +126,17 @@ TEST_CASE("client registry")
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == differentSinkForId1);
     }
 
+    SECTION("Add node first, then the sink")
+    {
+        auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
+
+        clientRegistry.setNode(node1, sink2Id);
+        clientRegistry.addSink(sink2);
+
+        REQUIRE(clientRegistry.getSink(sink2Id).lock() == sink2);
+    }
+
+
     SECTION("Removing not existing object doesn't crash")
     {
         clientRegistry.removeSink("some otherId");

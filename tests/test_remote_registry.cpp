@@ -117,6 +117,16 @@ TEST_CASE("server registry simple tests without threads")
         REQUIRE(registry.getSource(source1Id).lock() == differentSourceForId1);
     }
 
+    SECTION("Add node first, then the source")
+    {
+        auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
+
+        registry.addNodeForSource(node1, source2Id);
+        registry.addSource(source2);
+
+        REQUIRE(registry.getSource(source2Id).lock() == source2);
+    }
+
 
     SECTION("Removing not existing object doesn't crash")
     {
