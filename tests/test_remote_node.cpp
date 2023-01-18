@@ -115,7 +115,7 @@ TEST_CASE("Remote Node")
     }
 
 
-    SECTION("if not on unlink, node has to be removed manually from registry")
+    SECTION("if not on unlink, but node dies anyway, node removes itself from registry")
     {
         registry.addSource(source1);
         REQUIRE_CALL(*source1, olinkCollectProperties()).RETURN(exampleInitProperties);
@@ -125,9 +125,8 @@ TEST_CASE("Remote Node")
         REQUIRE(registry.getNodes(source1Id).size() == 1);
 
         testedNode.reset();
-        // Node is still in registry, but it is not available. 
-        REQUIRE(registry.getNodes(source1Id).size() == 1);
-        REQUIRE(registry.getNodes(source1Id)[0].lock() == nullptr);
+
+        REQUIRE(registry.getNodes(source1Id).size() == 0);
     }
 
     SECTION("handling request property change")

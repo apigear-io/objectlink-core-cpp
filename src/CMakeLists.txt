@@ -12,29 +12,32 @@ if(NOT nlohmann_json_FOUND)
 endif()
 
 set(OLINK_SOURCES
-    olink/core/types.cpp
     olink/core/basenode.cpp
     olink/core/protocol.cpp
+    olink/core/types.cpp
     olink/consolelogger.cpp
     olink/clientnode.cpp
-    olink/remotenode.cpp
     olink/clientregistry.cpp
-    olink/remoteregistry.cpp)
+    olink/remotenode.cpp
+    olink/remoteregistry.cpp 
+    )
 
 SET(OLINK_HEADERS
-    olink/core/types.h
     olink/core/basenode.h
-    olink/core/protocol.h
-    olink/consolelogger.h
-    olink/clientnode.h
-    olink/remotenode.h
-    olink/clientregistry.h
-    olink/iobjectsink.h
     olink/core/olink_common.h
+    olink/core/protocol.h
+    olink/core/types.h
+    olink/core/uniqueidobjectstorage.h
+    olink/clientnode.h
+    olink/clientregistry.h
+    olink/consolelogger.h
     olink/iclientnode.h
+    olink/iobjectsink.h
+    olink/iobjectsource.h
     olink/iremotenode.h
+    olink/remotenode.h
     olink/remoteregistry.h
-    olink/iobjectsource.h)
+    )
 
 
 add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
