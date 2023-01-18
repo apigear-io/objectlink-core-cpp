@@ -29,11 +29,10 @@ TEST_CASE("client registry")
         auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
 
         std::vector<std::string> empty = { };
-        REQUIRE(clientRegistry.getObjectIds(node1) == empty);
-        
-        clientRegistry.setNode(node1, sink1Id);
+        auto id = node1->getNodeId();
+        clientRegistry.setNode(id, sink1Id);
         std::vector<std::string> expectedId = { sink1Id };
-        REQUIRE(clientRegistry.getObjectIds(node1) == expectedId);
+        REQUIRE(clientRegistry.getObjectIds(id) == expectedId);
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
      }
@@ -42,10 +41,10 @@ TEST_CASE("client registry")
     {
         auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
 
-        REQUIRE(clientRegistry.getObjectIds(node1).size() == 0);
-        clientRegistry.setNode(node1, sink1Id);
+        auto id = node1->getNodeId();
+        clientRegistry.setNode(id, sink1Id);
         std::vector<std::string> expectedId = { sink1Id };
-        REQUIRE(clientRegistry.getObjectIds(node1) == expectedId);
+        REQUIRE(clientRegistry.getObjectIds(id) == expectedId);
 
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
@@ -57,13 +56,13 @@ TEST_CASE("client registry")
         auto node2 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
         clientRegistry.addSink(sink2);
 
-        REQUIRE(clientRegistry.getObjectIds(node1).size() == 0);
-        clientRegistry.setNode(node1, sink1Id);
-        clientRegistry.setNode(node1, sink2Id);
+        auto nodeId = node1->getNodeId();
+        clientRegistry.setNode(nodeId, sink1Id);
+        clientRegistry.setNode(nodeId, sink2Id);
         std::string notExisitnigSinkId = "notExisitnigSinkId";
-        clientRegistry.setNode(node1, notExisitnigSinkId);
+        clientRegistry.setNode(nodeId, notExisitnigSinkId);
         std::vector<std::string> expectedIds = { notExisitnigSinkId, sink1Id, sink2Id };
-        REQUIRE_THAT(clientRegistry.getObjectIds(node1), Catch::Matchers::UnorderedEquals(expectedIds));
+        REQUIRE_THAT(clientRegistry.getObjectIds(nodeId), Catch::Matchers::UnorderedEquals(expectedIds));
 
         // For all ids we're getting same node
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
@@ -79,11 +78,13 @@ TEST_CASE("client registry")
     {
         auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
         auto node2 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
+        auto nodeId1 = node1->getNodeId();
+        auto nodeId2 = node2->getNodeId();
 
-        clientRegistry.setNode(node1, sink1Id);
+        clientRegistry.setNode(nodeId1, sink1Id);
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
 
-        clientRegistry.setNode(node2, sink1Id);
+        clientRegistry.setNode(nodeId2, sink1Id);
         // Still node1 set for id
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
@@ -92,7 +93,7 @@ TEST_CASE("client registry")
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == nullptr);
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
 
-        clientRegistry.setNode(node2, sink1Id);
+        clientRegistry.setNode(nodeId2, sink1Id);
         // Now node2 is set
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node2);
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
@@ -105,7 +106,9 @@ TEST_CASE("client registry")
         ALLOW_CALL(*differentSinkForId1, olinkObjectName()).RETURN(sink1Id);
 
         auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
-        clientRegistry.setNode(node1, sink1Id);
+        auto nodeId1 = node1->getNodeId();
+
+        clientRegistry.setNode(nodeId1, sink1Id);
 
         REQUIRE(clientRegistry.getSink(sink1Id).lock() == sink1);
         REQUIRE(clientRegistry.getNode(sink1Id).lock() == node1);
@@ -129,8 +132,8 @@ TEST_CASE("client registry")
     SECTION("Add node first, then the sink")
     {
         auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
-
-        clientRegistry.setNode(node1, sink2Id);
+        auto nodeId1 = node1->getNodeId();
+        clientRegistry.setNode(nodeId1, sink2Id);
         clientRegistry.addSink(sink2);
 
         REQUIRE(clientRegistry.getSink(sink2Id).lock() == sink2);

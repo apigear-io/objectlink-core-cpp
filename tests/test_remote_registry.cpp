@@ -23,13 +23,14 @@ TEST_CASE("server registry simple tests without threads")
     SECTION("Add object and a node for it") {
 
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
+        auto nodeId1 = node1->getNodeId();
 
         std::vector<std::string> empty = { };
-        REQUIRE(registry.getObjectIds(node1) == empty);
+        REQUIRE(registry.getObjectIds(nodeId1) == empty);
 
-        registry.addNodeForSource(node1, source1Id);
+        registry.addNodeForSource(nodeId1, source1Id);
         std::vector<std::string> expectedId = { source1Id };
-        REQUIRE(registry.getObjectIds(node1) == expectedId);
+        REQUIRE(registry.getObjectIds(nodeId1) == expectedId);
         REQUIRE(registry.getSource(source1Id).lock() == source1);
         REQUIRE(registry.getNodes(source1Id)[0].lock() == node1);
     }
@@ -38,15 +39,16 @@ TEST_CASE("server registry simple tests without threads")
     {
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
         auto node2 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
+        auto nodeId1 = node1->getNodeId();
         registry.addSource(source2);
 
-        REQUIRE(registry.getObjectIds(node1).size() == 0);
-        registry.addNodeForSource(node1, source1Id);
-        registry.addNodeForSource(node1, source2Id);
+        REQUIRE(registry.getObjectIds(nodeId1).size() == 0);
+        registry.addNodeForSource(nodeId1, source1Id);
+        registry.addNodeForSource(nodeId1, source2Id);
         std::string notExisitnigSinkId = "notExisitnigSinkId";
-        registry.addNodeForSource(node1, notExisitnigSinkId);
+        registry.addNodeForSource(nodeId1, notExisitnigSinkId);
         std::vector<std::string> expectedIds = { source1Id, source2Id }; 
-        REQUIRE_THAT(registry.getObjectIds(node1), Catch::Matchers::UnorderedEquals(expectedIds));
+        REQUIRE_THAT(registry.getObjectIds(nodeId1), Catch::Matchers::UnorderedEquals(expectedIds));
 
         // For all ids for which source was added we're getting same node.
         // For one for which there is no source, node wasn't added.
@@ -63,26 +65,28 @@ TEST_CASE("server registry simple tests without threads")
     {
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
         auto node2 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
+        auto nodeId1 = node1->getNodeId();
+        auto nodeId2 = node2->getNodeId();
 
-        registry.addNodeForSource(node1, source1Id);
+        registry.addNodeForSource(nodeId1, source1Id);
         auto nodes = registry.getNodes(source1Id);
         REQUIRE(nodes.size() == 1);
         REQUIRE(nodes[0].lock() == node1);
 
-        registry.addNodeForSource(node2, source1Id);
+        registry.addNodeForSource(nodeId2, source1Id);
         nodes = registry.getNodes(source1Id);
         REQUIRE(nodes.size() == 2);
         REQUIRE(nodes[0].lock() == node1);
         REQUIRE(nodes[1].lock() == node2);
 
-        registry.addNodeForSource(node2, source1Id);
+        registry.addNodeForSource(nodeId2, source1Id);
         nodes = registry.getNodes(source1Id);
         nodes = registry.getNodes(source1Id);
         REQUIRE(nodes.size() == 2);
         REQUIRE(nodes[0].lock() == node1);
         REQUIRE(nodes[1].lock() == node2);
 
-        registry.removeNodeFromSource(node1, source1Id);
+        registry.removeNodeFromSource(nodeId1, source1Id);
         nodes = registry.getNodes(source1Id);
         REQUIRE(nodes.size() == 1);
         REQUIRE(nodes[0].lock() == node2);
@@ -96,7 +100,9 @@ TEST_CASE("server registry simple tests without threads")
 
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
         auto node2 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
-        registry.addNodeForSource(node1, source1Id);
+        auto nodeId1 = node1->getNodeId();
+
+        registry.addNodeForSource(nodeId1, source1Id);
 
         REQUIRE(registry.getSource(source1Id).lock() == source1);
         REQUIRE(registry.getNodes(source1Id)[0].lock() == node1);
@@ -120,8 +126,8 @@ TEST_CASE("server registry simple tests without threads")
     SECTION("Add node first, then the source")
     {
         auto node1 = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
-
-        registry.addNodeForSource(node1, source2Id);
+        auto nodeId1 = node1->getNodeId();
+        registry.addNodeForSource(nodeId1, source2Id);
         registry.addSource(source2);
 
         REQUIRE(registry.getSource(source2Id).lock() == source2);

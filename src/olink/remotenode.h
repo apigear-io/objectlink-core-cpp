@@ -52,6 +52,10 @@ protected:
     */
     RemoteNode(RemoteRegistry& registry);
 
+    /*
+    * protected method to allow a factory method assigning the node id, after it registers it in registry.
+    */
+    void setNodeId(unsigned long id);
 public:
     /**
     * Factory method to create a remote node.
@@ -59,7 +63,8 @@ public:
     */
     static std::shared_ptr<RemoteNode> createRemoteNode(RemoteRegistry& registry);
 
-    virtual ~RemoteNode() = default;
+    /* dtor */
+    ~RemoteNode() override;
 
     /**
      * Access the remote registry.
@@ -80,7 +85,16 @@ public:
     void notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
     /** IRemoteNode::notifySignal implementation. */
     void notifySignal(const std::string& signalId, const nlohmann::json& args) override;
+
+    /* 
+    * The id that registry assigned to a node. 
+    *  This id should be used to connect the node with sink object in registry.
+    */
+    unsigned long getNodeId() const;
 private:
+    /*Id of this node in registry.*/
+    unsigned long m_nodeId;
+
     /** A global remote registry to which the node has subscribed.*/
     RemoteRegistry& m_registry;
 };

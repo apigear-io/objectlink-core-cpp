@@ -28,18 +28,25 @@ class IObjectSink;
 class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode, public std::enable_shared_from_this<ClientNode>
 {
 protected:
-    ClientNode(ClientRegistry& registry);
     /**
     * protected constructor. Use createClientNode to make an instance of ClientNode.
     * @param registry. A global registry for client nodes and object sinks
     */
+    ClientNode(ClientRegistry& registry);
 
+    /*
+    * protected method to allow a factory method assigning the node id, after it registers it in registry.
+    */
+    void setNodeId(unsigned long id);
 public:
     /**
     * Factory method to create a remote node.
     * @return new ClientNode.
     */
     static std::shared_ptr<ClientNode> create(ClientRegistry& registry);
+
+    /* dtor */
+    ~ClientNode() override;
 
     /** IClientNode::linkRemote implementation. */
     void linkRemote(const std::string& objectId) override;
@@ -52,6 +59,12 @@ public:
 
      /* The registry in which client is registered*/
     ClientRegistry& registry();
+
+    /* 
+    * The id that registry assigned to a node. 
+    *  This id should be used to connect the node with sink object in registry.
+    */
+    unsigned long getNodeId() const;
 
 protected:
     /** IProtocolListener::handleInit implementation */
@@ -73,6 +86,8 @@ protected:
 private:
     /* The registry in which client is registered and which provides sinks connected with this node*/
     ClientRegistry& m_registry;
+    /*Id of this node in registry.*/
+    unsigned long m_nodeId;
 
     /* Value of last request id.*/
     std::atomic<int> m_nextRequestId;

@@ -28,6 +28,7 @@ set(TEST_OLINK_SOURCES
     test_client_registry.cpp
     test_client_node.cpp
     test_remote_registry.cpp
+    test_uniqueidstorage.cpp
     test_remote_node.cpp
     sinkobject.hpp
     sourceobject.hpp

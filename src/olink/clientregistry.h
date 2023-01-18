@@ -1,10 +1,13 @@
 #pragma once
 
 #include "core/olink_common.h"
+#include "uniqueobjectidstorage.iclientnode.h"
+
 #include "core/basenode.h"
 #include <map>
 #include <vector>
 #include <mutex>
+#include <optional>
 
 
 namespace ApiGear {
@@ -36,7 +39,7 @@ public:
     * @param node A ClientNode that should be added for a source with given objectId.
     *   If node exist for given objectId node is not added.
     */
-    void setNode(std::weak_ptr<IClientNode> node, const std::string& objectId);
+    void setNode(unsigned long id, const std::string& objectId);
     /**
     * Unset the ClientNode from registry for objectId.
     * @param objectId An id of object, for which the node should be removed.
@@ -67,10 +70,10 @@ public:
 
     /**
     * Returns List of ids of all ids of objects for which a node was set.
-    * @param node A node for which objects using it should be found.
+    * @param nodeId An id of a node, for which objects using it are to be found.
     * @return a collection of Ids of all the objects that use given node.
     */
-    std::vector<std::string> getObjectIds(std::weak_ptr<IClientNode> node);
+    std::vector<std::string> getObjectIds(unsigned long nodeId);
 
     /**
     * Returns ClientNode for given objectId.
@@ -79,13 +82,23 @@ public:
     * is currently not using any nodes.
     */
     std::weak_ptr<IClientNode> getNode(const std::string& objectId);
+
+    /**
+    * Use this function to register node and obtain a unique id, with which you can connect it with sink objects.
+    * @return A unique id given to added node.It should be used to get or remove the node.
+    */
+    unsigned long registerNode(std::weak_ptr<IClientNode> node);
+    /**
+    * Remove the node from registry, it will be no longer valid to use with any sink object.
+    */
+    void unregisterNode(unsigned long id);
 private:
     /**
      * Internal structure to manage sink/node associations
      */
     struct OLINK_EXPORT SinkToClientEntry{
         std::weak_ptr<IObjectSink> sink;
-        std::weak_ptr<IClientNode> node;
+        unsigned long nodeId;
     };
 
     /**
@@ -96,6 +109,8 @@ private:
     std::map <std::string, SinkToClientEntry> m_entries;
     /* A mutex to guard operations on stored entries.*/
     std::mutex m_entriesMutex;
+    /* Storage for client nodes, keeps them by Id*/
+    UniqueIdObjectStorage<ApiGear::ObjectLink::IClientNode> m_clientNodesById;
 };
 
 } } // ApiGear::ObjectLink
