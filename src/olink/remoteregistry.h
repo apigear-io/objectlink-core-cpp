@@ -73,7 +73,6 @@ public:
     * If no source yet added, the node is still going to be added, for the id.
     * @param nodeId An id of a RemoteNode to be added for an object Id.
     * @param objectId An id of object, for which the node should be added.
-    * @return A unique id given to added node. It should be used to get or remove the node.
     */
     void addNodeForSource(unsigned long nodeId, const std::string& objectId);
     /**
@@ -105,7 +104,7 @@ private:
     
     /**
     * Removes entry for given objectId.
-    * @param objectId. Identifier for which an entry would be removed.
+    * @param objectId Identifier for which an entry would be removed.
     * If entry not found no action is made.
     */
     void removeEntry(const std::string& objectId);
