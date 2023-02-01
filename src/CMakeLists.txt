@@ -51,7 +51,11 @@ target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json)
 
 # ensure maximum compiler support
 if(NOT MSVC)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(olink_core PRIVATE -Wall -Wextra -Wpedantic -Werror -fvisibility=hidden -Wdocumentation)
+else()
   target_compile_options(olink_core PRIVATE -Wall -Wextra -Wpedantic -Werror -fvisibility=hidden)
+endif()
 else()
   target_compile_options(olink_core PRIVATE /W4 /WX PUBLIC /wd4251)
 endif()
