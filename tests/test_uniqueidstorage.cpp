@@ -58,10 +58,10 @@ TEST_CASE("storage")
 
     SECTION("adding object fails - storage full")
     {
-        auto id1 = storage.add(obj1);
-        auto id2 = storage.add(obj2);
-        auto id3 = storage.add(obj3);
-        auto id4 = storage.add(obj4);
+        storage.add(obj1);
+        storage.add(obj2);
+        storage.add(obj3);
+        storage.add(obj4);
         auto id5 = storage.add(obj5);
         auto id6 = storage.add(obj6);
         auto id7 = storage.add(obj7);
@@ -76,9 +76,9 @@ TEST_CASE("storage")
     {
         auto id1 = storage.add(obj1);
         auto id2 = storage.add(obj2);
-        auto id3 = storage.add(obj3);
+        storage.add(obj3);
         auto id4 = storage.add(obj4);
-        auto id5 = storage.add(obj5);
+        storage.add(obj5);
         storage.remove(id2);
         storage.remove(id4);
         auto id6 = storage.add(obj6);
@@ -92,11 +92,11 @@ TEST_CASE("storage")
 
     SECTION("unsuccessful adding object after overflow - again overflow")
     {
-        auto id1 = storage.add(obj1);
+        storage.add(obj1);
         auto id2 = storage.add(obj2);
-        auto id3 = storage.add(obj3);
+        storage.add(obj3);
         auto id4 = storage.add(obj4);
-        auto id5 = storage.add(obj5);
+        storage.add(obj5);
         storage.remove(id2);
         storage.remove(id4);
         auto id6 = storage.add(obj6);

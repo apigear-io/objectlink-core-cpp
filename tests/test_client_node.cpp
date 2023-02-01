@@ -25,7 +25,7 @@ namespace {
     ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
 
     // Helper function which gets from a InvokeMessage a requestId given by clientNode.
-    int retriveRequestId(const std::string& networkMessage)
+    int retrieveRequestId(const std::string& networkMessage)
     {
         const auto& requestMessage = converter.fromString(networkMessage);
         REQUIRE(requestMessage[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
@@ -169,14 +169,14 @@ TEST_CASE("Client Node")
         // Invoke for sink2
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, exampleArguments.dump()}, converter)))
-                    .LR_SIDE_EFFECT(firstRequestId = retriveRequestId(_1));
+                    .LR_SIDE_EFFECT(firstRequestId = retrieveRequestId(_1));
         testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
         REQUIRE(firstRequestId != notSetRequestValue);
 
         // Invoke for sink1
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
-            .LR_SIDE_EFFECT(secondRequestId = retriveRequestId(_1));
+            .LR_SIDE_EFFECT(secondRequestId = retrieveRequestId(_1));
         testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
         REQUIRE(secondRequestId != notSetRequestValue);
         REQUIRE(secondRequestId != firstRequestId);
@@ -219,7 +219,7 @@ TEST_CASE("Client Node")
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
-            .LR_SIDE_EFFECT(requestId = retriveRequestId(_1));
+            .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
         testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
         REQUIRE(requestId != notSetRequestValue);
 
@@ -252,7 +252,7 @@ TEST_CASE("Client Node")
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
-            .LR_SIDE_EFFECT(requestId = retriveRequestId(_1));
+            .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
         testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
         REQUIRE(requestId != notSetRequestValue);
         REQUIRE(requestId != otherRequestId);
@@ -425,8 +425,6 @@ TEST_CASE("Client Node")
 
     SECTION("Messages are not sent if the write function is not set.")
     {
-        OutputMock outputMock;
-        ApiGear::ObjectLink::ClientRegistry registry;
         // keep as ptr to destroy before going out of scope of test. The mock does not do well with expectations left in tests for test tear down.
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::ClientNode::create(registry);
         

@@ -23,17 +23,6 @@ namespace {
 
     // Converter used in tests, should be same as one used by node.
     ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
-
-
-    // Helper function which gets from a InvokeMessage a requestId given by clientNode.
-    int retriveRequestId(const std::string& networkMessage)
-    {
-        const auto& requestMessage = converter.fromString(networkMessage);
-        REQUIRE(requestMessage[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
-        int result = requestMessage[1].get<int>();
-        return result;
-    };
-
 }
 
 TEST_CASE("Remote Node")
@@ -197,8 +186,6 @@ TEST_CASE("Remote Node")
 
     SECTION("Messages are not sent if the write function is not set.")
     {
-        OutputMock outputMock;
-
         // keep as ptr to destroy before going out of scope of test. The mock does not do well with expectations left in tests for test tear down.
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
 
