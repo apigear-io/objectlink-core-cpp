@@ -18,8 +18,8 @@ public:
     * @param maxCount Maximum number of objects hold by this storage. By default it is highest unsigned long value.
     */
     UniqueIdObjectStorage(unsigned long maxCount = 0xFFFFFFFFu)
-        : m_counter(0),
-        m_maxCount(maxCount)
+        : m_maxCount(maxCount)
+        , m_counter(0)
     {
         auto getUniqueAfterOverflow = [this]() -> unsigned long {
             auto currentId = m_counter;
