@@ -53,7 +53,7 @@ target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json)
 if(NOT MSVC)
   target_compile_options(olink_core PRIVATE -Wall -Wextra -Wpedantic -Werror -fvisibility=hidden)
 else()
-  target_compile_options(olink_core PRIVATE /W4 /WX /wd4251)
+  target_compile_options(olink_core PRIVATE /W4 /WX PUBLIC /wd4251)
 endif()
 
 # install binary files
