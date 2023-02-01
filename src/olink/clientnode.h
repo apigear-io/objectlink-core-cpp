@@ -31,7 +31,7 @@ class OLINK_EXPORT ClientNode : public BaseNode, public IClientNode, public std:
 protected:
     /**
     * Protected constructor. Use create function to make an instance of ClientNode.
-    * @param registry. A global registry for client nodes and object sinks
+    * @param registry A global registry for client nodes and object sinks
     */
     ClientNode(ClientRegistry& registry);
 

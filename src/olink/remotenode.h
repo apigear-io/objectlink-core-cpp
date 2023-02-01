@@ -49,7 +49,7 @@ class OLINK_EXPORT RemoteNode: public BaseNode, public IRemoteNode, public std::
 protected:
     /**
     * Protected constructor. Use createRemoteNode to make an instance of RemoteNode.
-    * @param registry. A global registry for remote nodes and object sources
+    * @param registry A global registry for remote nodes and object sources
     */
     RemoteNode(RemoteRegistry& registry);
 
