@@ -8,8 +8,8 @@ namespace ApiGear { namespace ObjectLink {
 
 ClientNode::ClientNode(ClientRegistry& registry)
     : BaseNode()
-    , m_nextRequestId(0)
     , m_registry(registry)
+    , m_nextRequestId(0)
 {
 }
 
