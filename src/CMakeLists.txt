@@ -49,6 +49,13 @@ target_include_directories (olink_core
 )
 target_link_libraries(olink_core PUBLIC nlohmann_json::nlohmann_json)
 
+# ensure maximum compiler support
+if(NOT MSVC)
+  target_compile_options(olink_core PRIVATE -Wall -Wextra -Wpedantic -Werror -fvisibility=hidden)
+else()
+  target_compile_options(olink_core PRIVATE /W4 /WX /wd4251)
+endif()
+
 # install binary files
 install(TARGETS olink_core
         EXPORT objectlink-core-cppConfig
