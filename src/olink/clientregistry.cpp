@@ -73,7 +73,6 @@ void ClientRegistry::removeSink(const std::string& objectId)
     auto entry = m_entries.find(objectId);
     if (entry != m_entries.end()) 
     {
-        auto nodeId = entry->second.nodeId;
         m_entries.erase(entry);
         lock.unlock();
     }
