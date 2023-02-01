@@ -41,4 +41,11 @@ add_executable(tst_olink ${TEST_OLINK_SOURCES})
 add_test(tst_olink tst_olink)
 target_link_libraries(tst_olink PRIVATE olink_core Catch2::Catch2 trompeloeil::trompeloeil)
 
+# ensure maximum compiler support
+if(NOT MSVC)
+  target_compile_options(tst_olink PRIVATE -Wall -Wextra -Wpedantic -Werror -fvisibility=hidden)
+else()
+  target_compile_options(tst_olink PRIVATE /W4 /WX PUBLIC /wd4251)
+endif()
+
 endif() # BUILD_TESTING
