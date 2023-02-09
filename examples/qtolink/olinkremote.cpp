@@ -5,14 +5,14 @@ OLinkRemote::OLinkRemote(QWebSocket *socket, ApiGear::ObjectLink::RemoteRegistry
     : QObject(socket)
     , m_socket(socket)
     , m_registry(&registry)
-    , m_node(registry)
+    , m_node(RemoteNode::createRemoteNode(registry))
 {
-    m_node.onLog(ConsoleLogger::logFunc());
+    m_node->onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkRemote::handleMessage);
     WriteMessageFunc writeFunc = [this](std::string msg) {
         writeMessage(msg);
     };
-    m_node.onWrite(writeFunc);
+    m_node->onWrite(writeFunc);
 }
 
 void OLinkRemote::writeMessage(const std::string msg)
@@ -26,5 +26,5 @@ void OLinkRemote::writeMessage(const std::string msg)
 void OLinkRemote::handleMessage(const QString &msg)
 {
     qDebug() << Q_FUNC_INFO << msg;
-    m_node.handleMessage(msg.toStdString());
+    m_node->handleMessage(msg.toStdString());
 }

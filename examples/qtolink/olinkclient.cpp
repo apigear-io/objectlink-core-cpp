@@ -23,6 +23,7 @@
 */
 #include "olinkclient.h"
 #include "olink/clientnode.h"
+#include "olink/clientregistry.h"
 
 using namespace ApiGear::ObjectLink;
 
@@ -30,9 +31,9 @@ OLinkClient::OLinkClient(QWebSocket *socket, ApiGear::ObjectLink::ClientRegistry
     : QObject(parent)
     , m_socket(socket ? socket : new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this))
     , m_registry(&registry)
-    , m_node(registry)
+    , m_node(ClientNode::create(registry))
 {
-    m_node.onLog(ConsoleLogger::logFunc());
+    m_node->onLog(ConsoleLogger::logFunc());
     connect(m_socket, &QWebSocket::connected, this, &OLinkClient::onConnected);
     connect(m_socket, &QWebSocket::disconnected, this, &OLinkClient::onDisconnected);
     connect(m_socket, &QWebSocket::textMessageReceived, this, &OLinkClient::handleTextMessage);
@@ -40,7 +41,7 @@ OLinkClient::OLinkClient(QWebSocket *socket, ApiGear::ObjectLink::ClientRegistry
         m_queue << msg;
         processMessages();
     };
-    m_node.onWrite(func);
+    m_node->onWrite(func);
 }
 
 OLinkClient::~OLinkClient()
@@ -56,14 +57,14 @@ void OLinkClient::connectToHost(QUrl url)
 
 ClientNode &OLinkClient::node()
 {
-    return m_node;
+    return *(m_node);
 }
 
 void OLinkClient::linkObjectSource(std::string name)
 {
     qDebug() << Q_FUNC_INFO << QString::fromStdString(name);
-    m_node.registry().setNode(&m_node, name);
-    m_node.linkRemote(name);
+    m_node->registry().setNode(m_node->getNodeId(), name);
+    m_node->linkRemote(name);
 }
 
 
@@ -80,7 +81,7 @@ void OLinkClient::onDisconnected()
 
 void OLinkClient::handleTextMessage(const QString &message)
 {
-    m_node.handleMessage(message.toStdString());
+    m_node->handleMessage(message.toStdString());
 }
 
 

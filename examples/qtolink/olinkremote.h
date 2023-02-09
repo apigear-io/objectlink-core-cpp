@@ -6,6 +6,8 @@
 #include "olink/consolelogger.h"
 #include "olink/remotenode.h"
 
+#include <memory>
+
 using namespace ApiGear::ObjectLink;
 
 class OLinkRemote : public QObject
@@ -18,5 +20,5 @@ public:
 private:
     QWebSocket* m_socket;
     ApiGear::ObjectLink::RemoteRegistry* m_registry;
-    RemoteNode m_node;
+    std::shared_ptr<RemoteNode> m_node;
 };

@@ -28,6 +28,8 @@
 #include "olink/clientnode.h"
 #include "olink/consolelogger.h"
 
+#include <memory>
+
 using namespace ApiGear::ObjectLink;
 
 class OLinkClient
@@ -50,6 +52,6 @@ public:
 private:
     QWebSocket *m_socket;
     ApiGear::ObjectLink::ClientRegistry* m_registry;
-    ClientNode m_node;
+    std::shared_ptr<ClientNode> m_node;
     QQueue<std::string> m_queue;
 };
