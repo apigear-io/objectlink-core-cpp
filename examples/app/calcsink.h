@@ -4,6 +4,8 @@
 
 #include "olink/clientnode.h"
 #include "nlohmann/json.hpp"
+#include "olink/clientregistry.h"
+#include "olink/iobjectsink.h"
 
 using json = nlohmann::json;
 

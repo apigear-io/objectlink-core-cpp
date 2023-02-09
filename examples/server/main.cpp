@@ -25,6 +25,7 @@
 #include "../qtolink/olinkhost.h"
 #include "olink/remotenode.h"
 #include "calcsource.h"
+#include "olink/remoteregistry.h"
 
 int main(int argc, char *argv[])
 {

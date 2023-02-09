@@ -1,5 +1,6 @@
 #pragma once
 #include "olink/remotenode.h"
+#include "olink/iobjectsource.h"
 
 using namespace ApiGear::ObjectLink;
 

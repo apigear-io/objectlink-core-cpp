@@ -1,4 +1,5 @@
 #include "calcsource.h"
+#include "olink/remoteregistry.h"
 
 #include <iostream>
 using namespace ApiGear::ObjectLink;
@@ -9,11 +10,9 @@ CalcSource::CalcSource(RemoteRegistry& registry)
     , m_total(1)
     , m_registry(&registry)
 {
-    m_registry->addObjectSource(this);
 }
 
 CalcSource::~CalcSource() {
-    m_registry->removeObjectSource(this);
 }
 
 IRemoteNode *CalcSource::node() const {
