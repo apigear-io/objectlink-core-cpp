@@ -120,6 +120,7 @@ TEST_CASE("storage")
         REQUIRE(storage.get(future2.get()).lock() == obj3);
         REQUIRE(storage.get(future4.get()).lock() == obj4);
         REQUIRE(storage.get(future5.get()).lock() == obj5);
+        future3.get();
         REQUIRE(storage.get(id1).expired() == true);
     }
 }
