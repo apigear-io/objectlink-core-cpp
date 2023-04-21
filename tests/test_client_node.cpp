@@ -429,25 +429,26 @@ TEST_CASE("Client Node")
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::ClientNode::create(registry);
         
         nodeWithoutSetWriteFunction->onLog([&outputMock](auto level, const auto& msg){outputMock.logMessage(level, msg); });
+        nodeWithoutSetWriteFunction->setLogLevel(ApiGear::ObjectLink::LogLevel::Info);
 
         registry.addSink(sink1);
         registry.addSink(sink2);
 
         ALLOW_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Debug, ANY(std::string)));
         REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Info, contains_keywords({".link", sink1Id})));
-        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "no writer set, can not write"));
+        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "Messages are not sent if the write function is not set"));
 
         REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Info, contains_keywords({sink2Id, ".link" })));
-        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "no writer set, can not write"));
+        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "Messages are not sent if the write function is not set"));
         nodeWithoutSetWriteFunction->linkRemote(sink1Id);
         nodeWithoutSetWriteFunction->linkRemote(sink2Id);
 
         // Expectations on dtor
         REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Info, contains_keywords({ "unlink", sink1Id })));
-        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "no writer set, can not write"));
+        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "Messages are not sent if the write function is not set"));
 
         REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Info, contains_keywords({ sink2Id, "unlink" })));
-        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "no writer set, can not write"));
+        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "Messages are not sent if the write function is not set"));
 
         REQUIRE_CALL(*sink1, olinkOnRelease());
         REQUIRE_CALL(*sink2, olinkOnRelease());

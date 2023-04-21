@@ -190,10 +190,11 @@ TEST_CASE("Remote Node")
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
 
         nodeWithoutSetWriteFunction->onLog([&outputMock](auto level, const auto& msg){outputMock.logMessage(level, msg); });
+        nodeWithoutSetWriteFunction->setLogLevel(ApiGear::ObjectLink::LogLevel::Info);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(source1Id, "any");
         REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Debug, contains_keywords({ signalId })));
-        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "no writer set, can not write"));
+        REQUIRE_CALL(outputMock, logMessage(ApiGear::ObjectLink::LogLevel::Warning, "Messages are not sent if the write function is not set"));
         nodeWithoutSetWriteFunction->notifySignal(signalId, {});
 
         nodeWithoutSetWriteFunction.reset();

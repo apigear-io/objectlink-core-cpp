@@ -135,13 +135,9 @@ void LoggerBase::onLog(WriteLogFunc func){
     m_logFunc = func;
 }
 
-void LoggerBase::emitLog(LogLevel level, const std::string& msg){
-    if(m_logFunc) {
-        m_logFunc(level, msg);
-    }
+void LoggerBase::setLogLevel(LogLevel level)
+{
+    m_Loglevel = level;
 }
 
-
-
 } } // ApiGear::ObjectLink
-
