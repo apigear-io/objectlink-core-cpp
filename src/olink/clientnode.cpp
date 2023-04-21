@@ -88,7 +88,7 @@ unsigned long ClientNode::getNodeId() const
 void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& props)
 {
     static const std::string handeInitLog = "ClientNode.handleInit: ";
-    emitLogWithPayload(LogLevel::Info, handeInitLog + objectId, props);
+    emitLogWithPayload(LogLevel::Info, props, handeInitLog, objectId);
     auto sink = m_registry.getSink(objectId).lock();
     if(sink) {
         sink->olinkOnInit(objectId, props, this);
@@ -102,7 +102,7 @@ void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& p
 void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
     static const std::string handlePropertyChangedlog = "ClientNode.handlePropertyChange: ";
-    emitLogWithPayload(LogLevel::Info, handlePropertyChangedlog + propertyId, value);
+    emitLogWithPayload(LogLevel::Info, value, handlePropertyChangedlog, propertyId);
     auto sink = m_registry.getSink(Name::getObjectId(propertyId)).lock();
     if(sink){
         sink->olinkOnPropertyChanged(propertyId, value);
@@ -116,7 +116,7 @@ void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohm
 void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
 {
     static const std::string handleInvokeLog = "ClientNode.handleInvokeReply: ";
-    emitLogWithPayload(LogLevel::Info, handleInvokeLog + methodId, value);
+    emitLogWithPayload(LogLevel::Info, value, handleInvokeLog, methodId);
     std::unique_lock<std::mutex> lock(m_pendingInvokesMutex);
     auto responseHandler = m_invokesPending.find(requestId);
     InvokeReplyFunc callback = nullptr;

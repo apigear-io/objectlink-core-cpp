@@ -16,7 +16,7 @@ void BaseNode::onWrite(WriteMessageFunc func)
 void BaseNode::emitWrite(const nlohmann::json& msg)
 {
     static const std::string writeMessageLog = "writeMessage: ";
-    emitLogWithPayload(LogLevel::Debug, writeMessageLog, msg);
+    emitLogWithPayload(LogLevel::Debug, msg, writeMessageLog);
     if(m_writeFunc) {
         m_writeFunc(m_converter.toString(msg));
     } else {
@@ -46,17 +46,17 @@ void BaseNode::handleUnlink(const std::string& objectId)
 
 void BaseNode::handleInvoke(int, const std::string& methodId, const nlohmann::json& args)
 {
-    emitLogWithPayload(LogLevel::Warning, notImplementedLog + std::string(__func__) + methodId + " args ", args);
+    emitLogWithPayload(LogLevel::Warning, args, notImplementedLog, std::string(__func__), methodId, " args ");
 }
 
 void BaseNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
 {
-    emitLogWithPayload(LogLevel::Warning, notImplementedLog + std::string(__func__) + propertyId + " value ", value);
+    emitLogWithPayload(LogLevel::Warning, value, notImplementedLog, std::string(__func__), propertyId, " value ");
 }
 
 void BaseNode::handleInit(const std::string& objectId, const nlohmann::json& props)
 {
-    emitLogWithPayload(LogLevel::Warning, notImplementedLog + std::string(__func__) + objectId + " props ", props);
+    emitLogWithPayload(LogLevel::Warning, props, notImplementedLog, std::string(__func__), objectId, " props ");
 }
 
 void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
@@ -66,12 +66,12 @@ void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, con
 
 void BaseNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
 {
-    emitLogWithPayload(LogLevel::Warning, notImplementedLog + std::string(__func__) + signalId + " args ", args);
+    emitLogWithPayload(LogLevel::Warning, args, notImplementedLog, std::string(__func__), signalId, " args ");
 }
 
 void BaseNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
-    emitLogWithPayload(LogLevel::Warning, notImplementedLog + std::string(__func__) + propertyId + " value ", value);
+    emitLogWithPayload(LogLevel::Warning, value, notImplementedLog, std::string(__func__), propertyId, " value ");
 }
 
 void BaseNode::handleError(int, int requestId, const std::string& error)

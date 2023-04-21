@@ -204,17 +204,19 @@ public:
     }
 
     /**
-    * Use this function to log any message with payload that needs to be converted to string.
-    * @param logMessage a log message to log.
+    * Use this function to log message with payload that needs to be converted to string.
     * @param payload a message to be converted to a string, which is a high cost operation.
+    *        Payload is put at the end of the created log message.
     *        Conversion is performed only if message will be logged:
     *        the log function is set and log level is not lower than a set log level.
+    * @param logMessage a log message to log.
     * Have in mind that this operation has a high cost and should not be use often.
     */
-    void emitLogWithPayload(LogLevel level, const std::string& logMessage, const nlohmann::json& payload)
+    template<typename ... Parameters>
+    void emitLogWithPayload(LogLevel level, const nlohmann::json& payload, const Parameters&  ...params)
     {
         if (m_logFunc && level >= m_Loglevel) {
-            m_logFunc(level, logMessage + payload.dump());
+            emitLog(level, params..., payload.dump());
         }
     }
 
