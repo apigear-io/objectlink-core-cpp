@@ -9,11 +9,13 @@ void RemoteRegistry::addSource(std::weak_ptr<IObjectSource> source)
 {
     auto lockedSource = source.lock();
     if (!lockedSource){
-        emitLog(LogLevel::Warning, "Trying to add source to registry, but source already expired");
+        static const std::string warningText = "Trying to add source to registry, but source already expired";
+        emitLog(LogLevel::Warning, warningText);
         return;
     }
     const auto& objectId = lockedSource->olinkObjectName();
-    emitLog(LogLevel::Info, "RemoteRegistry.addObjectSource: " + objectId);
+    static const std::string addObjectSourceLog = "RemoteRegistry.addObjectSource: ";
+    emitLog(LogLevel::Info, addObjectSourceLog, objectId);
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     auto anyAdded = found != m_entries.end() && !found->second.source.expired();
@@ -26,20 +28,23 @@ void RemoteRegistry::addSource(std::weak_ptr<IObjectSource> source)
     else if (alreadyAdded){
         return;
     } else if (anyAdded) {
-        emitLog(LogLevel::Info, objectId + " has already a source, source object not changed. Please remove first the existing source. Have in mind, that all associated nodes will also be removed and must be added again." );
+        static const std::string hasSourceAlreadyLog = " has already a source, source object not changed. Please remove first the existing source. Have in mind, that all associated nodes will also be removed and must be added again.";
+        emitLog(LogLevel::Info, objectId, hasSourceAlreadyLog);
         return;
     } 
 }
 
 void RemoteRegistry::removeSource(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "RemoteRegistry.removeObjectSource: " + objectId);
+    static const std::string removeObjectLog = "RemoteRegistry.removeObjectSource: ";
+    emitLog(LogLevel::Info, removeObjectLog, objectId);
     removeEntry(objectId);
 }
 
 std::weak_ptr<IObjectSource> RemoteRegistry::getSource(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "RemoteRegistry.getObjectSource: " + objectId);
+    static const std::string getObjectLog = "RemoteRegistry.getObjectSource: ";
+    emitLog(LogLevel::Info, getObjectLog, objectId);
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     auto source = found != m_entries.end() ? found->second.source : std::weak_ptr<IObjectSource>();
@@ -48,7 +53,8 @@ std::weak_ptr<IObjectSource> RemoteRegistry::getSource(const std::string& object
 
 std::vector< std::weak_ptr<IRemoteNode>> RemoteRegistry::getNodes(const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "RemoteRegistry.getRemoteNodes: " + objectId);
+    static const std::string getNodesLog = "RemoteRegistry.getRemoteNodes: ";
+    emitLog(LogLevel::Info, getNodesLog, objectId);
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     if (found != m_entries.end())
@@ -92,11 +98,13 @@ void RemoteRegistry::addNodeForSource(unsigned long nodeId, const std::string& o
 
     auto lockedNode = m_remoteNodesById.get(nodeId).lock();
     if (!lockedNode){
-        emitLog(LogLevel::Warning, "Trying to add node, but it is already gone. Node NOT added.");
+        static const std::string invalidNodeLog = "Trying to add node, but it is already gone. Node NOT added.";
+        emitLog(LogLevel::Warning, invalidNodeLog);
         return;
     }
 
-    emitLog(LogLevel::Info, "RemoteRegistry.linkRemoteNode: " + objectId);
+    static const std::string linkRemoteLog =  "RemoteRegistry.linkRemoteNode: ";
+    emitLog(LogLevel::Info, linkRemoteLog, objectId);
 
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto foundEntry = m_entries.find(objectId);
@@ -114,7 +122,8 @@ void RemoteRegistry::addNodeForSource(unsigned long nodeId, const std::string& o
 
 void RemoteRegistry::removeNodeFromSource(unsigned long nodeId, const std::string& objectId)
 {
-    emitLog(LogLevel::Info, "RemoteRegistry.removeNodeFromSource: " + objectId);
+    static const std::string removeNodeLog = "RemoteRegistry.removeNodeFromSource: ";
+    emitLog(LogLevel::Info, removeNodeLog, objectId);
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     if (found != m_entries.end())
@@ -143,7 +152,8 @@ unsigned long RemoteRegistry::registerNode(std::weak_ptr<IRemoteNode> node)
 {
     auto lockedNode = node.lock();
     if (!lockedNode){
-        emitLog(LogLevel::Warning, "Trying to add node, but it is already gone. Node NOT added.");
+        static const std::string invalidNodeLog = "Trying to add node, but it is already gone. Node NOT added.";
+        emitLog(LogLevel::Warning, invalidNodeLog);
     }
     return m_remoteNodesById.add(lockedNode);
 }
