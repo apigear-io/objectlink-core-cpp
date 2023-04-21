@@ -93,8 +93,9 @@ nlohmann::json TestApiService::olinkCollectProperties()
 void TestApiService::onSigInt(int paramInt)
 {
     const nlohmann::json args = { paramInt };
-    const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigInt");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(signalId))) {
+    static const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigInt");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(signalId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifySignal(signalId, args);
@@ -104,8 +105,9 @@ void TestApiService::onSigInt(int paramInt)
 void TestApiService::onSigFloat(float paramFloat)
 {
     const nlohmann::json args = { paramFloat };
-    const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigFloat");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(signalId))) {
+    static const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigFloat");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(signalId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifySignal(signalId, args);
@@ -115,8 +117,9 @@ void TestApiService::onSigFloat(float paramFloat)
 void TestApiService::onSigString(const std::string& paramString)
 {
     const nlohmann::json args = { paramString };
-    const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigString");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(signalId))) {
+    static const auto& signalId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "sigString");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(signalId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifySignal(signalId, args);
@@ -125,8 +128,9 @@ void TestApiService::onSigString(const std::string& paramString)
 }
 void TestApiService::onPropIntChanged(int propInt)
 {
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propInt");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(propertyId))) {
+    static const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propInt");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifyPropertyChange(propertyId, propInt);
@@ -135,8 +139,9 @@ void TestApiService::onPropIntChanged(int propInt)
 }
 void TestApiService::onPropFloatChanged(float propFloat)
 {
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propFloat");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(propertyId))) {
+    static const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propFloat");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifyPropertyChange(propertyId, propFloat);
@@ -145,8 +150,9 @@ void TestApiService::onPropFloatChanged(float propFloat)
 }
 void TestApiService::onPropStringChanged(const std::string& propString)
 {
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propString");
-    for(auto node: m_registry.getNodes(ApiGear::ObjectLink::Name::getObjectId(propertyId))) {
+    static const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propString");
+    static const auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
+    for(auto node: m_registry.getNodes(objectId)) {
         auto lockedNode = node.lock();
         if(lockedNode) {
             lockedNode->notifyPropertyChange(propertyId, propString);

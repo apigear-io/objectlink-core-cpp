@@ -40,7 +40,7 @@ void TestApiClient::setPropInt(int propInt)
         AG_LOG_WARNING("Attempt to set property but " + olinkObjectName() +" is not linked to source . Make sure your object is linked. Check your connection to service");
         return;
     }
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propInt");
+    static const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propInt");
     m_node->setRemoteProperty(propertyId, propInt);
 }
 
@@ -63,7 +63,7 @@ void TestApiClient::setPropFloat(float propFloat)
         AG_LOG_WARNING("Attempt to set property but " + olinkObjectName() +" is not linked to source . Make sure your object is linked. Check your connection to service");
         return;
     }
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propFloat");
+    static const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propFloat");
     m_node->setRemoteProperty(propertyId, propFloat);
 }
 
@@ -86,7 +86,7 @@ void TestApiClient::setPropString(const std::string& propString)
         AG_LOG_WARNING("Attempt to set property but " + olinkObjectName() +" is not linked to source . Make sure your object is linked. Check your connection to service");
         return;
     }
-    const auto& propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propString");
+    static const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "propString");
     m_node->setRemoteProperty(propertyId, propString);
 }
 
@@ -123,7 +123,7 @@ std::future<int> TestApiClient::funcIntAsync(int paramInt)
                     paramInt]()
         {
             std::promise<int> resultPromise;
-            const auto& operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcInt");
+            static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcInt");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramInt}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
                     const int& value = arg.value.get<int>();
@@ -154,7 +154,7 @@ std::future<float> TestApiClient::funcFloatAsync(float paramFloat)
                     paramFloat]()
         {
             std::promise<float> resultPromise;
-            const auto& operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcFloat");
+            static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcFloat");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramFloat}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
                     const float& value = arg.value.get<float>();
@@ -185,7 +185,7 @@ std::future<std::string> TestApiClient::funcStringAsync(const std::string& param
                     paramString]()
         {
             std::promise<std::string> resultPromise;
-            const auto& operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcString");
+            static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcString");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramString}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
                     const std::string& value = arg.value.get<std::string>();
