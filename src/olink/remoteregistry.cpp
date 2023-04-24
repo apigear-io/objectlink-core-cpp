@@ -55,12 +55,12 @@ std::vector< std::weak_ptr<IRemoteNode>> RemoteRegistry::getNodes(const std::str
 {
     static const std::string getNodesLog = "RemoteRegistry.getRemoteNodes: ";
     emitLog(LogLevel::Info, getNodesLog, objectId);
+    std::vector< std::weak_ptr<IRemoteNode>> nodes;
     std::unique_lock<std::mutex> lock(m_entriesMutex);
     auto found = m_entries.find(objectId);
     if (found != m_entries.end())
     {
-        auto nodesIds = found->second.nodes;
-        std::vector< std::weak_ptr<IRemoteNode>> nodes;
+        auto& nodesIds = found->second.nodes;
         for (const auto& id : nodesIds)
         {
             auto node = m_remoteNodesById.get(id);
@@ -69,9 +69,8 @@ std::vector< std::weak_ptr<IRemoteNode>> RemoteRegistry::getNodes(const std::str
                 nodes.push_back(node);
             }
         }
-        return nodes;
     } 
-    return {};
+    return nodes;
 }
 
 std::vector<std::string> RemoteRegistry::getObjectIds(unsigned long nodeId)
