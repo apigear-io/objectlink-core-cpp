@@ -26,6 +26,7 @@ set(OLINK_SOURCES
     )
 
 add_library (olink_core STATIC ${OLINK_SOURCES} )
+set_property(TARGET olink_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories (olink_core 
   PUBLIC
