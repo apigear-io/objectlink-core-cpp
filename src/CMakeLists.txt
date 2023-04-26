@@ -25,25 +25,7 @@ set(OLINK_SOURCES
     olink/remoteregistry.cpp 
     )
 
-SET(OLINK_HEADERS
-    olink/core/basenode.h
-    olink/core/olink_common.h
-    olink/core/protocol.h
-    olink/core/types.h
-    olink/core/uniqueidobjectstorage.h
-    olink/clientnode.h
-    olink/clientregistry.h
-    olink/consolelogger.h
-    olink/iclientnode.h
-    olink/iobjectsink.h
-    olink/iobjectsource.h
-    olink/iremotenode.h
-    olink/remotenode.h
-    olink/remoteregistry.h
-    )
-
-
-add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
+add_library (olink_core STATIC ${OLINK_SOURCES} )
 
 target_include_directories (olink_core 
   PUBLIC
