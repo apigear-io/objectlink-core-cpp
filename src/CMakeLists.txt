@@ -43,10 +43,11 @@ SET(OLINK_HEADERS
     )
 
 
-add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
+add_library (olink_core STATIC ${OLINK_SOURCES})
+set_property(TARGET olink_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories (olink_core 
-  INTERFACE
+  PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
@@ -65,18 +66,18 @@ endif()
 
 # install binary files
 install(TARGETS olink_core
-        EXPORT objectlink-core-cppConfig
+        EXPORT olink_coreConfig
         RUNTIME DESTINATION bin COMPONENT Runtime
         LIBRARY DESTINATION lib COMPONENT Runtime
-        ARCHIVE DESTINATION lib/objectlink-core-cpp COMPONENT Development)
+        ARCHIVE DESTINATION lib/olink_core COMPONENT Development)
 # install includes
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/olink DESTINATION include FILES_MATCHING PATTERN "*.h")
 include(CMakePackageConfigHelpers)
 export(TARGETS
     olink_core
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/objectlink-core-cppConfig.cmake"
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/olink_coreConfig.cmake"
 )
 install(EXPORT
-    objectlink-core-cppConfig
-    DESTINATION "lib/objectlink-core-cpp/cmake"
+    olink_coreConfig
+    DESTINATION "lib/olink_core/cmake"
 )
