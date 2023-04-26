@@ -46,7 +46,7 @@ SET(OLINK_HEADERS
 add_library (olink_core STATIC ${OLINK_SOURCES} ${OLINK_HEADERS})
 
 target_include_directories (olink_core 
-  INTERFACE
+  PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
   $<INSTALL_INTERFACE:include>
 )
