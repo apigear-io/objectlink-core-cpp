@@ -1,0 +1,20 @@
+set(API_VERSION 1.0)
+@PACKAGE_INIT@
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ApiApiTargets.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ApiCoreTargets.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ApiOLinkTargets.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ApiImplementationTargets.cmake")
+set_and_check(API_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+
+# make sure we have all needed dependencies
+include(CMakeFindDependencyMacro)
+find_dependency(Threads REQUIRED)
+find_dependency(apigear COMPONENTS poco-tracer poco-olink REQUIRED)
+
+check_required_components(
+Api-api
+Api-core
+
+Api-olink
+Api-implementation
+)

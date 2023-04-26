@@ -1,0 +1,45 @@
+schema: apigear.module/1.0
+name: api
+version: "1.0"
+
+# test properties with simple types
+# test properties with arrays of simple types
+# test functions with simple types
+# test functions with arrays of simple types
+# test signals with simple types
+# test signals with arrays of simple types
+# test return with simple types
+# test return with arrays of simple types
+
+interfaces:
+  - name: TestApi
+    properties:
+      - { name: propInt, type: int }
+      - { name: propFloat, type: float }
+      - { name: propString, type: string }
+    operations:
+      - name: funcInt
+        params:
+          - { name: paramInt, type: int }
+        return:
+          type: int
+      - name: funcFloat
+        params:
+          - { name: paramFloat, type: float }
+        return:
+          type: float
+      - name: funcString
+        params:
+          - { name: paramString, type: string }
+        return:
+          type: string
+    signals:
+      - name: sigInt
+        params:
+          - { name: paramInt, type: int }
+      - name: sigFloat
+        params:
+          - { name: paramFloat, type: float }
+      - name: sigString
+        params:
+          - { name: paramString, type: string }
