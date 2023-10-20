@@ -29,136 +29,154 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-nlohmann::json Protocol::linkMessage(const std::string& objectId)
+OLinkMessage Protocol::linkMessage(const std::string& objectId)
 {
-    return nlohmann::json::array(
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
                 { MsgType::Link, objectId }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::unlinkMessage(const std::string& objectId)
+OLinkMessage Protocol::unlinkMessage(const std::string& objectId)
 {
-    return nlohmann::json::array(
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
                 { MsgType::Unlink, objectId }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::initMessage(const std::string& objectId, const nlohmann::json& props)
+OLinkMessage Protocol::initMessage(const std::string& objectId, const OLinkContent& props)
 {
-    return nlohmann::json::array(
-                { MsgType::Init, objectId, props }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::Init, objectId, props.content }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::setPropertyMessage(const std::string& propertyId, const nlohmann::json& value)
+OLinkMessage Protocol::setPropertyMessage(const std::string& propertyId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::SetProperty, propertyId, value }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::SetProperty, propertyId, value.content }
                 );
-
+    return message;
 }
 
-nlohmann::json Protocol::propertyChangeMessage(const std::string& propertyId, const nlohmann::json& value)
+OLinkMessage Protocol::propertyChangeMessage(const std::string& propertyId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::PropertyChange, propertyId, value }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::PropertyChange, propertyId, value.content }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::invokeMessage(int requestId, const std::string& methodId, const nlohmann::json& args)
+OLinkMessage Protocol::invokeMessage(int requestId, const std::string& methodId, const OLinkContent& args)
 {
-    return nlohmann::json::array(
-                { MsgType::Invoke, requestId, methodId, args }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::Invoke, requestId, methodId, args.content }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const nlohmann::json& value)
+OLinkMessage Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::InvokeReply, requestId, methodId, value }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::InvokeReply, requestId, methodId, value.content }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::signalMessage(const std::string& signalId , const nlohmann::json& args)
+OLinkMessage Protocol::signalMessage(const std::string& signalId , const OLinkContent& args)
 {
-    return nlohmann::json::array(
-                { MsgType::Signal, signalId, args }
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
+                { MsgType::Signal, signalId, args.content }
                 );
+    return message;
 }
 
-nlohmann::json Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
+OLinkMessage Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
 {
-    return nlohmann::json::array(
+    OLinkMessage message;
+    message.message = nlohmann::json::array(
                 { MsgType::Error, msgType, requestId, error }
                 );
+    return message;
 }
 
-bool Protocol::handleMessage(const nlohmann::json& msg, IProtocolListener& listener) {
+bool Protocol::handleMessage(const OLinkMessage& message, IProtocolListener& listener) {
 
     m_lastError = "";
-    if(!msg.is_array()) {
+    auto& data = message.message;
+    if(!data.is_array()) {
         m_lastError = "message must be array";
         return false;
     }
-    const int msgType = msg[0].get<int>();
+    const int msgType = data[0].get<int>();
     switch(msgType) {
     case int(MsgType::Link): {
-        const auto& objectId = msg[1].get<std::string>();
+        const auto& objectId = data[1].get<std::string>();
         listener.handleLink(objectId);
         break;
     }
     case int(MsgType::Init): {
-        const auto& objectId = msg[1].get<std::string>();
-        const auto& props = msg[2].get<nlohmann::json>();
-        listener.handleInit(objectId, props);
+        const auto& objectId = data[1].get<std::string>();
+        const auto& props = data[2].get<nlohmann::json>();
+        listener.handleInit(objectId, { props });
         break;
     }
     case int(MsgType::Unlink): {
-        const auto& objectId = msg[1].get<std::string>();
+        const auto& objectId = data[1].get<std::string>();
         listener.handleUnlink(objectId);
         break;
     }
     case int(MsgType::SetProperty): {
-        const auto& propertyId = msg[1].get<std::string>();
-        const auto& value = msg[2].get<nlohmann::json>();
-        listener.handleSetProperty(propertyId, value);
+        const auto& propertyId = data[1].get<std::string>();
+        const auto& value = data[2].get<nlohmann::json>();
+        listener.handleSetProperty(propertyId, { value });
         break;
     }
     case int(MsgType::PropertyChange): {
-        const auto& propertyId = msg[1].get<std::string>();
-        const auto& value = msg[2].get<nlohmann::json>();
-        listener.handlePropertyChange(propertyId, value);
+        const auto& propertyId = data[1].get<std::string>();
+        const auto& value = data[2].get<nlohmann::json>();
+        listener.handlePropertyChange(propertyId, { value });
         break;
     }
     case int(MsgType::Invoke): {
-        const auto& id = msg[1].get<int>();
-        const auto& methodId = msg[2].get<std::string>();
-        const auto& args = msg[3].get<nlohmann::json>();
-        listener.handleInvoke(id, methodId, args);
+        const auto& id = data[1].get<int>();
+        const auto& methodId = data[2].get<std::string>();
+        const auto& args = data[3].get<nlohmann::json>();
+        listener.handleInvoke(id, methodId, { args });
         break;
     }
     case int(MsgType::InvokeReply): {
-        const auto& id = msg[1].get<int>();
-        const auto& methodId = msg[2].get<std::string>();
-        const auto& value = msg[3].get<nlohmann::json>();
-        listener.handleInvokeReply(id, methodId, value);
+        const auto& id = data[1].get<int>();
+        const auto& methodId = data[2].get<std::string>();
+        const auto& value = data[3].get<nlohmann::json>();
+        listener.handleInvokeReply(id, methodId, { value });
         break;
     }
     case int(MsgType::Signal): {
-        const auto& signalId = msg[1].get<std::string>();
-        const auto& args = msg[2].get<nlohmann::json>();
-        listener.handleSignal(signalId, args);
+        const auto& signalId = data[1].get<std::string>();
+        const auto& args = data[2].get<nlohmann::json>();
+        listener.handleSignal(signalId, { args });
         break;
     }
     case int(MsgType::Error): {
-        const auto& msgTypeErr = msg[1].get<int>();
-        const auto& requestId = msg[2].get<int>();
-        const auto& error = msg[3].get<std::string>();
+        const auto& msgTypeErr = data[1].get<int>();
+        const auto& requestId = data[2].get<int>();
+        const auto& error = data[3].get<std::string>();
         listener.handleError(msgTypeErr, requestId, error);
         break;
     }
     default:
-        m_lastError = "message not supported: " + msg.dump();
+        m_lastError = "message not supported: " + data.dump();
         return false;
     }
     return true;

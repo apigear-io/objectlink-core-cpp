@@ -13,7 +13,7 @@ void BaseNode::onWrite(WriteMessageFunc func)
     m_writeFunc = func;
 }
 
-void BaseNode::emitWrite(const nlohmann::json& msg)
+void BaseNode::emitWrite(const OLinkMessage& msg)
 {
     static const std::string writeMessageLog = "writeMessage: ";
     emitLogWithPayload(LogLevel::Debug, msg, writeMessageLog);
@@ -44,32 +44,32 @@ void BaseNode::handleUnlink(const std::string& objectId)
     emitLog(LogLevel::Warning, notImplementedLog, std::string(__func__), objectId);
 }
 
-void BaseNode::handleInvoke(int, const std::string& methodId, const nlohmann::json& args)
+void BaseNode::handleInvoke(int, const std::string& methodId, const OLinkContent& args)
 {
     emitLogWithPayload(LogLevel::Warning, args, notImplementedLog, std::string(__func__), methodId, " args ");
 }
 
-void BaseNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
+void BaseNode::handleSetProperty(const std::string& propertyId, const OLinkContent& value)
 {
     emitLogWithPayload(LogLevel::Warning, value, notImplementedLog, std::string(__func__), propertyId, " value ");
 }
 
-void BaseNode::handleInit(const std::string& objectId, const nlohmann::json& props)
+void BaseNode::handleInit(const std::string& objectId, const OLinkContent& props)
 {
     emitLogWithPayload(LogLevel::Warning, props, notImplementedLog, std::string(__func__), objectId, " props ");
 }
 
-void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
+void BaseNode::handleInvokeReply(int requestId, const std::string& methodId, const OLinkContent& value)
 {
-    emitLog(LogLevel::Warning, notImplementedLog, std::string(__func__), methodId, " requestId ", std::to_string(requestId), " value ", value);
+    emitLogWithPayload(LogLevel::Warning, value, notImplementedLog, std::string(__func__), methodId, " requestId ", std::to_string(requestId), " value ");
 }
 
-void BaseNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
+void BaseNode::handleSignal(const std::string& signalId, const OLinkContent& args)
 {
     emitLogWithPayload(LogLevel::Warning, args, notImplementedLog, std::string(__func__), signalId, " args ");
 }
 
-void BaseNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
+void BaseNode::handlePropertyChange(const std::string& propertyId, const OLinkContent& value)
 {
     emitLogWithPayload(LogLevel::Warning, value, notImplementedLog, std::string(__func__), propertyId, " value ");
 }

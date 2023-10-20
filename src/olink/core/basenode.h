@@ -27,7 +27,7 @@ public:
     * It uses the WriteMessageFunc provided by network layer implementation with onWrite(WriteMessageFunc) call.
     * @param j The data to send, translated according to chosen network message format before sending.
     */
-    virtual void emitWrite(const nlohmann::json& j);
+    virtual void emitWrite(const OLinkMessage& j);
 
     /**
     * Use to change messages network format.
@@ -42,17 +42,17 @@ public:
     // Empty, logging only implementation of IProtocolListener::handleUnlink, should be overwritten on server side.
     void handleUnlink(const std::string& objectId) override;
     // Empty, logging only implementation of IProtocolListener::handleInvoke, should be overwritten on server side.
-    void handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args) override;
+    void handleInvoke(int requestId, const std::string& methodId, const OLinkContent& args) override;
     // Empty, logging only implementation of IProtocolListener::handleSetProperty, should be overwritten on server side.
-    void handleSetProperty(const std::string& propertyId, const nlohmann::json& value) override;
+    void handleSetProperty(const std::string& propertyId, const OLinkContent& value) override;
     // Empty, logging only implementation of IProtocolListener::handleInit, should be overwritten on client side.
-    void handleInit(const std::string& objectId, const nlohmann::json& props) override;
+    void handleInit(const std::string& objectId, const OLinkContent& props) override;
     // Empty, logging only implementation of IProtocolListener::handleInvokeReply, should be overwritten on client side.
-    void handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value) override;
+    void handleInvokeReply(int requestId, const std::string& methodId, const OLinkContent& value) override;
     // Empty, logging only implementation of IProtocolListener::handleSignal, should be overwritten on client side.
-    void handleSignal(const std::string& signalId, const nlohmann::json& args) override;
+    void handleSignal(const std::string& signalId, const OLinkContent& args) override;
     // Empty, logging only implementation of IProtocolListener::handlePropertyChange, should be overwritten on client side.
-    void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
+    void handlePropertyChange(const std::string& propertyId, const OLinkContent& value) override;
     // Empty, logging only implementation of IProtocolListener::handleError, should be overwritten on both client and server side.
     void handleError(int msgType, int requestId, const std::string& error) override;
 private:

@@ -28,8 +28,8 @@ namespace {
     int retrieveRequestId(const std::string& networkMessage)
     {
         const auto& requestMessage = converter.fromString(networkMessage);
-        REQUIRE(requestMessage[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
-        int result = requestMessage[1].get<int>();
+        REQUIRE(requestMessage.message[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
+        int result = requestMessage.message[1].get<int>();
         return result;
     };
 
@@ -170,14 +170,14 @@ TEST_CASE("Client Node")
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, exampleArguments.dump()}, converter)))
                     .LR_SIDE_EFFECT(firstRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(firstRequestId != notSetRequestValue);
 
         // Invoke for sink1
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
             .LR_SIDE_EFFECT(secondRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(secondRequestId != notSetRequestValue);
         REQUIRE(secondRequestId != firstRequestId);
 
@@ -187,14 +187,14 @@ TEST_CASE("Client Node")
         // First handler for sink1 will be called.
         // prepare reply
         nlohmann::json functionResult2 = {{ 17 } };
-        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(secondRequestId, methodIdSink1, functionResult2);
+        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(secondRequestId, methodIdSink1, { functionResult2 });
         // expect callback to be called
         REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult2.dump()));
         testedNode->handleMessage(converter.toString(invokeReplyMessage2));
 
         // prepare reply
         nlohmann::json functionResult1 = {{ 74 } };
-        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(firstRequestId, methodIdSink2, functionResult1);
+        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(firstRequestId, methodIdSink2, { functionResult1 });
         // expect callback to be called
         REQUIRE_CALL(outputMock, writeMessage(methodIdSink2 + functionResult1.dump()));
         testedNode->handleMessage(converter.toString(invokeReplyMessage1));
@@ -220,12 +220,12 @@ TEST_CASE("Client Node")
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(requestId != notSetRequestValue);
 
         // Prepare reply with wrong request id.
         nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, functionResult);
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, { functionResult });
         // expect  no callback 
         REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult.dump()));
         testedNode->handleMessage(converter.toString(invokeReplyMessage));
@@ -253,13 +253,13 @@ TEST_CASE("Client Node")
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(requestId != notSetRequestValue);
         REQUIRE(requestId != otherRequestId);
 
         // Prepare reply with wrong sink id in method id.
         nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(otherRequestId, methodIdSink2, functionResult);
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(otherRequestId, methodIdSink2, { functionResult });
         // expect  no callback 
         FORBID_CALL(outputMock, writeMessage(ANY(std::string)));
         testedNode->handleMessage(converter.toString(invokeReplyMessage));
@@ -279,7 +279,7 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink2Id);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, signalName);
-        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, exampleArguments);
+        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, { exampleArguments });
 
         REQUIRE_CALL(*sink2, olinkOnSignal(signalId, exampleArguments));
         testedNode->handleMessage(converter.toString(signalMessage));
@@ -302,7 +302,7 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink1Id);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, signalName);
-        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, exampleArguments);
+        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, { exampleArguments });
 
         FORBID_CALL(*sink1, olinkOnSignal(signalId, exampleArguments));
         testedNode->handleMessage(converter.toString(signalMessage));
@@ -324,7 +324,7 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
 
-        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, exampleInitProperties);
+        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, { exampleInitProperties });
         const auto& networkFormatedInit = converter.toString(InitMessage);
 
         REQUIRE_CALL(*sink2, olinkOnInit(sink2Id, exampleInitProperties, testedNode.get()));
@@ -348,7 +348,7 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink1Id);
 
         // Send message for not registered sink 2.
-        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, exampleInitProperties);
+        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, { exampleInitProperties });
         const auto& networkFormatedInit = converter.toString(InitMessage);
         
         FORBID_CALL(*sink1, olinkOnInit(sink2Id, exampleInitProperties, testedNode.get()));
@@ -371,10 +371,10 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink2Id);
 
         const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, propertyName);
-        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, propertyValue);
+        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, { propertyValue });
         const auto& networkFormatedRequestPropertyChange = converter.toString(requestPropertyChangeMessage);
 
-        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, otherPropertyValue);
+        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, { otherPropertyValue });
         const auto& networkFormatedPublishedPropertyChange = converter.toString(publishedPropertyChangeMessage);
 
         // Expect Request to be sent on setRemotePropertyCall.
@@ -402,10 +402,10 @@ TEST_CASE("Client Node")
         testedNode->linkRemote(sink1Id);
 
         const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, propertyName);
-        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, propertyValue);
+        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, { propertyValue });
         const auto& networkFormatedRequestPropertyChange = converter.toString(requestPropertyChangeMessage);
 
-        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, otherPropertyValue);
+        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, { otherPropertyValue });
         const auto& networkFormatedPublishedPropertyChange = converter.toString(publishedPropertyChangeMessage);
 
         // Expect Request to be sent on setRemotePropertyCall, even if it is not correct - this node doesn't serve sink2.

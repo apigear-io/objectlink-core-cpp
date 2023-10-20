@@ -126,7 +126,7 @@ std::future<int> TestApiClient::funcIntAsync(int paramInt)
             static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcInt");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramInt}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
-                    const int& value = arg.value.get<int>();
+                    const int& value = arg.value.content.get<int>();
                     resultPromise.set_value(value);
                 });
             return resultPromise.get_future().get();
@@ -157,7 +157,7 @@ std::future<float> TestApiClient::funcFloatAsync(float paramFloat)
             static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcFloat");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramFloat}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
-                    const float& value = arg.value.get<float>();
+                    const float& value = arg.value.content.get<float>();
                     resultPromise.set_value(value);
                 });
             return resultPromise.get_future().get();
@@ -188,7 +188,7 @@ std::future<std::string> TestApiClient::funcStringAsync(const std::string& param
             static const auto operationId = ApiGear::ObjectLink::Name::createMemberId(olinkObjectName(), "funcString");
             m_node->invokeRemote(operationId,
                 nlohmann::json::array({paramString}), [&resultPromise](ApiGear::ObjectLink::InvokeReplyArg arg) {
-                    const std::string& value = arg.value.get<std::string>();
+                    const std::string& value = arg.value.content.get<std::string>();
                     resultPromise.set_value(value);
                 });
             return resultPromise.get_future().get();

@@ -59,7 +59,7 @@ void RemoteNode::handleLink(const std::string& objectId)
         m_registry.addNodeForSource(m_nodeId, objectId);
         source->olinkLinked(objectId, this);
         nlohmann::json props = source->olinkCollectProperties();
-        emitWrite(Protocol::initMessage(objectId, props));
+        emitWrite(Protocol::initMessage(objectId, { props }));
     } else {
         static const std::string noLinkToSourceLog = "no source to link: ";
         emitLog(LogLevel::Warning, noLinkToSourceLog, objectId);
@@ -76,33 +76,33 @@ void RemoteNode::handleUnlink(const std::string& objectId)
     }
 }
 
-void RemoteNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
+void RemoteNode::handleSetProperty(const std::string& propertyId, const OLinkContent& value)
 {
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
-        source->olinkSetProperty(propertyId, value);
+        source->olinkSetProperty(propertyId, value.content);
     }
 }
 
-void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args)
+void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const OLinkContent& args)
 {
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(methodId);
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
-        nlohmann::json value = source->olinkInvoke(methodId, args);
-        emitWrite(Protocol::invokeReplyMessage(requestId, methodId, value));
+        nlohmann::json value = source->olinkInvoke(methodId, args.content);
+        emitWrite(Protocol::invokeReplyMessage(requestId, methodId, { value }));
     }
 }
 
 void RemoteNode::notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value)
 {
-    emitWrite(Protocol::propertyChangeMessage(propertyId, value));
+    emitWrite(Protocol::propertyChangeMessage(propertyId, { value }));
 }
 
 void RemoteNode::notifySignal(const std::string& signalId, const nlohmann::json& args)
 {
-    emitWrite(Protocol::signalMessage(signalId, args));
+    emitWrite(Protocol::signalMessage(signalId, { args }));
 }
 
 RemoteRegistry& RemoteNode::registry()

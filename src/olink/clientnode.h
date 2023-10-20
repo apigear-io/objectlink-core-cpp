@@ -70,13 +70,13 @@ public:
 
 protected:
     /** IProtocolListener::handleInit implementation */
-    void handleInit(const std::string& objectId, const nlohmann::json& props) override;
+    void handleInit(const std::string& objectId, const OLinkContent& props) override;
     /** IProtocolListener::handlePropertyChange implementation */
-    void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
+    void handlePropertyChange(const std::string& propertyId, const OLinkContent& value) override;
     /** IProtocolListener::handleInvokeReply implementation */
-    void handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value) override;
+    void handleInvokeReply(int requestId, const std::string& methodId, const OLinkContent& value) override;
     /** IProtocolListener::handleSignal implementation */
-    void handleSignal(const std::string& signalId, const nlohmann::json& args) override;
+    void handleSignal(const std::string& signalId, const OLinkContent& args) override;
     /** IProtocolListener::handleError implementation */
     void handleError(int msgType, int requestId, const std::string& error) override;
 

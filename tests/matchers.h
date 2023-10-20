@@ -48,7 +48,7 @@ inline auto network_message_contains_keywords(std::vector<std::string> keywords,
     return trompeloeil::make_matcher<const std::string&>(
         [&converter](const std::string& networkMessage, std::vector<std::string> keywords)
         {
-            auto translatedMessage = converter.fromString(networkMessage).dump();
+            auto translatedMessage = converter.fromString(networkMessage).message.dump();
             for (auto& keyword : keywords)
             {
                 if (translatedMessage.find(keyword) == std::string::npos)
