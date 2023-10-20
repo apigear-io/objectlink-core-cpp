@@ -29,154 +29,169 @@
 
 namespace ApiGear { namespace ObjectLink {
 
+namespace 
+{
+    OLinkMessage createMessage(MsgType msgType, const std::string& id)
+    {
+        OLinkMessage message;
+        message.message = nlohmann::json::array({ msgType, id });
+        return message;
+    }
+
+    OLinkMessage createMessage(MsgType msgType, const std::string& id, const OLinkContent& props)
+    {
+        OLinkMessage message;
+        message.message = nlohmann::json::array({ msgType, id, props.content });
+        return message;
+    }
+
+    OLinkMessage createMessage(MsgType msgType, int callId, const std::string& id, const OLinkContent& props)
+    {
+        OLinkMessage message;
+        message.message = nlohmann::json::array({ msgType, callId, id, props.content });
+        return message;
+    }
+
+    OLinkMessage createErrorMessage(MsgType msgType, int id, const std::string& errorMsg)
+    {
+        OLinkMessage message;
+        message.message = nlohmann::json::array({ MsgType::Error, msgType, id, errorMsg });
+        return message;
+    }
+}
+
 OLinkMessage Protocol::linkMessage(const std::string& objectId)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Link, objectId }
-                );
-    return message;
+    return createMessage(MsgType::Link, objectId);
 }
 
 OLinkMessage Protocol::unlinkMessage(const std::string& objectId)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Unlink, objectId }
-                );
-    return message;
+    return createMessage(MsgType::Unlink, objectId);
 }
 
 OLinkMessage Protocol::initMessage(const std::string& objectId, const OLinkContent& props)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Init, objectId, props.content }
-                );
-    return message;
+    return createMessage(MsgType::Init, objectId, props);
 }
 
 OLinkMessage Protocol::setPropertyMessage(const std::string& propertyId, const OLinkContent& value)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::SetProperty, propertyId, value.content }
-                );
-    return message;
+    return createMessage(MsgType::SetProperty, propertyId, value);
 }
 
 OLinkMessage Protocol::propertyChangeMessage(const std::string& propertyId, const OLinkContent& value)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::PropertyChange, propertyId, value.content }
-                );
-    return message;
+    return createMessage(MsgType::PropertyChange, propertyId, value);
 }
 
 OLinkMessage Protocol::invokeMessage(int requestId, const std::string& methodId, const OLinkContent& args)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Invoke, requestId, methodId, args.content }
-                );
-    return message;
+    return createMessage(MsgType::Invoke, requestId, methodId, args);
 }
 
 OLinkMessage Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const OLinkContent& value)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::InvokeReply, requestId, methodId, value.content }
-                );
-    return message;
+    return createMessage(MsgType::InvokeReply, requestId, methodId, value);
 }
 
 OLinkMessage Protocol::signalMessage(const std::string& signalId , const OLinkContent& args)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Signal, signalId, args.content }
-                );
-    return message;
+    return createMessage(MsgType::Signal, signalId, args);
 }
 
 OLinkMessage Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
 {
-    OLinkMessage message;
-    message.message = nlohmann::json::array(
-                { MsgType::Error, msgType, requestId, error }
-                );
-    return message;
+    return createErrorMessage(msgType, requestId, error);
 }
 
 bool Protocol::handleMessage(const OLinkMessage& message, IProtocolListener& listener) {
 
     m_lastError = "";
-    auto& data = message.message;
-    if(!data.is_array()) {
-        m_lastError = "message must be array";
+    OLinkMessageStreamReader msgReader(message);
+    auto isValid = msgReader.validate(m_lastError);
+    if(!isValid) {
         return false;
     }
-    const int msgType = data[0].get<int>();
+    MsgType msgType;
+    msgReader.read(msgType);
     switch(msgType) {
-    case int(MsgType::Link): {
-        const auto& objectId = data[1].get<std::string>();
+    case MsgType::Link: {
+        std::string objectId;
+        msgReader.read(objectId);
         listener.handleLink(objectId);
         break;
     }
-    case int(MsgType::Init): {
-        const auto& objectId = data[1].get<std::string>();
-        const auto& props = data[2].get<nlohmann::json>();
-        listener.handleInit(objectId, { props });
+    case MsgType::Init: {
+        std::string objectId;
+        OLinkContent props;
+        msgReader.read(objectId);
+        msgReader.read(props);
+        listener.handleInit(objectId, props);
         break;
     }
-    case int(MsgType::Unlink): {
-        const auto& objectId = data[1].get<std::string>();
+    case MsgType::Unlink: {
+        std::string objectId;
+        msgReader.read(objectId);
         listener.handleUnlink(objectId);
         break;
     }
-    case int(MsgType::SetProperty): {
-        const auto& propertyId = data[1].get<std::string>();
-        const auto& value = data[2].get<nlohmann::json>();
-        listener.handleSetProperty(propertyId, { value });
+    case MsgType::SetProperty: {
+        std::string propertyId;
+        OLinkContent value;
+        msgReader.read(propertyId);
+        msgReader.read(value);
+        listener.handleSetProperty(propertyId, value);
         break;
     }
-    case int(MsgType::PropertyChange): {
-        const auto& propertyId = data[1].get<std::string>();
-        const auto& value = data[2].get<nlohmann::json>();
-        listener.handlePropertyChange(propertyId, { value });
+    case MsgType::PropertyChange: {
+        std::string propertyId;
+        OLinkContent value;
+        msgReader.read(propertyId);
+        msgReader.read(value);
+        listener.handlePropertyChange(propertyId, value);
         break;
     }
-    case int(MsgType::Invoke): {
-        const auto& id = data[1].get<int>();
-        const auto& methodId = data[2].get<std::string>();
-        const auto& args = data[3].get<nlohmann::json>();
-        listener.handleInvoke(id, methodId, { args });
+    case MsgType::Invoke: {
+        int callId;
+        std::string methodId;
+        OLinkContent args;
+        msgReader.read(callId);
+        msgReader.read(methodId);
+        msgReader.read(args);
+        listener.handleInvoke(callId, methodId, args);
         break;
     }
-    case int(MsgType::InvokeReply): {
-        const auto& id = data[1].get<int>();
-        const auto& methodId = data[2].get<std::string>();
-        const auto& value = data[3].get<nlohmann::json>();
-        listener.handleInvokeReply(id, methodId, { value });
+    case MsgType::InvokeReply: {
+        int callId;
+        std::string methodId;
+        OLinkContent value;
+        msgReader.read(callId);
+        msgReader.read(methodId);
+        msgReader.read(value);
+        listener.handleInvokeReply(callId, methodId, value);
         break;
     }
-    case int(MsgType::Signal): {
-        const auto& signalId = data[1].get<std::string>();
-        const auto& args = data[2].get<nlohmann::json>();
-        listener.handleSignal(signalId, { args });
+    case MsgType::Signal: {
+        std::string signalId;
+        OLinkContent args;
+        msgReader.read(signalId);
+        msgReader.read(args);
+        listener.handleSignal(signalId, args);
         break;
     }
-    case int(MsgType::Error): {
-        const auto& msgTypeErr = data[1].get<int>();
-        const auto& requestId = data[2].get<int>();
-        const auto& error = data[3].get<std::string>();
+    case MsgType::Error: {
+        int msgTypeErr;
+        int requestId;
+        std::string error;
+        msgReader.read(msgTypeErr);
+        msgReader.read(requestId);
+        msgReader.read(error);
         listener.handleError(msgTypeErr, requestId, error);
         break;
     }
     default:
-        m_lastError = "message not supported: " + data.dump();
+        m_lastError = "message not supported: " + msgReader.toString();
         return false;
     }
     return true;

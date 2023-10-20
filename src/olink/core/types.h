@@ -60,6 +60,50 @@ struct OLinkMessage
     nlohmann::json message;
 };
 
+struct OLinkMessageStreamReader
+{
+    OLinkMessageStreamReader(const OLinkMessage& message)
+        :m_message(message)
+    {}
+
+    void read(MsgType& arg)
+    {
+        currentIndex = 1;
+        arg = static_cast<MsgType>(m_message.message[0].get<int>());
+    }
+
+    bool validate(std::string& out_error) const
+    {
+        if (!m_message.message.is_array()) {
+            out_error = "message must be array";
+            return false;
+        }
+        return true;
+    }
+
+    void read(OLinkContent& arg)
+    {
+        arg.content = m_message.message[currentIndex].get<nlohmann::json>();
+        currentIndex++;
+    }
+
+    template<typename ArgType>
+    void read(ArgType& arg)
+    {
+        arg = m_message.message[currentIndex].get<ArgType>();
+        currentIndex++;
+    }
+
+    std::string toString()
+    {
+        return m_message.message.dump();
+    }
+
+private:
+    const OLinkMessage& m_message;
+    size_t currentIndex = 0;
+};
+
 /**
 * Use this function to convert message type to string with the message name.
 */
