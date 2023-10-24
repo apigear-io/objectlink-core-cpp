@@ -14,12 +14,18 @@ namespace {
     std::string sink1Id = "tests.sink1";
     std::string sink2Id = "tests.sink2";
     std::string propertyName = "exampleProprety";
-    nlohmann::json propertyValue = {{8}};
-    nlohmann::json otherPropertyValue = {{115}};
-    nlohmann::json exampleInitProperties = { {propertyName, "some_string" }, {"property2",  9}, {"arg2", false } };
+    std::string stringProperty = "some string";
+    int someIntValue = 9;
+    bool someBoolValue= false;
+    auto propertyValue = ApiGear::ObjectLink::propertyToContent(8);
+    auto otherPropertyValue = ApiGear::ObjectLink::propertyToContent(115);
+    auto exampleInitProperties = ApiGear::ObjectLink::argumentsToContent(
+        ApiGear::ObjectLink::toInitialProperty(propertyName, stringProperty),
+        ApiGear::ObjectLink::toInitialProperty("property2", someIntValue),
+        ApiGear::ObjectLink::toInitialProperty("property3", someBoolValue));
     std::string methodName = "exampleMethod";
     std::string signalName = "exampleSingal";
-    nlohmann::json exampleArguments = {{"arg1", "some_string" }, {"arg2",  9}, {"arg2", false } };
+    auto exampleArguments = ApiGear::ObjectLink::argumentsToContent(stringProperty, 9, false);
 
     // Converter used in tests, should be same as one used by node.
     ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
@@ -168,16 +174,16 @@ TEST_CASE("Client Node")
 
         // Invoke for sink2
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, exampleArguments.dump()}, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, ApiGear::ObjectLink::toString(exampleArguments)}, converter)))
                     .LR_SIDE_EFFECT(firstRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
+        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::toString(args.value)); });
         REQUIRE(firstRequestId != notSetRequestValue);
 
         // Invoke for sink1
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, ApiGear::ObjectLink::toString(exampleArguments) }, converter)))
             .LR_SIDE_EFFECT(secondRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::toString(args.value)); });
         REQUIRE(secondRequestId != notSetRequestValue);
         REQUIRE(secondRequestId != firstRequestId);
 
@@ -186,17 +192,17 @@ TEST_CASE("Client Node")
         // Send replies in different order than it was requested
         // First handler for sink1 will be called.
         // prepare reply
-        nlohmann::json functionResult2 = {{ 17 } };
-        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(secondRequestId, methodIdSink1, { functionResult2 });
+        auto functionResult2 = ApiGear::ObjectLink::invokeReturnValue(17);
+        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(secondRequestId, methodIdSink1,  functionResult2 );
         // expect callback to be called
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult2.dump()));
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + ApiGear::ObjectLink::toString(functionResult2)));
         testedNode->handleMessage(converter.toString(invokeReplyMessage2));
 
         // prepare reply
-        nlohmann::json functionResult1 = {{ 74 } };
-        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(firstRequestId, methodIdSink2, { functionResult1 });
+        auto functionResult1 = ApiGear::ObjectLink::invokeReturnValue(74);
+        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(firstRequestId, methodIdSink2, functionResult1 );
         // expect callback to be called
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink2 + functionResult1.dump()));
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink2 + ApiGear::ObjectLink::toString(functionResult1)));
         testedNode->handleMessage(converter.toString(invokeReplyMessage1));
 
         // test clean up for linked node
@@ -218,16 +224,16 @@ TEST_CASE("Client Node")
         auto requestId = notSetRequestValue;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, ApiGear::ObjectLink::toString(exampleArguments) }, converter)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::toString(args.value)); });
         REQUIRE(requestId != notSetRequestValue);
 
         // Prepare reply with wrong request id.
-        nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, { functionResult });
+        auto functionResult = ApiGear::ObjectLink::invokeReturnValue(17);
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, functionResult);
         // expect  no callback 
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult.dump()));
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + ApiGear::ObjectLink::toString(functionResult)));
         testedNode->handleMessage(converter.toString(invokeReplyMessage));
 
         // test clean up
@@ -251,15 +257,16 @@ TEST_CASE("Client Node")
         auto otherRequestId = 157;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, ApiGear::ObjectLink::toString(exampleArguments) }, converter)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments,
+            [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::toString(args.value)); });
         REQUIRE(requestId != notSetRequestValue);
         REQUIRE(requestId != otherRequestId);
 
         // Prepare reply with wrong sink id in method id.
-        nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(otherRequestId, methodIdSink2, { functionResult });
+        auto functionResult = ApiGear::ObjectLink::invokeReturnValue(17);
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(otherRequestId, methodIdSink2, functionResult);
         // expect  no callback 
         FORBID_CALL(outputMock, writeMessage(ANY(std::string)));
         testedNode->handleMessage(converter.toString(invokeReplyMessage));

@@ -45,7 +45,7 @@ void ClientNode::unlinkRemote(const std::string& objectId)
     m_registry.unsetNode(objectId);
 }
 
-void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json& args, InvokeReplyFunc func)
+void ClientNode::invokeRemote(const std::string& methodId, const OLinkContent& args, InvokeReplyFunc func)
 {
     static const std::string invokeRemoteLog = "ClientNode.invokeRemote: ";
     emitLog(LogLevel::Info, invokeRemoteLog, methodId);
@@ -53,15 +53,15 @@ void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json&
     std::unique_lock<std::mutex> lock(m_pendingInvokesMutex);
     m_invokesPending[requestId] = func;
     lock.unlock();
-    auto msg = Protocol::invokeMessage(requestId, methodId, { args });
+    auto msg = Protocol::invokeMessage(requestId, methodId, args);
     emitWrite(msg);
 }
 
-void ClientNode::setRemoteProperty(const std::string& propertyId, const nlohmann::json& value)
+void ClientNode::setRemoteProperty(const std::string& propertyId, const OLinkContent& value)
 {
     static const std::string setRemotePropertyLog = "ClientNode.setRemoteProperty: ";
     emitLog(LogLevel::Info, setRemotePropertyLog, propertyId);
-    auto msg = Protocol::setPropertyMessage(propertyId, { value });
+    auto msg = Protocol::setPropertyMessage(propertyId, value);
     emitWrite(msg);
 }
 
@@ -91,7 +91,7 @@ void ClientNode::handleInit(const std::string& objectId, const OLinkContent& pro
     emitLogWithPayload(LogLevel::Info, props, handeInitLog, objectId);
     auto sink = m_registry.getSink(objectId).lock();
     if(sink) {
-        sink->olinkOnInit(objectId, props.content, this);
+        sink->olinkOnInit(objectId, props, this);
     }
     else {
         static const std::string noSinkFoundLog = "No sink found for id ";
@@ -105,7 +105,7 @@ void ClientNode::handlePropertyChange(const std::string& propertyId, const OLink
     emitLogWithPayload(LogLevel::Info, value, handlePropertyChangedlog, propertyId);
     auto sink = m_registry.getSink(Name::getObjectId(propertyId)).lock();
     if(sink){
-        sink->olinkOnPropertyChanged(propertyId, value.content);
+        sink->olinkOnPropertyChanged(propertyId, value);
     }
     else {
         static const std::string noSinkFoundLog = "No sink found for id ";
@@ -141,7 +141,7 @@ void ClientNode::handleSignal(const std::string& signalId, const OLinkContent& a
     emitLog(LogLevel::Info, handleSignalLog, signalId);
     auto sink = m_registry.getSink(Name::getObjectId(signalId)).lock();
     if(sink) {
-        sink->olinkOnSignal(signalId, args.content);
+        sink->olinkOnSignal(signalId, args);
     } else {
         static const std::string noSinkFoundLog = "No sink found for id";
         emitLog(LogLevel::Warning, noSinkFoundLog, Name::getObjectId(signalId));

@@ -25,6 +25,7 @@
 
 #include "olink_common.h"
 #include "nlohmann/json.hpp"
+#include "olinkcontent.h"
 #include <string>
 
 namespace ApiGear { namespace ObjectLink {
@@ -48,12 +49,6 @@ enum class MsgType : int
 };
 
 
-struct OLinkContent
-{
-    //std::string content;
-    nlohmann::json content;
-};
-
 struct OLinkMessage
 {
     //std::string message;
@@ -68,8 +63,8 @@ struct OLinkMessageStreamReader
 
     void read(MsgType& arg)
     {
-        currentIndex = 1;
-        arg = static_cast<MsgType>(m_message.message[0].get<int>());
+        arg = static_cast<MsgType>(m_message.message[currentIndex].get<int>());
+        currentIndex++;
     }
 
     bool validate(std::string& out_error) const
@@ -103,6 +98,7 @@ private:
     const OLinkMessage& m_message;
     size_t currentIndex = 0;
 };
+
 
 /**
 * Use this function to convert message type to string with the message name.

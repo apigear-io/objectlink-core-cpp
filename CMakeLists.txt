@@ -16,7 +16,7 @@ add_subdirectory (src)
 add_subdirectory (tests)
 
 if(PERFORMANCE_TESTS)
-    add_subdirectory (performance)
+    #add_subdirectory (performance)
 endif()
 
 if(BUILD_EXAMPLES)

@@ -23,21 +23,21 @@ public:
         return m_total;
     }
     void setTotal(int value) {
-        client()->setRemoteProperty("demo.Calc/total", value);
+        client()->setRemoteProperty("demo.Calc/total", propertyToContent(value));
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply" << arg.methodId << arg.value.content.dump();
+            std::cout << "invoke reply" << arg.methodId << toString(arg.value);
         };
-        client()->invokeRemote("demo.Calc/add", { a }, func);
+        client()->invokeRemote("demo.Calc/add", argumentsToContent(a), func);
 
         return -1;
     }
     int sub(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply " << arg.methodId << arg.value.content.dump();
+            std::cout << "invoke reply " << arg.methodId << toString(arg.value);
         };
-        client()->invokeRemote("demo.Calc/sub", { a }, func);
+        client()->invokeRemote("demo.Calc/sub", argumentsToContent(a), func);
         return -1;
     }
     IClientNode *client() const {
@@ -52,28 +52,36 @@ public:
     std::string olinkObjectName() override {
         return "demo.Calc";
     }
-    void olinkOnSignal(const std::string& name, const nlohmann::json& args) override {
-        std::cout << "onSignal" << name  << args.dump() << std::endl;
-        events.push_back({name, args});
+    void olinkOnSignal(const std::string& name, const OLinkContent& args) override {
+        std::cout << "onSignal" << name  << toString(args) << std::endl;
+        OLinContentStreamReader reader(args);
+        int signalArgValue;
+        reader.read(signalArgValue);
+        events.push_back(std::make_pair(name, signalArgValue));
 
     }
-    void olinkOnPropertyChanged(const std::string& name, const nlohmann::json& value) override {
-        std::cout << "onPropertyChanged" << name << value.dump() << std::endl;
+    void olinkOnPropertyChanged(const std::string& name, const OLinkContent& value) override {
+        std::cout << "onPropertyChanged" << name << toString(value) << std::endl;
         std::string path = Name::getMemberName(name);
         if(path == "total") {
-            int total = value.get<int>();
+            int total = 0;
+            readValue(value, total);
             if(m_total != total) {
                 m_total = total;
             }
         }
 
     }
-    void olinkOnInit(const std::string& name, const nlohmann::json& props, IClientNode* client) override {
-        std::cout << "CalcSink.olinkOnInit: " << name << props.dump() << std::endl;
+    void olinkOnInit(const std::string& name, const OLinkContent& props, IClientNode* client) override {
+        std::cout << "CalcSink.olinkOnInit: " << name << toString(props) << std::endl;
         m_client = client;
         m_ready = true;
-        if(props.contains("total")) {
-            int total = props["total"].get<int>();
+        InitialProperty expectTotalProperty;
+        OLinContentStreamReader reader(props);
+        reader.read(expectTotalProperty);
+        if(expectTotalProperty.propertyName == "total") {
+            int total = 0;
+            readValue(expectTotalProperty, total);
             if(m_total != total) {
                 m_total = total;
             }
@@ -84,7 +92,7 @@ public:
         m_client = nullptr;
     }
 public:
-    std::list<nlohmann::json> events;
+    std::list<std::pair<std::string, int>> events;
 private:
     IClientNode *m_client;
     ClientRegistry& m_registry;

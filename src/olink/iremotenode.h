@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <nlohmann/json.hpp>
+#include "core/olinkcontent.h"
 #include "core/olink_common.h"
 
 namespace ApiGear {
@@ -22,7 +22,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create propertyId .
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value) = 0;
+    virtual void notifyPropertyChange(const std::string& propertyId, const OLinkContent& value) = 0;
     /**
      * Sends notification that signal has was emitted by service on server side.
      * @param signalId Identifier that consists of the objectId and the name of the signal.
@@ -31,7 +31,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create propertyId .
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void notifySignal(const std::string& signalId, const nlohmann::json& args) = 0;
+    virtual void notifySignal(const std::string& signalId, const OLinkContent& args) = 0;
 };
 
 }} //ApiGear::ObjectLink

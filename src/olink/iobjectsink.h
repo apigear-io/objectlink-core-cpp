@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/olink_common.h"
-#include "nlohmann/json.hpp"
+#include "core/olinkcontent.h"
 #include <string>
 
 namespace ApiGear{
@@ -33,7 +33,7 @@ public:
     * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and signal name
     * see also: ApiGear::ObjectLink::Name::createMemberId
     */
-    virtual void olinkOnSignal(const std::string& signalId, const nlohmann::json& args) = 0;
+    virtual void olinkOnSignal(const std::string& signalId, const OLinkContent& args) = 0;
     /**
     * Handler function for serving the property changed message from the service.
     * @param propertyId The property identifier in object. Consists the objectId and property name.
@@ -42,14 +42,14 @@ public:
     * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and property name
     * see also: ApiGear::ObjectLink::Name::createMemberId
     */
-    virtual void olinkOnPropertyChanged(const std::string& propertyId, const nlohmann::json& value) = 0;
+    virtual void olinkOnPropertyChanged(const std::string& propertyId, const OLinkContent& value) = 0;
     /**
     * Handler function for serving the Init message.
     * @param objectId The olink object identifier for which the connection was established.
     * @param props The current values for all the properties from service side.
     * @param node The endpoint to with which client sends messages.
     */
-    virtual void olinkOnInit(const std::string& objectId, const nlohmann::json& props, IClientNode* node) = 0;
+    virtual void olinkOnInit(const std::string& objectId, const OLinkContent& props, IClientNode* node) = 0;
     /**
     * USe this function to inform the sink that connection with service was released.
     */

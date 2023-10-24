@@ -15,7 +15,6 @@
 #include <memory>
 
 
-using json = nlohmann::json;
 using namespace ApiGear::ObjectLink;
 
 

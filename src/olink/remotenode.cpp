@@ -58,8 +58,8 @@ void RemoteNode::handleLink(const std::string& objectId)
     if(source) {
         m_registry.addNodeForSource(m_nodeId, objectId);
         source->olinkLinked(objectId, this);
-        nlohmann::json props = source->olinkCollectProperties();
-        emitWrite(Protocol::initMessage(objectId, { props }));
+        auto props = source->olinkCollectProperties();
+        emitWrite(Protocol::initMessage(objectId, props ));
     } else {
         static const std::string noLinkToSourceLog = "no source to link: ";
         emitLog(LogLevel::Warning, noLinkToSourceLog, objectId);
@@ -81,7 +81,7 @@ void RemoteNode::handleSetProperty(const std::string& propertyId, const OLinkCon
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
-        source->olinkSetProperty(propertyId, value.content);
+        source->olinkSetProperty(propertyId, value);
     }
 }
 
@@ -90,19 +90,19 @@ void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const 
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(methodId);
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
-        nlohmann::json value = source->olinkInvoke(methodId, args.content);
+        auto value = source->olinkInvoke(methodId, args);
         emitWrite(Protocol::invokeReplyMessage(requestId, methodId, { value }));
     }
 }
 
-void RemoteNode::notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value)
+void RemoteNode::notifyPropertyChange(const std::string& propertyId, const OLinkContent& value)
 {
-    emitWrite(Protocol::propertyChangeMessage(propertyId, { value }));
+    emitWrite(Protocol::propertyChangeMessage(propertyId, value ));
 }
 
-void RemoteNode::notifySignal(const std::string& signalId, const nlohmann::json& args)
+void RemoteNode::notifySignal(const std::string& signalId, const OLinkContent& args)
 {
-    emitWrite(Protocol::signalMessage(signalId, { args }));
+    emitWrite(Protocol::signalMessage(signalId, args ));
 }
 
 RemoteRegistry& RemoteNode::registry()

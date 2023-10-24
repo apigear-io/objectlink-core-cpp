@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/olink_common.h"
+#include "core/olinkcontent.h"
 #include "core/types.h"
 #include "iclientnode.h"
 #include "core/basenode.h"
@@ -55,9 +56,9 @@ public:
     /** IClientNode::unlinkRemote implementation. */
     void unlinkRemote(const std::string& objectId) override;
     /** IClientNode::invokeRemote implementation. */
-    void invokeRemote(const std::string& methodId, const nlohmann::json& args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
+    void invokeRemote(const std::string& methodId, const OLinkContent& args= OLinkContent(), InvokeReplyFunc func=nullptr) override;
     /** IClientNode::setRemoteProperty implementation. */
-    void setRemoteProperty(const std::string& propertyId, const nlohmann::json& value) override;
+    void setRemoteProperty(const std::string& propertyId, const OLinkContent& value) override;
 
      /* The registry in which client is registered*/
     ClientRegistry& registry();
