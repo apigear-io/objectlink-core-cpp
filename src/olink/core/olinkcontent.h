@@ -64,7 +64,7 @@ bool OLINK_EXPORT operator==(const OLinkContent& lhs, const OLinkContent& rhs);
 
 // If content always come as array this is not needed
 template<typename ValueType>
-OLinkContent invokeReturnValue(ValueType value)
+OLinkContent invokeReturnValue(const ValueType& value)
 {
     OLinkContent content;
     content.content = nlohmann::json(value);
@@ -126,6 +126,10 @@ struct OLinContentStreamReader
     {
         arg = m_content.content[currentIndex].get<ArgType>();
         currentIndex++;
+    }
+    size_t argumentsCount()
+    {
+        return  m_content.content.size();
     }
 
 private:
