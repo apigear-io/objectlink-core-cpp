@@ -30,10 +30,17 @@
 namespace ApiGear {
 namespace ObjectLink {
 
+
+struct OLINK_EXPORT OLinkContent
+{
+    //std::string content;
+    nlohmann::json content;
+};
+
 struct OLINK_EXPORT InitialProperty
 {
     std::string propertyName;
-    nlohmann::json propertyValue;
+    OLinkContent propertyValue;
 };
 
 template<typename ArgType>
@@ -41,24 +48,19 @@ InitialProperty toInitialProperty(const std::string& name, ArgType& arg)
 {
     InitialProperty prop;
     prop.propertyName = name;
-    prop.propertyValue = nlohmann::json(arg);
+    prop.propertyValue.content = nlohmann::json(arg);
     return prop;
 }
 
 template<typename ValueType>
 void readValue(InitialProperty& property, ValueType& value)
 {
-    value = property.propertyValue.get<ValueType>();
+    value = property.propertyValue.content.get<ValueType>();
 }
 
 void OLINK_EXPORT from_json(const nlohmann::json& j, InitialProperty& p);
 void OLINK_EXPORT to_json(nlohmann::json& j, const InitialProperty& p);
 
-struct OLinkContent
-{
-    //std::string content;
-    nlohmann::json content;
-};
 
 bool OLINK_EXPORT operator==(const OLinkContent& lhs, const OLinkContent& rhs);
 
