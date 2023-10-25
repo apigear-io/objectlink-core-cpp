@@ -44,7 +44,7 @@ struct OLINK_EXPORT InitialProperty
 };
 
 template<typename ArgType>
-InitialProperty toInitialProperty(const std::string& name, ArgType& arg)
+InitialProperty toInitialProperty(const std::string& name, const ArgType& arg)
 {
     InitialProperty prop;
     prop.propertyName = name;
