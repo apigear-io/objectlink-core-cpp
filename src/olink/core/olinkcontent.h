@@ -85,19 +85,6 @@ OLinkContent propertyToContent(ValueType value)
     return content;
 }
 
-// Use to write arguments for: notifySignal, invoke, even if there is a single argument
-template<typename ... Parameters>
-OLinkContent argumentsToContent(const Parameters&  ...inputs)
-{
-    OLinkContent content;
-    content.content = nlohmann::json::array();
-    auto inputs_size = sizeof...(inputs);
-    content.content.get_ptr<nlohmann::json::array_t*>()->reserve(inputs_size);
-    size_t current = 0;
-    fillContent(content.content, current, inputs...);
-    return content;
-}
-
 // last call of recursive fillContent(nlohmann::json::array& content_array, T const& first, Parameters const&... rest)
 void OLINK_EXPORT fillContent(nlohmann::json& content_array, size_t current);
 
@@ -115,6 +102,20 @@ void readValue(const OLinkContent& content, ValueType& value)
 {
     value = content.content.get<ValueType>();
 }
+
+// Use to write arguments for: notifySignal, invoke, even if there is a single argument
+template<typename ... Parameters>
+OLinkContent argumentsToContent(const Parameters&  ...inputs)
+{
+    OLinkContent content;
+    content.content = nlohmann::json::array();
+    auto inputs_size = sizeof...(inputs);
+    content.content.get_ptr<nlohmann::json::array_t*>()->reserve(inputs_size);
+    size_t current = 0;
+    fillContent(content.content, current, inputs...);
+    return content;
+}
+
 
 // Use to read for arguments: notifySignal, invoke
 struct OLinContentStreamReader
