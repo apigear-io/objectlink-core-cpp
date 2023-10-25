@@ -18,7 +18,6 @@ set(OLINK_SOURCES
     olink/core/basenode.cpp
     olink/core/protocol.cpp
     olink/core/types.cpp
-    olink/core/olinkcontent.cpp
     olink/consolelogger.cpp
     olink/clientnode.cpp
     olink/clientregistry.cpp

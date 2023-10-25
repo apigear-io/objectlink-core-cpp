@@ -58,9 +58,19 @@ void readValue(InitialProperty& property, ValueType& value)
     value = property.propertyValue.content.get<ValueType>();
 }
 
-OLINK_EXPORT void from_json(const nlohmann::json& j, InitialProperty& p);
-OLINK_EXPORT void to_json(nlohmann::json& j, const InitialProperty& p);
-OLINK_EXPORT bool operator==(const OLinkContent& lhs, const OLinkContent& rhs);
+inline void from_json(const nlohmann::json& j, InitialProperty& p)
+{
+    p.propertyName = j[0].get<std::string>();
+    p.propertyValue.content = j[1];
+}
+inline void to_json(nlohmann::json& j, const InitialProperty& p)
+{
+    j = nlohmann::json{ p.propertyName, p.propertyValue.content };
+}
+inline bool operator==(const OLinkContent& lhs, const OLinkContent& rhs)
+{
+    return lhs.content == rhs.content;
+}
 
 // If content always come as array this is not needed
 template<typename ValueType>
@@ -84,7 +94,11 @@ OLinkContent propertyToContent(ValueType value)
 }
 
 // last call of recursive fillContent(nlohmann::json::array& content_array, T const& first, Parameters const&... rest)
-OLINK_EXPORT void fillContent(nlohmann::json& content_array, size_t current);
+inline void fillContent(nlohmann::json& content_array, size_t current)
+{
+    (void)content_array;
+    (void)current;
+}
 
 template <typename T, typename... Parameters>
 void fillContent(nlohmann::json& content_array, size_t current, const T& first, const Parameters&... rest)
@@ -138,7 +152,10 @@ private:
     size_t currentIndex = 0;
 };
 
-OLINK_EXPORT std::string toString(const OLinkContent& content);
+inline std::string toString(const OLinkContent& content)
+{
+    return content.content.dump();
+}
 
 
 }} //namespace ApiGear::ObjectLink
