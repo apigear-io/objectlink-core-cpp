@@ -4,13 +4,13 @@ namespace ApiGear {
 namespace ObjectLink {
 
 
-inline void from_json(const nlohmann::json& j, InitialProperty& p) {
+void from_json(const nlohmann::json& j, InitialProperty& p) {
 
     p.propertyName = j[0].get<std::string>();
     p.propertyValue.content = j[1];
 }
 
-inline void to_json(nlohmann::json& j, const InitialProperty& p) {
+void to_json(nlohmann::json& j, const InitialProperty& p) {
     j = nlohmann::json{ p.propertyName, p.propertyValue.content };
 }
 
