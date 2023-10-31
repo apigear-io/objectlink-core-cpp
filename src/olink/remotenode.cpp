@@ -59,7 +59,15 @@ void RemoteNode::handleLink(const std::string& objectId)
         m_registry.addNodeForSource(m_nodeId, objectId);
         source->olinkLinked(objectId, this);
         auto props = source->olinkCollectProperties();
-        emitWrite(Protocol::initMessage(objectId, props ));
+        auto serializer = getSerializer();
+        if (serializer)
+        {
+            auto writer = serializer->createWriter();
+            if (writer)
+            {
+                emitWrite(Protocol::initMessage(*writer, objectId, props));
+            }
+        }
     } else {
         static const std::string noLinkToSourceLog = "no source to link: ";
         emitLog(LogLevel::Warning, noLinkToSourceLog, objectId);
@@ -91,18 +99,42 @@ void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const 
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
         auto value = source->olinkInvoke(methodId, args);
-        emitWrite(Protocol::invokeReplyMessage(requestId, methodId, { value }));
+        auto serializer = getSerializer();
+        if (serializer)
+        {
+            auto writer = serializer->createWriter();
+            if (writer)
+            {
+                emitWrite(Protocol::invokeReplyMessage(*writer, requestId, methodId, { value }));
+            }
+        }
     }
 }
 
 void RemoteNode::notifyPropertyChange(const std::string& propertyId, const OLinkContent& value)
 {
-    emitWrite(Protocol::propertyChangeMessage(propertyId, value ));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::propertyChangeMessage(*writer, propertyId, value));
+        }
+    }
 }
 
 void RemoteNode::notifySignal(const std::string& signalId, const OLinkContent& args)
 {
-    emitWrite(Protocol::signalMessage(signalId, args ));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::signalMessage(*writer, signalId, args));
+        }
+    }
 }
 
 RemoteRegistry& RemoteNode::registry()

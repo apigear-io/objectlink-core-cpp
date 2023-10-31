@@ -6,8 +6,13 @@
 #include "olink/remoteregistry.h"
 #include "olink/core/types.h"
 
+#include "olink/core/defaultmessageserializer.h"
+#include "olink/core/defaultcontentserializer.h"
+
 #include "mocks.h"
 #include "matchers.h"
+
+namespace ContentSerializer = ApiGear::ObjectLink::NlohmannSerializer;
 
 namespace {
     // helper constants used in test.
@@ -17,26 +22,26 @@ namespace {
     std::string stringProperty = "some string";
     std::string methodName = "exampleMethod";
     std::string signalName = "exampleSingal";
-    auto propertyValue = ApiGear::ObjectLink::propertyToContent(8);
+    auto serializer = std::make_shared<ApiGear::ObjectLink::NlohmannMessageSerializer>();
     int someIntValue = 9;
     bool someBoolValue = false;
-    auto otherPropertyValue = ApiGear::ObjectLink::propertyToContent(115);
-    auto exampleInitProperties = ApiGear::ObjectLink::argumentsToContent(ApiGear::ObjectLink::toInitialProperty(propertyName, stringProperty),
-                                                                         ApiGear::ObjectLink::toInitialProperty(std::string("property2"), someIntValue),
-                                                                         ApiGear::ObjectLink::toInitialProperty(std::string("arg2"), someBoolValue));
-    auto exampleArguments = ApiGear::ObjectLink::argumentsToContent(std::string("some_string"), 9, false);
+    auto propertyValue = ContentSerializer::Value::serialize(8);
+    auto otherPropertyValue = ContentSerializer::Value::serialize(115);
+    ApiGear::ObjectLink::OLinkContent exampleInitProperties = ContentSerializer::Arguments::serialize(
+        ContentSerializer::toInitialProperty(propertyName, stringProperty),
+        ContentSerializer::toInitialProperty("property2", someIntValue),
+        ContentSerializer::toInitialProperty("property3", someBoolValue));
 
-    // Converter used in tests, should be same as one used by node.
-    ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
+    ApiGear::ObjectLink::OLinkContent exampleArguments = ContentSerializer::Arguments::serialize(stringProperty, 9, false);
 }
 
 TEST_CASE("Remote Node")
 {
-    auto linkMessageSource1 = converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(source1Id));
-    auto linkMessageSource2 = converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(source2Id));
-    auto unlinkMessageSource1 = converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(source1Id));
-    auto unlinkMessageSource2 = converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(source2Id));
-
+    auto linkMessageSource1 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), source1Id));
+    auto linkMessageSource2 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), source2Id));
+    auto unlinkMessageSource1 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), source1Id));
+    auto unlinkMessageSource2 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), source2Id));
+    ApiGear::ObjectLink::OLinkMessage initMsg = ApiGear::ObjectLink::Protocol::initMessage(*(serializer->createWriter()), source1Id, exampleInitProperties);
     // Objects required for most tests
 
     // Sink mocks that always return associated with them ids.
@@ -55,7 +60,7 @@ TEST_CASE("Remote Node")
     // Test node kept as ptr to destroy before going out of scope of test. Allows testing destructor.
     auto testedNode = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
     // Setting up an output for sending messages. This function must be set by user.
-    testedNode->onWrite([&outputMock](const auto& msg){outputMock.writeMessage(msg); });
+    testedNode->onWrite([&outputMock](const auto& msg){outputMock.writeMessage(msg); }, serializer);
 
     SECTION("Typical setup and tear down scenario - the node ends life before the source")
     {
@@ -69,8 +74,10 @@ TEST_CASE("Remote Node")
         REQUIRE_CALL(*source1, olinkLinked(source1Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
         REQUIRE_CALL(*source2, olinkCollectProperties()).RETURN(exampleInitProperties);
         REQUIRE_CALL(*source2, olinkLinked(source2Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source1Id, exampleInitProperties))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source2Id, exampleInitProperties))));
+        ApiGear::ObjectLink::OLinkMessage initMessage1 = ApiGear::ObjectLink::Protocol::initMessage(*(serializer->createWriter()), source1Id, exampleInitProperties);
+        ApiGear::ObjectLink::OLinkMessage initMessage2 = ApiGear::ObjectLink::Protocol::initMessage(*(serializer->createWriter()), source2Id, exampleInitProperties);
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMessage1)));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMessage2)));
         testedNode->handleMessage(linkMessageSource1);
         testedNode->handleMessage(linkMessageSource2);
 
@@ -101,7 +108,7 @@ TEST_CASE("Remote Node")
         // Second linking works
         REQUIRE_CALL(*source1, olinkCollectProperties()).RETURN(exampleInitProperties);
         REQUIRE_CALL(*source1, olinkLinked(source1Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source1Id, exampleInitProperties))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMsg)));
         testedNode->handleMessage(linkMessageSource1);
         REQUIRE(registry.getNodes(source1Id).size() == 1);
 
@@ -114,7 +121,7 @@ TEST_CASE("Remote Node")
         registry.addSource(source1);
         REQUIRE_CALL(*source1, olinkCollectProperties()).RETURN(exampleInitProperties);
         REQUIRE_CALL(*source1, olinkLinked(source1Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source1Id, exampleInitProperties))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMsg)));
         testedNode->handleMessage(linkMessageSource1);
         REQUIRE(registry.getNodes(source1Id).size() == 1);
 
@@ -128,15 +135,15 @@ TEST_CASE("Remote Node")
         registry.addSource(source1);
         REQUIRE_CALL(*source1, olinkLinked(source1Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
         REQUIRE_CALL(*source1, olinkCollectProperties()).RETURN(exampleInitProperties);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source1Id, exampleInitProperties))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMsg)));
         testedNode->handleMessage(linkMessageSource1);
         REQUIRE(registry.getNodes(source1Id).size() == 1);
 
         auto propertyId1 = ApiGear::ObjectLink::Name::createMemberId(source1Id, propertyName);
         auto propertyId2 = ApiGear::ObjectLink::Name::createMemberId(source2Id, propertyName);
 
-        auto propertyChangeRequest1 = converter.toString(ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId1, {propertyValue}));
-        auto propertyChangeRequest2 = converter.toString(ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId2, {propertyValue}));
+        auto propertyChangeRequest1 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::setPropertyMessage(*(serializer->createWriter()), propertyId1, propertyValue));
+        auto propertyChangeRequest2 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::setPropertyMessage(*(serializer->createWriter()), propertyId2, propertyValue));
 
 
         REQUIRE_CALL(*source1, olinkSetProperty(propertyId1, propertyValue));
@@ -151,7 +158,7 @@ TEST_CASE("Remote Node")
         registry.addSource(source1);
         REQUIRE_CALL(*source1, olinkLinked(source1Id, ANY(ApiGear::ObjectLink::IRemoteNode*)));
         REQUIRE_CALL(*source1, olinkCollectProperties()).RETURN(exampleInitProperties);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::initMessage(source1Id, exampleInitProperties))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(initMsg)));
         testedNode->handleMessage(linkMessageSource1);
         REQUIRE(registry.getNodes(source1Id).size() == 1);
 
@@ -161,12 +168,13 @@ TEST_CASE("Remote Node")
         int requestId1 = 189;
         int requestId2 = 32;
 
-        auto invokeMethod1 = converter.toString(ApiGear::ObjectLink::Protocol::invokeMessage(requestId1, methodId1, exampleArguments));
-        auto invokeMethod2 = converter.toString(ApiGear::ObjectLink::Protocol::invokeMessage(requestId2, methodId2, exampleArguments));
+        auto invokeMethod1 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::invokeMessage(*(serializer->createWriter()), requestId1, methodId1, exampleArguments));
+        auto invokeMethod2 = serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::invokeMessage(*(serializer->createWriter()), requestId2, methodId2, exampleArguments));
 
-        auto result = ApiGear::ObjectLink::invokeReturnValue(123);
+        auto result = ContentSerializer::Value::serialize(123);
         REQUIRE_CALL(*source1, olinkInvoke(methodId1, exampleArguments)).RETURN(result);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId1, methodId1, { result }))));
+        ApiGear::ObjectLink::OLinkMessage invokeReply = ApiGear::ObjectLink::Protocol::invokeReplyMessage(*(serializer->createWriter()), requestId1, methodId1, result);
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(invokeReply)));
         testedNode->handleMessage(invokeMethod1);
         // Won't have any effect, no source 2 added
         testedNode->handleMessage(invokeMethod2);
@@ -178,14 +186,14 @@ TEST_CASE("Remote Node")
     SECTION("sending signal message")
     {
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(source1Id, signalName);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::signalMessage(signalId, exampleArguments))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::signalMessage(*(serializer->createWriter()), signalId, exampleArguments))));
         testedNode->notifySignal(signalId, exampleArguments);
     }
 
     SECTION("sending property")
     {
         auto propertyId = ApiGear::ObjectLink::Name::createMemberId(source1Id, propertyName);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, { propertyValue }))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::propertyChangeMessage(*(serializer->createWriter()), propertyId, propertyValue))));
         testedNode->notifyPropertyChange(propertyId, propertyValue);
     }
 
@@ -195,6 +203,7 @@ TEST_CASE("Remote Node")
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
 
         nodeWithoutSetWriteFunction->onLog([&outputMock](auto level, const auto& msg){outputMock.logMessage(level, msg); });
+        nodeWithoutSetWriteFunction->onWrite(nullptr, serializer);
         nodeWithoutSetWriteFunction->setLogLevel(ApiGear::ObjectLink::LogLevel::Info);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(source1Id, "any");

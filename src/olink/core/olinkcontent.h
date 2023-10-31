@@ -34,128 +34,21 @@ namespace ObjectLink {
 struct OLinkContent
 {
     //std::string content;
-    nlohmann::json content;
+    nlohmann::json content = {};
+};
+
+inline std::string getAsString(OLinkContent content)
+{
+    return content.content.dump();
 };
 
 struct InitialProperty
 {
-    std::string propertyName;
-    OLinkContent propertyValue;
+    std::string propertyName = "";
+    OLinkContent propertyValue = {};
 };
-
-template<typename ArgType>
-InitialProperty toInitialProperty(const std::string& name, const ArgType& arg)
-{
-    InitialProperty prop;
-    prop.propertyName = name;
-    prop.propertyValue.content = nlohmann::json(arg);
-    return prop;
-}
-
-template<typename ValueType>
-void readValue(InitialProperty& property, ValueType& value)
-{
-    value = property.propertyValue.content.get<ValueType>();
-}
-
-inline void from_json(const nlohmann::json& j, InitialProperty& p)
-{
-    p.propertyName = j[0].get<std::string>();
-    p.propertyValue.content = j[1];
-}
-inline void to_json(nlohmann::json& j, const InitialProperty& p)
-{
-    j = nlohmann::json{ p.propertyName, p.propertyValue.content };
-}
 inline bool operator==(const OLinkContent& lhs, const OLinkContent& rhs)
 {
     return lhs.content == rhs.content;
 }
-
-// If content always come as array this is not needed
-template<typename ValueType>
-OLinkContent invokeReturnValue(const ValueType& value)
-{
-    OLinkContent content;
-    content.content = nlohmann::json(value);
-    return content;
-}
-
-
-// If content always come as array this is not needed
-// Use to write single value for: setProperty, notifyProperty
-// see argumentsToContent for writing arguments - even if a single one.
-template<typename ValueType>
-OLinkContent propertyToContent(ValueType value)
-{
-    OLinkContent content;
-    content.content = nlohmann::json(value);
-    return content;
-}
-
-// last call of recursive fillContent(nlohmann::json::array& content_array, T const& first, Parameters const&... rest)
-inline void fillContent(nlohmann::json& content_array, size_t current)
-{
-    (void)content_array;
-    (void)current;
-}
-
-template <typename T, typename... Parameters>
-void fillContent(nlohmann::json& content_array, size_t current, const T& first, const Parameters&... rest)
-{
-    content_array[current] = first;
-    current++;
-    fillContent(content_array, current, rest...);
-}
-
-// Read if single value, for setProperty, notifyProperty, invokeResponse
-template<typename ValueType>
-void readValue(const OLinkContent& content, ValueType& value)
-{
-    value = content.content.get<ValueType>();
-}
-
-// Use to write arguments for: notifySignal, invoke, even if there is a single argument
-template<typename ... Parameters>
-OLinkContent argumentsToContent(const Parameters&  ...inputs)
-{
-    OLinkContent content;
-    content.content = nlohmann::json::array();
-    auto inputs_size = sizeof...(inputs);
-    content.content.get_ptr<nlohmann::json::array_t*>()->reserve(inputs_size);
-    size_t current = 0;
-    fillContent(content.content, current, inputs...);
-    return content;
-}
-
-
-// Use to read for arguments: notifySignal, invoke
-struct OLinContentStreamReader
-{
-    OLinContentStreamReader(const OLinkContent& content)
-        :m_content(content)
-    {}
-
-    template<typename ArgType>
-    void read(ArgType& arg)
-    {
-        arg = m_content.content[currentIndex].get<ArgType>();
-        currentIndex++;
-    }
-    size_t argumentsCount()
-    {
-        return  m_content.content.size();
-    }
-
-private:
-    const OLinkContent& m_content;
-    size_t currentIndex = 0;
-};
-
-inline std::string toString(const OLinkContent& content)
-{
-    return content.content.dump();
-}
-
-
 }} //namespace ApiGear::ObjectLink

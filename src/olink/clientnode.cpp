@@ -28,7 +28,15 @@ void ClientNode::linkRemote(const std::string& objectId)
 {
     static const std::string linkRemoteLog = "ClientNode.linkRemote: ";
     emitLog(LogLevel::Info, linkRemoteLog, objectId);
-    emitWrite(Protocol::linkMessage(objectId));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::linkMessage(*writer, objectId));
+        }
+    }
     m_registry.unsetNode(objectId);
     m_registry.setNode(m_nodeId, objectId);
 }
@@ -41,7 +49,15 @@ void ClientNode::unlinkRemote(const std::string& objectId)
     if (sink){
         sink->olinkOnRelease();
     }
-    emitWrite(Protocol::unlinkMessage(objectId));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::unlinkMessage(*writer, objectId));
+        }
+    }
     m_registry.unsetNode(objectId);
 }
 
@@ -53,16 +69,30 @@ void ClientNode::invokeRemote(const std::string& methodId, const OLinkContent& a
     std::unique_lock<std::mutex> lock(m_pendingInvokesMutex);
     m_invokesPending[requestId] = func;
     lock.unlock();
-    auto msg = Protocol::invokeMessage(requestId, methodId, args);
-    emitWrite(msg);
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::invokeMessage(*writer, requestId, methodId, args));
+        }
+    }
 }
 
 void ClientNode::setRemoteProperty(const std::string& propertyId, const OLinkContent& value)
 {
     static const std::string setRemotePropertyLog = "ClientNode.setRemoteProperty: ";
     emitLog(LogLevel::Info, setRemotePropertyLog, propertyId);
-    auto msg = Protocol::setPropertyMessage(propertyId, value);
-    emitWrite(msg);
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::setPropertyMessage(*writer, propertyId, value));
+        }
+    }
 }
 
 ClientRegistry& ClientNode::registry()
@@ -148,10 +178,10 @@ void ClientNode::handleSignal(const std::string& signalId, const OLinkContent& a
     }
 }
 
-void ClientNode::handleError(int msgType, int requestId, const std::string& error)
+void ClientNode::handleError(MsgType msgType, int requestId, const std::string& error)
 {
     static const std::string errorLog = "ClientNode.handleError: ";
-    emitLog(LogLevel::Info, errorLog, std::to_string(msgType), std::to_string(requestId), error);
+    emitLog(LogLevel::Info, errorLog, toString(msgType), std::to_string(requestId), error);
 }
 
 int ClientNode::nextRequestId()

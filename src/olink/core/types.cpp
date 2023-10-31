@@ -57,60 +57,6 @@ std::string Name::createMemberId(const std::string& objectId, const std::string&
     return objectId + "/" + memberName;
 }
 
-// ********************************************************************
-// MessageConverter
-// ********************************************************************
-
-MessageConverter::MessageConverter(MessageFormat format)
-    : m_format(format)
-{
-}
-
-void MessageConverter::setMessageFormat(MessageFormat format)
-{
-    m_format = format;
-}
-
-OLinkMessage MessageConverter::fromString(const std::string& message)
-{
-    OLinkMessage olinkMessage;
-    switch(m_format) {
-    case MessageFormat::JSON:
-        olinkMessage.message = nlohmann::json::parse(message); break;
-    case MessageFormat::BSON:
-        olinkMessage.message = nlohmann::json::from_bson(message); break;
-    case MessageFormat::MSGPACK:
-        olinkMessage.message = nlohmann::json::from_msgpack(message); break;
-    case MessageFormat::CBOR:
-        olinkMessage.message = nlohmann::json::from_cbor(message); break;
-    }
-
-    return olinkMessage;
-}
-
-std::string MessageConverter::toString(const OLinkMessage& j)
-{
-    switch(m_format) {
-    case MessageFormat::JSON:
-        return j.message.dump();
-    case MessageFormat::BSON:
-    {
-        auto bsonData = nlohmann::json::to_bson(j.message);
-        return std::string(bsonData.begin(), bsonData.end());
-    }
-    case MessageFormat::MSGPACK:
-    {
-        auto msgPackData = nlohmann::json::to_msgpack(j.message);
-        return std::string(msgPackData.begin(), msgPackData.end());
-    }
-    case MessageFormat::CBOR:
-    {
-        auto cbotData = nlohmann::json::to_cbor(j.message);
-        return std::string(cbotData.begin(), cbotData.end());
-    }
-    }
-    return std::string();
-}
 
 std::string toString(MsgType type) {
     static std::map<MsgType, std::string> typeNames = {

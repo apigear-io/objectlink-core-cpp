@@ -3,8 +3,8 @@
 #include "protocol.h"
 #include "types.h"
 #include "olink_common.h"
-#include "nlohmann/json.hpp"
 #include <cstring>
+#include "imessageserializer.h"
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -21,18 +21,13 @@ public:
     * Network layer implementation should deliver this function,
     * with which messages are sent through network.
     */
-    void onWrite(WriteMessageFunc func);
+    void onWrite(WriteMessageFunc func, std::shared_ptr<IMessageSerializer> serializer);
     /**
     * Use this function to format message and send it through the network.
     * It uses the WriteMessageFunc provided by network layer implementation with onWrite(WriteMessageFunc) call.
     * @param j The data to send, translated according to chosen network message format before sending.
     */
     virtual void emitWrite(const OLinkMessage& j);
-
-    /**
-    * Use to change messages network format.
-    */
-    void setMessageFormat(MessageFormat format);
 
     // Implementation::IMessageHandler
     void handleMessage(const std::string& data) override;
@@ -54,12 +49,13 @@ public:
     // Empty, logging only implementation of IProtocolListener::handlePropertyChange, should be overwritten on client side.
     void handlePropertyChange(const std::string& propertyId, const OLinkContent& value) override;
     // Empty, logging only implementation of IProtocolListener::handleError, should be overwritten on both client and server side.
-    void handleError(int msgType, int requestId, const std::string& error) override;
+    void handleError(MsgType msgType, int requestId, const std::string& error) override;
+    std::shared_ptr<IMessageSerializer> getSerializer();
 private:
     /** Function with which messages are sent through network after translation to chosen network format */
     WriteMessageFunc m_writeFunc = nullptr;
-    /** A message converter, translates messages to and from chosen network format*/
-    MessageConverter m_converter = MessageFormat::JSON;
+    /** A message serializer, that specifies how to encode and decode messages. Used by protocol. */
+    std::shared_ptr<IMessageSerializer> m_serializer;
     /** ObjectLink protocol*/
     Protocol m_protocol;
 };

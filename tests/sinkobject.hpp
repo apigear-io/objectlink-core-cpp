@@ -5,8 +5,10 @@
 #include "olink/clientregistry.h"
 #include <iostream>
 #include <list>
+#include "olink/core/defaultcontentserializer.h"
 
 using namespace ApiGear::ObjectLink;
+namespace ContentSerializer = ApiGear::ObjectLink::NlohmannSerializer;
 
 class CalcSink: public IObjectSink {
 public:
@@ -23,21 +25,21 @@ public:
         return m_total;
     }
     void setTotal(int value) {
-        client()->setRemoteProperty("demo.Calc/total", propertyToContent(value));
+        client()->setRemoteProperty("demo.Calc/total", ContentSerializer::Value::serialize(value));
     }
     int add(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply" << arg.methodId << toString(arg.value);
+            std::cout << "invoke reply" << arg.methodId << ApiGear::ObjectLink::getAsString(arg.value);
         };
-        client()->invokeRemote("demo.Calc/add", argumentsToContent(a), func);
+        client()->invokeRemote("demo.Calc/add", ContentSerializer::Arguments::serialize(a), func);
 
         return -1;
     }
     int sub(int a) {
         InvokeReplyFunc func = [](InvokeReplyArg arg) {
-            std::cout << "invoke reply " << arg.methodId << toString(arg.value);
+            std::cout << "invoke reply " << arg.methodId << ApiGear::ObjectLink::getAsString(arg.value);
         };
-        client()->invokeRemote("demo.Calc/sub", argumentsToContent(a), func);
+        client()->invokeRemote("demo.Calc/sub", ContentSerializer::Arguments::serialize(a), func);
         return -1;
     }
     IClientNode *client() const {
@@ -53,19 +55,19 @@ public:
         return "demo.Calc";
     }
     void olinkOnSignal(const std::string& name, const OLinkContent& args) override {
-        std::cout << "onSignal" << name  << toString(args) << std::endl;
-        OLinContentStreamReader reader(args);
+        std::cout << "onSignal" << name  << ApiGear::ObjectLink::getAsString(args) << std::endl;
+        ContentSerializer::Arguments::Deserializer reader(args);
         int signalArgValue;
-        reader.read(signalArgValue);
+        reader.getNext(signalArgValue);
         events.push_back(std::make_pair(name, signalArgValue));
 
     }
     void olinkOnPropertyChanged(const std::string& name, const OLinkContent& value) override {
-        std::cout << "onPropertyChanged" << name << toString(value) << std::endl;
+        std::cout << "onPropertyChanged" << name << ApiGear::ObjectLink::getAsString(value) << std::endl;
         std::string path = Name::getMemberName(name);
         if(path == "total") {
             int total = 0;
-            readValue(value, total);
+            ContentSerializer::Value::deserialize(value, total);
             if(m_total != total) {
                 m_total = total;
             }
@@ -73,15 +75,15 @@ public:
 
     }
     void olinkOnInit(const std::string& name, const OLinkContent& props, IClientNode* client) override {
-        std::cout << "CalcSink.olinkOnInit: " << name << toString(props) << std::endl;
+        std::cout << "CalcSink.olinkOnInit: " << name << ApiGear::ObjectLink::getAsString(props) << std::endl;
         m_client = client;
         m_ready = true;
         InitialProperty expectTotalProperty;
-        OLinContentStreamReader reader(props);
-        reader.read(expectTotalProperty);
+        ContentSerializer::Arguments::Deserializer reader(props);
+        reader.getNext(expectTotalProperty);
         if(expectTotalProperty.propertyName == "total") {
             int total = 0;
-            readValue(expectTotalProperty, total);
+            ContentSerializer::fromInitialProperty(expectTotalProperty, total);
             if(m_total != total) {
                 m_total = total;
             }

@@ -79,7 +79,7 @@ protected:
     /** IProtocolListener::handleSignal implementation */
     void handleSignal(const std::string& signalId, const OLinkContent& args) override;
     /** IProtocolListener::handleError implementation */
-    void handleError(int msgType, int requestId, const std::string& error) override;
+    void handleError(MsgType msgType, int requestId, const std::string& error) override;
 
     /**
      * Returns a request id for outgoing messages.

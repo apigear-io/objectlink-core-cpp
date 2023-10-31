@@ -29,169 +29,158 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-namespace 
+
+
+OLinkMessage& Protocol::linkMessage(IMessageWriter& serializer, const std::string& objectId)
 {
-    OLinkMessage createMessage(MsgType msgType, const std::string& id)
-    {
-        OLinkMessage message;
-        message.message = nlohmann::json::array({ msgType, id });
-        return message;
-    }
-
-    OLinkMessage createMessage(MsgType msgType, const std::string& id, const OLinkContent& props)
-    {
-        OLinkMessage message;
-        message.message = nlohmann::json::array({ msgType, id, props.content });
-        return message;
-    }
-
-    OLinkMessage createMessage(MsgType msgType, int callId, const std::string& id, const OLinkContent& props)
-    {
-        OLinkMessage message;
-        message.message = nlohmann::json::array({ msgType, callId, id, props.content });
-        return message;
-    }
-
-    OLinkMessage createErrorMessage(MsgType msgType, int id, const std::string& errorMsg)
-    {
-        OLinkMessage message;
-        message.message = nlohmann::json::array({ MsgType::Error, msgType, id, errorMsg });
-        return message;
-    }
+    serializer.writeNext(MsgType::Link);
+    return serializer.writeNext(objectId);
 }
 
-OLinkMessage Protocol::linkMessage(const std::string& objectId)
+OLinkMessage& Protocol::unlinkMessage(IMessageWriter& serializer, const std::string& objectId)
 {
-    return createMessage(MsgType::Link, objectId);
+    serializer.writeNext(MsgType::Unlink);
+    return serializer.writeNext(objectId);
 }
 
-OLinkMessage Protocol::unlinkMessage(const std::string& objectId)
+OLinkMessage& Protocol::initMessage(IMessageWriter& serializer, const std::string& objectId, const OLinkContent& props)
 {
-    return createMessage(MsgType::Unlink, objectId);
+    serializer.writeNext(MsgType::Init);
+    serializer.writeNext(objectId);
+    return serializer.writeNext(props);
 }
 
-OLinkMessage Protocol::initMessage(const std::string& objectId, const OLinkContent& props)
+OLinkMessage& Protocol::setPropertyMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value)
 {
-    return createMessage(MsgType::Init, objectId, props);
+    serializer.writeNext(MsgType::SetProperty);
+    serializer.writeNext(propertyId);
+    return serializer.writeNext(value);
 }
 
-OLinkMessage Protocol::setPropertyMessage(const std::string& propertyId, const OLinkContent& value)
+OLinkMessage& Protocol::propertyChangeMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value)
 {
-    return createMessage(MsgType::SetProperty, propertyId, value);
+    serializer.writeNext(MsgType::PropertyChange);
+    serializer.writeNext(propertyId);
+    return serializer.writeNext(value);
 }
 
-OLinkMessage Protocol::propertyChangeMessage(const std::string& propertyId, const OLinkContent& value)
+OLinkMessage& Protocol::invokeMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& args)
 {
-    return createMessage(MsgType::PropertyChange, propertyId, value);
+    serializer.writeNext(MsgType::Invoke);
+    serializer.writeNext(requestId);
+    serializer.writeNext(methodId);
+    return serializer.writeNext(args);
 }
 
-OLinkMessage Protocol::invokeMessage(int requestId, const std::string& methodId, const OLinkContent& args)
+OLinkMessage& Protocol::invokeReplyMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& value)
 {
-    return createMessage(MsgType::Invoke, requestId, methodId, args);
+    serializer.writeNext(MsgType::InvokeReply);
+    serializer.writeNext(requestId);
+    serializer.writeNext(methodId);
+    return serializer.writeNext(value);
 }
 
-OLinkMessage Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const OLinkContent& value)
+OLinkMessage& Protocol::signalMessage(IMessageWriter& serializer, const std::string& signalId , const OLinkContent& args)
 {
-    return createMessage(MsgType::InvokeReply, requestId, methodId, value);
+    serializer.writeNext(MsgType::Signal);
+    serializer.writeNext(signalId);
+    return serializer.writeNext(args);
 }
 
-OLinkMessage Protocol::signalMessage(const std::string& signalId , const OLinkContent& args)
+OLinkMessage& Protocol::errorMessage(IMessageWriter& serializer, MsgType msgType, int requestId, const std::string& error)
 {
-    return createMessage(MsgType::Signal, signalId, args);
+    serializer.writeNext(msgType);
+    serializer.writeNext(requestId);
+    return serializer.writeNext(error);
 }
 
-OLinkMessage Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
+bool Protocol::handleMessage(IMessageReader& deserializer, IProtocolListener& listener)
 {
-    return createErrorMessage(msgType, requestId, error);
-}
-
-bool Protocol::handleMessage(const OLinkMessage& message, IProtocolListener& listener) {
-
     m_lastError = "";
-    OLinkMessageStreamReader msgReader(message);
-    auto isValid = msgReader.validate(m_lastError);
+    auto isValid = deserializer.validate(m_lastError);
     if(!isValid) {
         return false;
     }
     MsgType msgType;
-    msgReader.read(msgType);
+    deserializer.readNext(msgType);
     switch(msgType) {
     case MsgType::Link: {
-        std::string objectId;
-        msgReader.read(objectId);
+        std::string objectId = "";
+        deserializer.readNext(objectId);
         listener.handleLink(objectId);
         break;
     }
     case MsgType::Init: {
-        std::string objectId;
-        OLinkContent props;
-        msgReader.read(objectId);
-        msgReader.read(props);
+        std::string objectId = "";
+        OLinkContent props = {};
+        deserializer.readNext(objectId);
+        deserializer.readNext(props);
         listener.handleInit(objectId, props);
         break;
     }
     case MsgType::Unlink: {
-        std::string objectId;
-        msgReader.read(objectId);
+        std::string objectId = "";
+        deserializer.readNext(objectId);
         listener.handleUnlink(objectId);
         break;
     }
     case MsgType::SetProperty: {
-        std::string propertyId;
-        OLinkContent value;
-        msgReader.read(propertyId);
-        msgReader.read(value);
+        std::string propertyId = "";
+        OLinkContent value = {};
+        deserializer.readNext(propertyId);
+        deserializer.readNext(value);
         listener.handleSetProperty(propertyId, value);
         break;
     }
     case MsgType::PropertyChange: {
-        std::string propertyId;
-        OLinkContent value;
-        msgReader.read(propertyId);
-        msgReader.read(value);
+        std::string propertyId = "";
+        OLinkContent value = {};
+        deserializer.readNext(propertyId);
+        deserializer.readNext(value);
         listener.handlePropertyChange(propertyId, value);
         break;
     }
     case MsgType::Invoke: {
-        int callId;
-        std::string methodId;
-        OLinkContent args;
-        msgReader.read(callId);
-        msgReader.read(methodId);
-        msgReader.read(args);
+        int callId = 0;
+        std::string methodId = "";
+        OLinkContent args = {};
+        //TODO DOROTA
+        deserializer.readNext(callId);
+        deserializer.readNext(methodId);
+        deserializer.readNext(args);
         listener.handleInvoke(callId, methodId, args);
         break;
     }
     case MsgType::InvokeReply: {
-        int callId;
-        std::string methodId;
-        OLinkContent value;
-        msgReader.read(callId);
-        msgReader.read(methodId);
-        msgReader.read(value);
+        int callId = 0;
+        std::string methodId = "";
+        OLinkContent value = {};
+        deserializer.readNext(callId);
+        deserializer.readNext(methodId);
+        deserializer.readNext(value);
         listener.handleInvokeReply(callId, methodId, value);
         break;
     }
     case MsgType::Signal: {
-        std::string signalId;
-        OLinkContent args;
-        msgReader.read(signalId);
-        msgReader.read(args);
+        std::string signalId = "";
+        OLinkContent args = {};
+        deserializer.readNext(signalId);
+        deserializer.readNext(args);
         listener.handleSignal(signalId, args);
         break;
     }
     case MsgType::Error: {
-        int msgTypeErr;
-        int requestId;
-        std::string error;
-        msgReader.read(msgTypeErr);
-        msgReader.read(requestId);
-        msgReader.read(error);
+        MsgType msgTypeErr = MsgType::Error;
+        int requestId = 0;
+        std::string error = "";
+        deserializer.readNext(msgTypeErr);
+        deserializer.readNext(requestId);
+        deserializer.readNext(error);
         listener.handleError(msgTypeErr, requestId, error);
         break;
     }
     default:
-        m_lastError = "message not supported: " + msgReader.toString();
+        m_lastError = "message not supported: " + deserializer.getAsString();
         return false;
     }
     return true;

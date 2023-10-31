@@ -27,6 +27,7 @@
 #include "types.h"
 #include "nlohmann/json.hpp"
 #include <cstring>
+#include "imessageserializer.h"
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -101,7 +102,7 @@ public:
      *   It should be used to inform the caller that the response for this call will never arrive and it should not wait for it.
      * @param error The error message.
      */
-    virtual void handleError(int msgType, int requestId, const std::string& error) = 0;
+    virtual void handleError(MsgType msgType, int requestId, const std::string& error) = 0;
 };
 
 /**
@@ -119,7 +120,7 @@ public:
     * @param objectId Id of a service object to which client wants to connect.
     * @return Composed linkMessage in json format.
     */
-    static OLinkMessage linkMessage(const std::string& objectId);
+    static OLinkMessage& linkMessage(IMessageWriter& serializer, const std::string& objectId);
     /**
     * Life-cycle message.
     * Composes an unlink message for given objectId.
@@ -127,7 +128,7 @@ public:
     * @param objectId Id of a service that client no longer wants to use. 
     * @return Composed unlinkMessage in json format.
     */
-    static OLinkMessage unlinkMessage(const std::string& objectId);
+    static OLinkMessage& unlinkMessage(IMessageWriter& serializer, const std::string& objectId);
     /**
     * Life-cycle message.
     * Composes an init message for given objectId and payload in json format.
@@ -137,7 +138,7 @@ public:
     * @param props Current state of the properties provided by service.
     * @return Composed initMessage in json format.
     */
-    static OLinkMessage initMessage(const std::string& objectId, const OLinkContent& props);
+    static OLinkMessage& initMessage(IMessageWriter& serializer, const std::string& objectId, const OLinkContent& props);
     /**
     * Properties message.
     * Composes request a change of property described with propretyId.
@@ -146,7 +147,7 @@ public:
     * @param value Requested value of the property.
     * @return Composed setPropertyMessage in json format.
     */
-    static OLinkMessage setPropertyMessage(const std::string& propertyId, const OLinkContent& value);
+    static OLinkMessage& setPropertyMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value);
     /**
     * Properties message.
     * Composes a notification message for change of property described with propretyId.
@@ -155,7 +156,7 @@ public:
     * @param value Current value of the property.
     * @return Composed propertyChangeMessage in json format.
     */
-    static OLinkMessage propertyChangeMessage(const std::string& propertyId, const OLinkContent& value);
+    static OLinkMessage& propertyChangeMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value);
     /**
     * Method message.
     * Composes a request of method invocation message for a methodId.
@@ -165,7 +166,7 @@ public:
     * @param args Arguments with which method should be invoked.
     * @return Composed invokeMessage in json format.
     */
-    static OLinkMessage invokeMessage(int requestId, const std::string& methodId, const OLinkContent& args);
+    static OLinkMessage& invokeMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& args);
     /**
     * Method message.
     * Composes a response to a method invocation message for a methodId.
@@ -175,7 +176,7 @@ public:
     * @param value Value that is an outcome of method invocation.
     * @return Composed invokeReplyMessage in json format.
     */
-    static OLinkMessage invokeReplyMessage(int requestId, const std::string& methodId, const OLinkContent& value);
+    static OLinkMessage& invokeReplyMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& value);
     /**
     * Signal message.
     * Composes a notification message for signal emitted for signalId.
@@ -184,7 +185,7 @@ public:
     * @param args Arguments with which the signal was emitted.
     * @return Composed signalMessage in json format.
     */
-    static OLinkMessage signalMessage(const std::string& signalId, const OLinkContent& args);
+    static OLinkMessage& signalMessage(IMessageWriter& serializer, const std::string& signalId, const OLinkContent& args);
     /**
     * Error message.
     * Send this message to inform that message was not accepted.
@@ -192,15 +193,14 @@ public:
     * @param error Error description.
     * @return Composed error message in json format.
     */
-    static OLinkMessage errorMessage(MsgType msgType, int requestId, const std::string&error);
-
+    static OLinkMessage& errorMessage(IMessageWriter& serializer, MsgType msgType, int requestId, const std::string&error);
     /**
     * Decodes the message and calls appropriate function handler with decoded arguments.
     * @param msg A message payload in json format. 
     * @param listener An object providing handlers for protocol messages.
     * @return true if message translation was successful and a proper listener handler was called, false otherwise.
     */
-    bool handleMessage(const OLinkMessage& msg, IProtocolListener& listener);
+    bool handleMessage(IMessageReader& deserializer, IProtocolListener& listener);
     
     /** @return error for most recent handleMessage execution*/
     std::string lastError();

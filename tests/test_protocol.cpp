@@ -6,16 +6,20 @@
 #include <string>
 #include "nlohmann/json.hpp"
 
+#include "olink/core/defaultmessageserializer.h"
+#include "olink/core/defaultcontentserializer.h"
 
 using namespace ApiGear::ObjectLink;
 
+namespace ContentSerializer = ApiGear::ObjectLink::NlohmannSerializer;
 
 TEST_CASE("protocol")
 {
+    auto serializer = std::make_shared<ApiGear::ObjectLink::NlohmannMessageSerializer>();
     std::string name = "demo.Calc";
     int initialValueForCount = 0;
     std::string initPropertyName = "count";
-    auto initialProperties = argumentsToContent(toInitialProperty("count", initialValueForCount));
+    auto initialProperties = ContentSerializer::Arguments::serialize(ContentSerializer::toInitialProperty("count", initialValueForCount));
     int value = 1;
     int int_argument = 1;
     std::string string_argument = "some";
@@ -29,32 +33,32 @@ TEST_CASE("protocol")
     int expected_requestId = 9999; //Different than requestId, will be overridden with correct value.
 
     SECTION("link") {
-        auto msg = Protocol::linkMessage(name);
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
+        auto msg = Protocol::linkMessage(*(serializer->createWriter()), name);
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
         REQUIRE(created_type == MsgType::Link);
         REQUIRE(created_id == name);
     }
     SECTION("unlink") {
-        auto msg = Protocol::unlinkMessage(name);
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
+        auto msg = Protocol::unlinkMessage(*(serializer->createWriter()), name);
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
         REQUIRE(created_type == MsgType::Unlink);
         REQUIRE(created_id == name);
     }
     SECTION("init") {
-        auto msg = Protocol::initMessage(name, initialProperties);
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
-        OLinContentStreamReader contentReader(messageContent);
+        auto msg = Protocol::initMessage(*(serializer->createWriter()), name, initialProperties);
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
+        ContentSerializer::Arguments::Deserializer contentReader(messageContent);
         InitialProperty expectedInitialProperty;
-        contentReader.read(expectedInitialProperty);
+        contentReader.getNext(expectedInitialProperty);
         int expectedInitValue =  9999;
-        readValue(expectedInitialProperty, expectedInitValue);
+        ContentSerializer::fromInitialProperty(expectedInitialProperty, expectedInitValue);
 
         REQUIRE(created_type == MsgType::Init);
         REQUIRE(created_id == name);
@@ -62,88 +66,91 @@ TEST_CASE("protocol")
         REQUIRE(expectedInitValue == initialValueForCount);
     }
     SECTION("setProperty") {
-        auto msg = Protocol::setPropertyMessage(name, propertyToContent(value));
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
+        auto msg = Protocol::setPropertyMessage(*(serializer->createWriter()), name, ContentSerializer::Value::serialize(value));
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
         int expectedValue = 9999;
-        readValue(messageContent, expectedValue);
+        ContentSerializer::Value::deserialize(messageContent, expectedValue);
         REQUIRE(created_type == MsgType::SetProperty);
         REQUIRE(created_id == name);
         REQUIRE(expectedValue == value);
     }
     SECTION("propertyChange") {
-        auto msg = Protocol::propertyChangeMessage(name, propertyToContent( value ));
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
+        auto msg = Protocol::propertyChangeMessage(*(serializer->createWriter()), name, ContentSerializer::Value::serialize( value ));
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
         int expectedValue = 9999;
-        readValue(messageContent, expectedValue);
+        ContentSerializer::Value::deserialize(messageContent, expectedValue);
         REQUIRE(created_type == MsgType::PropertyChange);
         REQUIRE(created_id == name);
         REQUIRE(expectedValue == value);
     }
     SECTION("invoke") {
-        auto msg = Protocol::invokeMessage(requestId, name, argumentsToContent(int_argument, string_argument));
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(expected_requestId);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
-        OLinContentStreamReader contentReader(messageContent);
-        int expected_int = 9999;
-        std::string expected_string = "this should be filled with expected content";
-        contentReader.read(expected_int);
-        contentReader.read(expected_string);
+        auto msg = Protocol::invokeMessage(*(serializer->createWriter()), requestId, name, ContentSerializer::Arguments::serialize(int_argument, string_argument));
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(expected_requestId);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
+
         REQUIRE(created_type == MsgType::Invoke);
         REQUIRE(created_id == name);
         REQUIRE(expected_requestId == requestId);
+
+        ContentSerializer::Arguments::Deserializer contentReader(messageContent);
+        int expected_int = 9999;
+        std::string expected_string = "this should be filled with expected content";
+        contentReader.getNext(expected_int);
+        contentReader.getNext(expected_string);
+
         REQUIRE(expected_int == int_argument);
         REQUIRE(expected_string == string_argument);
     }
     SECTION("invokeReply") {
-        auto msg = Protocol::invokeReplyMessage(requestId, name, invokeReturnValue( value ));
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(expected_requestId);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
+        auto msg = Protocol::invokeReplyMessage(*(serializer->createWriter()), requestId, name, ContentSerializer::Value::serialize( value ));
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(expected_requestId);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
     
         int expectedValue = 9999;
-        readValue(messageContent, expectedValue);
+        ContentSerializer::Value::deserialize(messageContent, expectedValue);
 
         REQUIRE(created_type == MsgType::InvokeReply);
         REQUIRE(created_id == name);
         REQUIRE(expectedValue == value);
     }
     SECTION("signal") {
-        auto msg = Protocol::signalMessage(name, argumentsToContent(int_argument, string_argument));
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(created_id);
-        msgReader.read(messageContent);
-        OLinContentStreamReader contentReader(messageContent);
+        auto msg = Protocol::signalMessage(*(serializer->createWriter()), name, ContentSerializer::Arguments::serialize(int_argument, string_argument));
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(created_id);
+        msgReader->readNext(messageContent);
+        ContentSerializer::Arguments::Deserializer contentReader(messageContent);
         int expected_int = 9999;
         std::string expected_string = "this should be filled with expected content";
-        contentReader.read(expected_int);
-        contentReader.read(expected_string);
+        contentReader.getNext(expected_int);
+        contentReader.getNext(expected_string);
         REQUIRE(created_type == MsgType::Signal);
         REQUIRE(created_id == name);
         REQUIRE(expected_int == int_argument);
         REQUIRE(expected_string == string_argument);
     }
     SECTION("error") {
-        auto msg = Protocol::errorMessage(msgType, requestId, error);
+        auto msg = Protocol::errorMessage(*(serializer->createWriter()), msgType, requestId, error);
         REQUIRE(msgType != MsgType::Error);
         MsgType expected_msgTypeWithError = MsgType::Error;// should be overridden
         std::string expected_error = "";
-        auto msgReader = OLinkMessageStreamReader(msg);
-        msgReader.read(created_type);
-        msgReader.read(expected_msgTypeWithError);
-        msgReader.read(expected_requestId);
-        msgReader.read(expected_error);
+        auto msgReader = serializer->createReader(msg);
+        msgReader->readNext(created_type);
+        msgReader->readNext(expected_msgTypeWithError);
+        msgReader->readNext(expected_requestId);
+        msgReader->readNext(expected_error);
 
         REQUIRE(created_type == MsgType::Error);
         REQUIRE(expected_msgTypeWithError == msgType);

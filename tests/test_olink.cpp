@@ -14,9 +14,15 @@
 #include <string>
 #include <memory>
 
+#include "olink/core/defaultmessageserializer.h"
+#include "olink/core/defaultcontentserializer.h"
+
+namespace ContentSerializer = ApiGear::ObjectLink::NlohmannSerializer;
+
 
 using namespace ApiGear::ObjectLink;
 
+auto serializer = std::make_shared<ApiGear::ObjectLink::NlohmannMessageSerializer>();
 
 TEST_CASE("link")
 {
@@ -24,6 +30,7 @@ TEST_CASE("link")
     registry.onLog(ConsoleLogger::logFunc());
     ClientRegistry clientRegistry;
     clientRegistry.onLog(ConsoleLogger::logFunc());
+
 
     // setup service
     auto remote = RemoteNode::createRemoteNode(registry);
@@ -39,12 +46,12 @@ TEST_CASE("link")
     WriteMessageFunc clientWriteFunc = [&remote](std::string msg) {
         remote->handleMessage(msg);
     };
-    client->onWrite(clientWriteFunc);
+    client->onWrite(clientWriteFunc, serializer);
 
     WriteMessageFunc sourceWriteFunc = [&client](std::string msg) {
         client->handleMessage(msg);
     };
-    remote->onWrite(sourceWriteFunc);
+    remote->onWrite(sourceWriteFunc, serializer);
 
     SECTION("link ->, <- init") {
         // not initialized sink, with total=0
@@ -81,12 +88,12 @@ TEST_CASE("setProperty")
     WriteMessageFunc sinkWriteFunc = [&remote](std::string msg) {
         remote->handleMessage(msg);
     };
-    client->onWrite(sinkWriteFunc);
+    client->onWrite(sinkWriteFunc, serializer);
 
     WriteMessageFunc sourceWriteFunc = [&client](std::string msg) {
         client->handleMessage(msg);
     };
-    remote->onWrite(sourceWriteFunc);
+    remote->onWrite(sourceWriteFunc, serializer);
 
     // register source object
     registry.addSource(source);
@@ -126,12 +133,12 @@ TEST_CASE("signal")
     WriteMessageFunc sinkWriteFunc = [&remote](std::string msg) {
         remote->handleMessage(msg);
     };
-    client->onWrite(sinkWriteFunc);
+    client->onWrite(sinkWriteFunc, serializer);
 
     WriteMessageFunc sourceWriteFunc = [&client](std::string msg) {
         client->handleMessage(msg);
     };
-    remote->onWrite(sourceWriteFunc);
+    remote->onWrite(sourceWriteFunc, serializer);
 
     // register source object
     registry.addSource(source);
@@ -169,12 +176,12 @@ TEST_CASE("invoke")
     WriteMessageFunc clientWriteFunc = [&remote](std::string msg) {
         remote->handleMessage(msg);
     };
-    client->onWrite(clientWriteFunc);
+    client->onWrite(clientWriteFunc, serializer);
 
     WriteMessageFunc serviceWriteFunc = [&client](std::string msg) {
         client->handleMessage(msg);
     };
-    remote->onWrite(serviceWriteFunc);
+    remote->onWrite(serviceWriteFunc, serializer);
 
 
     // register source object

@@ -55,66 +55,11 @@ struct OLinkMessage
     nlohmann::json message;
 };
 
-struct OLinkMessageStreamReader
-{
-    OLinkMessageStreamReader(const OLinkMessage& message)
-        :m_message(message)
-    {}
-
-    void read(MsgType& arg)
-    {
-        arg = static_cast<MsgType>(m_message.message[currentIndex].get<int>());
-        currentIndex++;
-    }
-
-    bool validate(std::string& out_error) const
-    {
-        if (!m_message.message.is_array()) {
-            out_error = "message must be array";
-            return false;
-        }
-        return true;
-    }
-
-    void read(OLinkContent& arg)
-    {
-        arg.content = m_message.message[currentIndex].get<nlohmann::json>();
-        currentIndex++;
-    }
-
-    template<typename ArgType>
-    void read(ArgType& arg)
-    {
-        arg = m_message.message[currentIndex].get<ArgType>();
-        currentIndex++;
-    }
-
-    std::string toString()
-    {
-        return m_message.message.dump();
-    }
-
-private:
-    const OLinkMessage& m_message;
-    size_t currentIndex = 0;
-};
-
-
 /**
 * Use this function to convert message type to string with the message name.
 */
 std::string toString(MsgType type);
 
-/**
-* Choose one of the available message formats for object link protocol messages.
-*/
-enum MessageFormat
-{
-    JSON = 1,
-    BSON = 2,
-    MSGPACK = 3,
-    CBOR = 4
-};
 
 /**
 * Logging levels for logs across the application.
@@ -148,37 +93,6 @@ public:
     static bool isMemberId(const std::string& id);
     /** Use this function to combines the given objectId and a member name into a memberId according to protocol*/
     static std::string createMemberId(const std::string& objectId, const std::string& memberName);
-};
-
-/**
-* 
-*/
-class OLINK_EXPORT MessageConverter {
-public:
-    /**ctor
-    * @param format network message format used for packing messages
-    */
-    MessageConverter(MessageFormat format);
-    /**
-    * Change network format used for message packing.
-    * @param format Requested message format.
-    */
-    void setMessageFormat(MessageFormat format);
-    /**
-    * Unpacks message received from network according to selected message format.
-    * @param message A message received from network.
-    * @return Unpacked message in json format.
-    */
-    OLinkMessage fromString(const std::string& message);
-    /**
-    * Formats message to selected network message format.
-    * @param j message Message to send, not formated.
-    * @return message in network message format.
-    */
-    std::string toString(const OLinkMessage& j);
-private:
-    /**Currently used network message format*/
-    MessageFormat m_format;
 };
 
 /**
