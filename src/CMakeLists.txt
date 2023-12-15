@@ -14,6 +14,10 @@ if(NOT nlohmann_json_FOUND)
   FetchContent_MakeAvailable(json)
 endif()
 
+# needed to access CMAKE_INSTALL_LIBDIR
+include(GNUInstallDirs)
+set(InstallDir ${CMAKE_INSTALL_LIBDIR}/cmake/olink_core)
+
 set(OLINK_SOURCES
     olink/core/basenode.cpp
     olink/core/protocol.cpp
@@ -48,10 +52,7 @@ endif()
 
 # install binary files
 install(TARGETS olink_core
-        EXPORT olink_coreConfig
-        RUNTIME DESTINATION bin COMPONENT Runtime
-        LIBRARY DESTINATION lib COMPONENT Runtime
-        ARCHIVE DESTINATION lib/olink_core COMPONENT Development)
+        EXPORT olink_coreConfig)
 # install includes
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/olink DESTINATION include FILES_MATCHING PATTERN "*.h")
 include(CMakePackageConfigHelpers)
@@ -61,5 +62,5 @@ export(TARGETS
 )
 install(EXPORT
     olink_coreConfig
-    DESTINATION "lib/olink_core/cmake"
+    DESTINATION ${InstallDir}
 )
