@@ -209,7 +209,6 @@ public:
     *        Payload is put at the end of the created log message.
     *        Conversion is performed only if message will be logged:
     *        the log function is set and log level is not lower than a set log level.
-    * @param logMessage a log message to log.
     * Have in mind that this operation has a high cost and should not be use often.
     */
     template<typename ... Parameters>
