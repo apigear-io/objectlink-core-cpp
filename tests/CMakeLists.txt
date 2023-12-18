@@ -1,7 +1,6 @@
 set(SPDLOG_DEBUG_ON true)
 set(SPDLOG_TRACE_ON true)
 
-if(BUILD_TESTING)
 enable_testing()
 
 Include(FetchContent)
@@ -48,4 +47,3 @@ else()
   target_compile_options(tst_olink PRIVATE /W4 /WX PUBLIC /wd4251)
 endif()
 
-endif() # BUILD_TESTING
