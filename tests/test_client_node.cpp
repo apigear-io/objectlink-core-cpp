@@ -5,31 +5,39 @@
 #include "olink/clientnode.h"
 #include "olink/clientregistry.h"
 #include "olink/core/types.h"
+#include "olink/core/defaultmessageserializer.h"
+#include "olink/core/defaultcontentserializer.h"
 
 #include "mocks.h"
 #include "matchers.h"
+
+namespace ContentSerializer = ApiGear::ObjectLink::NlohmannSerializer;
 
 namespace {
     // helper constants used in test.
     std::string sink1Id = "tests.sink1";
     std::string sink2Id = "tests.sink2";
     std::string propertyName = "exampleProprety";
-    nlohmann::json propertyValue = {{8}};
-    nlohmann::json otherPropertyValue = {{115}};
-    nlohmann::json exampleInitProperties = { {propertyName, "some_string" }, {"property2",  9}, {"arg2", false } };
+    std::string stringProperty = "some string";
+    auto serializer = std::make_shared<ApiGear::ObjectLink::NlohmannMessageSerializer>();
+    int someIntValue = 9;
+    bool someBoolValue= false;
+    auto propertyValue = ContentSerializer::Value::serialize(8);
+    auto otherPropertyValue = ContentSerializer::Value::serialize(115);
+    ApiGear::ObjectLink::OLinkContent exampleInitProperties = ContentSerializer::Arguments::serialize(
+        ContentSerializer::toInitialProperty(propertyName, stringProperty),
+        ContentSerializer::toInitialProperty("property2", someIntValue),
+        ContentSerializer::toInitialProperty("property3", someBoolValue));
     std::string methodName = "exampleMethod";
     std::string signalName = "exampleSingal";
-    nlohmann::json exampleArguments = {{"arg1", "some_string" }, {"arg2",  9}, {"arg2", false } };
-
-    // Converter used in tests, should be same as one used by node.
-    ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
+    ApiGear::ObjectLink::OLinkContent exampleArguments = ContentSerializer::Arguments::serialize(stringProperty, 9, false);
 
     // Helper function which gets from a InvokeMessage a requestId given by clientNode.
     int retrieveRequestId(const std::string& networkMessage)
     {
-        const auto& requestMessage = converter.fromString(networkMessage);
-        REQUIRE(requestMessage[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
-        int result = requestMessage[1].get<int>();
+        const auto& requestMessage = serializer->fromNetworkFormat(networkMessage);
+        REQUIRE(requestMessage.message[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
+        int result = requestMessage.message[1].get<int>();
         return result;
     };
 
@@ -53,7 +61,7 @@ TEST_CASE("Client Node")
     // Test node kept as ptr to destroy before going out of scope of test. Allows testing destructor.
     auto testedNode = ApiGear::ObjectLink::ClientNode::create(registry);
     // Setting up an output for sending messages. This function must be set by user.
-    testedNode->onWrite([&outputMock](const auto& msg){outputMock.writeMessage(msg); });
+    testedNode->onWrite([&outputMock](const auto& msg){outputMock.writeMessage(msg); }, serializer);
 
     SECTION("Typical setup and tear down scenario - the node ends life before the sinks, client node need to unlink sinks")
     {
@@ -61,16 +69,16 @@ TEST_CASE("Client Node")
         registry.addSink(sink1);
 
         // link sinks
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink2Id))));
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
         REQUIRE(registry.getNode(sink1Id).lock() == testedNode);
         REQUIRE(registry.getNode(sink2Id).lock() == testedNode);
 
         // Expectations on dtor
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink2Id))));
 
         REQUIRE_CALL(*sink1, olinkOnRelease());
         REQUIRE_CALL(*sink2, olinkOnRelease());
@@ -101,7 +109,7 @@ TEST_CASE("Client Node")
         FORBID_CALL(outputMock, writeMessage(ANY(std::string)));
         
         // No olinkRelease call as there is no sink
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink3Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink3Id))));
         testedNode->unlinkRemote(sink3Id);
 
         testedNode.reset();
@@ -113,14 +121,14 @@ TEST_CASE("Client Node")
         registry.addSink(sink2);
 
         // link sinks with one call
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink2Id))));
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
         // unlink sinks with one call
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink2->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink2->olinkObjectName()))));
         REQUIRE_CALL(*sink2, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode->unlinkRemote(sink2Id);
@@ -133,28 +141,28 @@ TEST_CASE("Client Node")
         registry.addSink(sink1);
 
         // link sinks
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
 
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
 
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
 
         registry.removeSink(sink1Id);
-        FORBID_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1Id))));
+        FORBID_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode.reset();
     }
 
     SECTION("invoking method and handling the invoke reply - successful scenario")
     {
         registry.addSink(sink1);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
         registry.addSink(sink2);
         // Sink doesn't have to be linked to get back the response.
@@ -168,16 +176,18 @@ TEST_CASE("Client Node")
 
         // Invoke for sink2
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, exampleArguments.dump()}, converter)))
+        auto expectedrgumentsAsString = ApiGear::ObjectLink::getAsString(exampleArguments);
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink2, expectedrgumentsAsString }, *serializer)))
                     .LR_SIDE_EFFECT(firstRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+
+        testedNode->invokeRemote(methodIdSink2, exampleArguments, [&outputMock](auto args) {outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(firstRequestId != notSetRequestValue);
 
         // Invoke for sink1
         // Expect Invoke request to be sent on invokeRemote. Retrieve request id given by node.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, expectedrgumentsAsString }, *serializer)))
             .LR_SIDE_EFFECT(secondRequestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.content.dump()); });
         REQUIRE(secondRequestId != notSetRequestValue);
         REQUIRE(secondRequestId != firstRequestId);
 
@@ -186,21 +196,25 @@ TEST_CASE("Client Node")
         // Send replies in different order than it was requested
         // First handler for sink1 will be called.
         // prepare reply
-        nlohmann::json functionResult2 = {{ 17 } };
-        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(secondRequestId, methodIdSink1, functionResult2);
+        auto functionResult2 = ContentSerializer::Value::serialize(17);
+        auto writer1 = serializer->createWriter();
+        const auto& invokeReplyMessage2 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(*writer1, secondRequestId, methodIdSink1,  functionResult2 );
         // expect callback to be called
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult2.dump()));
-        testedNode->handleMessage(converter.toString(invokeReplyMessage2));
+        auto result2 = ApiGear::ObjectLink::getAsString(functionResult2);
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + result2));
+        testedNode->handleMessage(serializer->toNetworkFormat(invokeReplyMessage2));
 
         // prepare reply
-        nlohmann::json functionResult1 = {{ 74 } };
-        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(firstRequestId, methodIdSink2, functionResult1);
+        auto functionResult1 = ContentSerializer::Value::serialize(74);
+        auto writer2 = serializer->createWriter();
+        const auto& invokeReplyMessage1 = ApiGear::ObjectLink::Protocol::invokeReplyMessage(*writer2, firstRequestId, methodIdSink2, functionResult1 );
         // expect callback to be called
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink2 + functionResult1.dump()));
-        testedNode->handleMessage(converter.toString(invokeReplyMessage1));
+        auto result1 = ApiGear::ObjectLink::getAsString(functionResult1);
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink2 + result1));
+        testedNode->handleMessage(serializer->toNetworkFormat(invokeReplyMessage1));
 
         // test clean up for linked node
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
 
@@ -218,20 +232,22 @@ TEST_CASE("Client Node")
         auto requestId = notSetRequestValue;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        auto exampleArgumentsAsString = ApiGear::ObjectLink::getAsString(exampleArguments);
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArgumentsAsString }, *serializer)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::getAsString(args.value)); });
         REQUIRE(requestId != notSetRequestValue);
 
         // Prepare reply with wrong request id.
-        nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, functionResult);
+        auto functionResult = ContentSerializer::Value::serialize(17);
+        auto invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(*(serializer->createWriter()), requestId, methodIdSink1, functionResult);
         // expect  no callback 
-        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + functionResult.dump()));
-        testedNode->handleMessage(converter.toString(invokeReplyMessage));
+        auto result = ApiGear::ObjectLink::getAsString(functionResult);
+        REQUIRE_CALL(outputMock, writeMessage(methodIdSink1 + result));
+        testedNode->handleMessage(serializer->toNetworkFormat(invokeReplyMessage));
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode.reset();
@@ -251,18 +267,19 @@ TEST_CASE("Client Node")
         auto otherRequestId = 157;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
-        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, ApiGear::ObjectLink::getAsString(exampleArguments) }, *serializer)))
             .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
-        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&outputMock](auto args){outputMock.writeMessage(args.methodId + args.value.dump()); });
+        testedNode->invokeRemote(methodIdSink1, exampleArguments,
+            [&outputMock](auto args){outputMock.writeMessage(args.methodId + ApiGear::ObjectLink::getAsString(args.value)); });
         REQUIRE(requestId != notSetRequestValue);
         REQUIRE(requestId != otherRequestId);
 
         // Prepare reply with wrong sink id in method id.
-        nlohmann::json functionResult = { { 17 } };
-        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(otherRequestId, methodIdSink2, functionResult);
+        auto functionResult = ContentSerializer::Value::serialize(17);
+        auto invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(*(serializer->createWriter()), otherRequestId, methodIdSink2, functionResult);
         // expect  no callback 
         FORBID_CALL(outputMock, writeMessage(ANY(std::string)));
-        testedNode->handleMessage(converter.toString(invokeReplyMessage));
+        testedNode->handleMessage(serializer->toNetworkFormat(invokeReplyMessage));
 
         // test clean up
         testedNode.reset();
@@ -273,21 +290,21 @@ TEST_CASE("Client Node")
     {
         registry.addSink(sink1);
         registry.addSink(sink2);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink2Id))));
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, signalName);
-        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, exampleArguments);
+        auto signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(*(serializer->createWriter()), signalId, exampleArguments);
 
         REQUIRE_CALL(*sink2, olinkOnSignal(signalId, exampleArguments));
-        testedNode->handleMessage(converter.toString(signalMessage));
+        testedNode->handleMessage(serializer->toNetworkFormat(signalMessage));
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink2->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink2->olinkObjectName()))));
         REQUIRE_CALL(*sink2, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode->unlinkRemote(sink2Id);
@@ -298,17 +315,17 @@ TEST_CASE("Client Node")
     SECTION("handling signal message - no existing object")
     {
         registry.addSink(sink1);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
 
         auto signalId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, signalName);
-        const auto& signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(signalId, exampleArguments);
+        auto signalMessage = ApiGear::ObjectLink::Protocol::signalMessage(*(serializer->createWriter()), signalId, exampleArguments);
 
         FORBID_CALL(*sink1, olinkOnSignal(signalId, exampleArguments));
-        testedNode->handleMessage(converter.toString(signalMessage));
+        testedNode->handleMessage(serializer->toNetworkFormat(signalMessage));
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode.reset();
@@ -319,21 +336,21 @@ TEST_CASE("Client Node")
         registry.addSink(sink1);
         registry.addSink(sink2);
         // after sink is successfully linked the sink will get init message from server
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink2Id))));
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
 
-        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, exampleInitProperties);
-        const auto& networkFormatedInit = converter.toString(InitMessage);
+        auto InitMessage = ApiGear::ObjectLink::Protocol::initMessage(*(serializer->createWriter()), sink2Id, exampleInitProperties);
+        auto networkFormatedInit = serializer->toNetworkFormat(InitMessage);
 
         REQUIRE_CALL(*sink2, olinkOnInit(sink2Id, exampleInitProperties, testedNode.get()));
         testedNode->handleMessage(networkFormatedInit);
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink2->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink2->olinkObjectName()))));
         REQUIRE_CALL(*sink2, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode->unlinkRemote(sink2Id);
@@ -344,18 +361,18 @@ TEST_CASE("Client Node")
     {
         registry.addSink(sink1);
 
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
 
         // Send message for not registered sink 2.
-        const auto& InitMessage = ApiGear::ObjectLink::Protocol::initMessage(sink2Id, exampleInitProperties);
-        const auto& networkFormatedInit = converter.toString(InitMessage);
+        auto InitMessage = ApiGear::ObjectLink::Protocol::initMessage(*(serializer->createWriter()), sink2Id, exampleInitProperties);
+        auto networkFormatedInit = serializer->toNetworkFormat(InitMessage);
         
         FORBID_CALL(*sink1, olinkOnInit(sink2Id, exampleInitProperties, testedNode.get()));
         testedNode->handleMessage(networkFormatedInit);
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode.reset();
@@ -365,17 +382,17 @@ TEST_CASE("Client Node")
     {
         registry.addSink(sink1);
         registry.addSink(sink2);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink2Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink2Id))));
         testedNode->linkRemote(sink1Id);
         testedNode->linkRemote(sink2Id);
 
         const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, propertyName);
-        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, propertyValue);
-        const auto& networkFormatedRequestPropertyChange = converter.toString(requestPropertyChangeMessage);
+        auto requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(*(serializer->createWriter()), propertyId, propertyValue);
+        auto networkFormatedRequestPropertyChange = serializer->toNetworkFormat(requestPropertyChangeMessage);
 
-        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, otherPropertyValue);
-        const auto& networkFormatedPublishedPropertyChange = converter.toString(publishedPropertyChangeMessage);
+        auto publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(*(serializer->createWriter()), propertyId, otherPropertyValue);
+        auto networkFormatedPublishedPropertyChange = serializer->toNetworkFormat(publishedPropertyChangeMessage);
 
         // Expect Request to be sent on setRemotePropertyCall.
         REQUIRE_CALL(outputMock, writeMessage(networkFormatedRequestPropertyChange));
@@ -386,9 +403,9 @@ TEST_CASE("Client Node")
         testedNode->handleMessage(networkFormatedPublishedPropertyChange);
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink2->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink2->olinkObjectName()))));
         REQUIRE_CALL(*sink2, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode->unlinkRemote(sink2Id);
@@ -398,15 +415,15 @@ TEST_CASE("Client Node")
     SECTION("handling propertyChanged message - for non existing object")
     {
         registry.addSink(sink1);
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::linkMessage(sink1Id))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::linkMessage(*(serializer->createWriter()), sink1Id))));
         testedNode->linkRemote(sink1Id);
 
         const auto propertyId = ApiGear::ObjectLink::Name::createMemberId(sink2Id, propertyName);
-        const auto& requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(propertyId, propertyValue);
-        const auto& networkFormatedRequestPropertyChange = converter.toString(requestPropertyChangeMessage);
+        auto requestPropertyChangeMessage = ApiGear::ObjectLink::Protocol::setPropertyMessage(*(serializer->createWriter()), propertyId, propertyValue);
+        auto networkFormatedRequestPropertyChange = serializer->toNetworkFormat(requestPropertyChangeMessage);
 
-        const auto& publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(propertyId, otherPropertyValue);
-        const auto& networkFormatedPublishedPropertyChange = converter.toString(publishedPropertyChangeMessage);
+        auto publishedPropertyChangeMessage = ApiGear::ObjectLink::Protocol::propertyChangeMessage(*(serializer->createWriter()), propertyId, otherPropertyValue);
+        auto networkFormatedPublishedPropertyChange = serializer->toNetworkFormat(publishedPropertyChangeMessage);
 
         // Expect Request to be sent on setRemotePropertyCall, even if it is not correct - this node doesn't serve sink2.
         REQUIRE_CALL(outputMock, writeMessage(networkFormatedRequestPropertyChange));
@@ -417,7 +434,7 @@ TEST_CASE("Client Node")
         testedNode->handleMessage(networkFormatedPublishedPropertyChange);
 
         // test clean up
-        REQUIRE_CALL(outputMock, writeMessage(converter.toString(ApiGear::ObjectLink::Protocol::unlinkMessage(sink1->olinkObjectName()))));
+        REQUIRE_CALL(outputMock, writeMessage(serializer->toNetworkFormat(ApiGear::ObjectLink::Protocol::unlinkMessage(*(serializer->createWriter()), sink1->olinkObjectName()))));
         REQUIRE_CALL(*sink1, olinkOnRelease());
         testedNode->unlinkRemote(sink1Id);
         testedNode.reset();
@@ -429,6 +446,7 @@ TEST_CASE("Client Node")
         auto nodeWithoutSetWriteFunction = ApiGear::ObjectLink::ClientNode::create(registry);
         
         nodeWithoutSetWriteFunction->onLog([&outputMock](auto level, const auto& msg){outputMock.logMessage(level, msg); });
+        nodeWithoutSetWriteFunction->onWrite(nullptr, serializer);
         nodeWithoutSetWriteFunction->setLogLevel(ApiGear::ObjectLink::LogLevel::Info);
 
         registry.addSink(sink1);

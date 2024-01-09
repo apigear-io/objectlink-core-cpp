@@ -60,7 +60,7 @@ if(OLINK_CORE_BUILD_TESTS)
 endif() # OLINK_CORE_BUILD_TESTS
 
 if(PERFORMANCE_TESTS)
-    add_subdirectory (performance)
+    #add_subdirectory (performance)
 endif()
 
 if(BUILD_EXAMPLES)

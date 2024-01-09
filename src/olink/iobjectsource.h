@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/olink_common.h"
-#include <nlohmann/json.hpp>
+#include "core/olinkcontent.h"
 #include <string>
 
 namespace ApiGear {
@@ -34,7 +34,7 @@ public:
     * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and signal name
     * see also: ApiGear::ObjectLink::Name::createMemberId
     */
-    virtual nlohmann::json olinkInvoke(const std::string& methodId, const nlohmann::json& args) = 0;
+    virtual OLinkContent olinkInvoke(const std::string& methodId, const OLinkContent& args) = 0;
     /**
     * Handler function for requesting a property change.
     * @param propertyId The property identifier in object. Consists of the objectId and property name.
@@ -43,7 +43,7 @@ public:
     * see ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName to extract objectId and signal name
     * see also: ApiGear::ObjectLink::Name::createMemberId
     */
-    virtual void olinkSetProperty(const std::string& propertyId, const nlohmann::json& value) = 0;
+    virtual void olinkSetProperty(const std::string& propertyId, const OLinkContent& value) = 0;
     /**
     * Handler function for client request linking with this service.
     * @param objectId The olink object identifier for which the connection was established.
@@ -60,7 +60,7 @@ public:
     * A helper function for getting state of object.
     * @return State of object in json format, containing pairs of property name and its value.
     */
-    virtual nlohmann::json olinkCollectProperties() = 0;
+    virtual OLinkContent olinkCollectProperties() = 0;
 };
 
 }} // ApiGear::ObjectLink

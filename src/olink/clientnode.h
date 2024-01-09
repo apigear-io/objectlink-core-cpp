@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/olink_common.h"
+#include "core/olinkcontent.h"
 #include "core/types.h"
 #include "iclientnode.h"
 #include "core/basenode.h"
@@ -55,9 +56,9 @@ public:
     /** IClientNode::unlinkRemote implementation. */
     void unlinkRemote(const std::string& objectId) override;
     /** IClientNode::invokeRemote implementation. */
-    void invokeRemote(const std::string& methodId, const nlohmann::json& args=nlohmann::json{}, InvokeReplyFunc func=nullptr) override;
+    void invokeRemote(const std::string& methodId, const OLinkContent& args= OLinkContent(), InvokeReplyFunc func=nullptr) override;
     /** IClientNode::setRemoteProperty implementation. */
-    void setRemoteProperty(const std::string& propertyId, const nlohmann::json& value) override;
+    void setRemoteProperty(const std::string& propertyId, const OLinkContent& value) override;
 
      /* The registry in which client is registered*/
     ClientRegistry& registry();
@@ -70,15 +71,15 @@ public:
 
 protected:
     /** IProtocolListener::handleInit implementation */
-    void handleInit(const std::string& objectId, const nlohmann::json& props) override;
+    void handleInit(const std::string& objectId, const OLinkContent& props) override;
     /** IProtocolListener::handlePropertyChange implementation */
-    void handlePropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
+    void handlePropertyChange(const std::string& propertyId, const OLinkContent& value) override;
     /** IProtocolListener::handleInvokeReply implementation */
-    void handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value) override;
+    void handleInvokeReply(int requestId, const std::string& methodId, const OLinkContent& value) override;
     /** IProtocolListener::handleSignal implementation */
-    void handleSignal(const std::string& signalId, const nlohmann::json& args) override;
+    void handleSignal(const std::string& signalId, const OLinkContent& args) override;
     /** IProtocolListener::handleError implementation */
-    void handleError(int msgType, int requestId, const std::string& error) override;
+    void handleError(MsgType msgType, int requestId, const std::string& error) override;
 
     /**
      * Returns a request id for outgoing messages.

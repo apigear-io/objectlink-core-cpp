@@ -1,8 +1,8 @@
 #pragma once
 
-#include "nlohmann/json.hpp"
 #include "core/olink_common.h"
 #include "core/types.h"
+#include "core/olinkcontent.h"
 #include <string>
 
 namespace ApiGear{
@@ -40,7 +40,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create methodId. 
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void invokeRemote(const std::string& methodId, const nlohmann::json& args = nlohmann::json{}, InvokeReplyFunc func = nullptr) = 0;
+    virtual void invokeRemote(const std::string& methodId, const OLinkContent& args = OLinkContent(), InvokeReplyFunc func = nullptr) = 0;
     /**
      * Request a service to change a property to requested value.
      * Once the request is accepted and property is changed the service side will send propertyChangeMessage.
@@ -50,7 +50,7 @@ public:
      * see ApiGear::ObjectLink::Name::createMemberId to create propertyId .
      * see also: ApiGear::ObjectLink::Name::getObjectId, ApiGear::ObjectLink::getMemberName
      */
-    virtual void setRemoteProperty(const std::string& propertyId, const nlohmann::json& value) = 0;
+    virtual void setRemoteProperty(const std::string& propertyId, const OLinkContent& value) = 0;
 };
 
 }} // ApiGear::ObjectLink

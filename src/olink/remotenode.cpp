@@ -58,8 +58,16 @@ void RemoteNode::handleLink(const std::string& objectId)
     if(source) {
         m_registry.addNodeForSource(m_nodeId, objectId);
         source->olinkLinked(objectId, this);
-        nlohmann::json props = source->olinkCollectProperties();
-        emitWrite(Protocol::initMessage(objectId, props));
+        auto props = source->olinkCollectProperties();
+        auto serializer = getSerializer();
+        if (serializer)
+        {
+            auto writer = serializer->createWriter();
+            if (writer)
+            {
+                emitWrite(Protocol::initMessage(*writer, objectId, props));
+            }
+        }
     } else {
         static const std::string noLinkToSourceLog = "no source to link: ";
         emitLog(LogLevel::Warning, noLinkToSourceLog, objectId);
@@ -76,7 +84,7 @@ void RemoteNode::handleUnlink(const std::string& objectId)
     }
 }
 
-void RemoteNode::handleSetProperty(const std::string& propertyId, const nlohmann::json& value)
+void RemoteNode::handleSetProperty(const std::string& propertyId, const OLinkContent& value)
 {
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(propertyId);
     auto source = m_registry.getSource(objectId).lock();
@@ -85,24 +93,48 @@ void RemoteNode::handleSetProperty(const std::string& propertyId, const nlohmann
     }
 }
 
-void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args)
+void RemoteNode::handleInvoke(int requestId, const std::string& methodId, const OLinkContent& args)
 {
     auto objectId = ApiGear::ObjectLink::Name::getObjectId(methodId);
     auto source = m_registry.getSource(objectId).lock();
     if(source) {
-        nlohmann::json value = source->olinkInvoke(methodId, args);
-        emitWrite(Protocol::invokeReplyMessage(requestId, methodId, value));
+        auto value = source->olinkInvoke(methodId, args);
+        auto serializer = getSerializer();
+        if (serializer)
+        {
+            auto writer = serializer->createWriter();
+            if (writer)
+            {
+                emitWrite(Protocol::invokeReplyMessage(*writer, requestId, methodId, { value }));
+            }
+        }
     }
 }
 
-void RemoteNode::notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value)
+void RemoteNode::notifyPropertyChange(const std::string& propertyId, const OLinkContent& value)
 {
-    emitWrite(Protocol::propertyChangeMessage(propertyId, value));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::propertyChangeMessage(*writer, propertyId, value));
+        }
+    }
 }
 
-void RemoteNode::notifySignal(const std::string& signalId, const nlohmann::json& args)
+void RemoteNode::notifySignal(const std::string& signalId, const OLinkContent& args)
 {
-    emitWrite(Protocol::signalMessage(signalId, args));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::signalMessage(*writer, signalId, args));
+        }
+    }
 }
 
 RemoteRegistry& RemoteNode::registry()

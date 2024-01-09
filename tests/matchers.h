@@ -3,7 +3,7 @@
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 #include "olink/core/types.h"
-
+#include "olink/core/imessageserializer.h"
 
 // Parameter matcher to match a string argument
 // @param keywords. List of words that has to be found in the string argument.
@@ -43,12 +43,12 @@ inline auto contains_keywords(std::vector<std::string> keywords)
 // @param message converter used for translation of messages.
 // @return true if all of the words from keywords were found in matched argument from function call,
 //         false if one or more of keywords were missing in an argument.
-inline auto network_message_contains_keywords(std::vector<std::string> keywords, ApiGear::ObjectLink::MessageConverter& converter)
+inline auto network_message_contains_keywords(std::vector<std::string> keywords, ApiGear::ObjectLink::INetworkFormatConverter& converter)
 {
     return trompeloeil::make_matcher<const std::string&>(
         [&converter](const std::string& networkMessage, std::vector<std::string> keywords)
         {
-            auto translatedMessage = converter.fromString(networkMessage).dump();
+            auto translatedMessage = converter.fromNetworkFormat(networkMessage).message.dump();
             for (auto& keyword : keywords)
             {
                 if (translatedMessage.find(keyword) == std::string::npos)

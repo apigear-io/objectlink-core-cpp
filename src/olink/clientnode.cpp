@@ -28,7 +28,15 @@ void ClientNode::linkRemote(const std::string& objectId)
 {
     static const std::string linkRemoteLog = "ClientNode.linkRemote: ";
     emitLog(LogLevel::Info, linkRemoteLog, objectId);
-    emitWrite(Protocol::linkMessage(objectId));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::linkMessage(*writer, objectId));
+        }
+    }
     m_registry.unsetNode(objectId);
     m_registry.setNode(m_nodeId, objectId);
 }
@@ -41,11 +49,19 @@ void ClientNode::unlinkRemote(const std::string& objectId)
     if (sink){
         sink->olinkOnRelease();
     }
-    emitWrite(Protocol::unlinkMessage(objectId));
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::unlinkMessage(*writer, objectId));
+        }
+    }
     m_registry.unsetNode(objectId);
 }
 
-void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json& args, InvokeReplyFunc func)
+void ClientNode::invokeRemote(const std::string& methodId, const OLinkContent& args, InvokeReplyFunc func)
 {
     static const std::string invokeRemoteLog = "ClientNode.invokeRemote: ";
     emitLog(LogLevel::Info, invokeRemoteLog, methodId);
@@ -53,16 +69,30 @@ void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json&
     std::unique_lock<std::mutex> lock(m_pendingInvokesMutex);
     m_invokesPending[requestId] = func;
     lock.unlock();
-    nlohmann::json msg = Protocol::invokeMessage(requestId, methodId, args);
-    emitWrite(msg);
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::invokeMessage(*writer, requestId, methodId, args));
+        }
+    }
 }
 
-void ClientNode::setRemoteProperty(const std::string& propertyId, const nlohmann::json& value)
+void ClientNode::setRemoteProperty(const std::string& propertyId, const OLinkContent& value)
 {
     static const std::string setRemotePropertyLog = "ClientNode.setRemoteProperty: ";
     emitLog(LogLevel::Info, setRemotePropertyLog, propertyId);
-    nlohmann::json msg = Protocol::setPropertyMessage(propertyId, value);
-    emitWrite(msg);
+    auto serializer = getSerializer();
+    if (serializer)
+    {
+        auto writer = serializer->createWriter();
+        if (writer)
+        {
+            emitWrite(Protocol::setPropertyMessage(*writer, propertyId, value));
+        }
+    }
 }
 
 ClientRegistry& ClientNode::registry()
@@ -85,7 +115,7 @@ unsigned long ClientNode::getNodeId() const
     return m_nodeId;
 }
 
-void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& props)
+void ClientNode::handleInit(const std::string& objectId, const OLinkContent& props)
 {
     static const std::string handeInitLog = "ClientNode.handleInit: ";
     emitLogWithPayload(LogLevel::Info, props, handeInitLog, objectId);
@@ -99,7 +129,7 @@ void ClientNode::handleInit(const std::string& objectId, const nlohmann::json& p
     }
 }
 
-void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohmann::json& value)
+void ClientNode::handlePropertyChange(const std::string& propertyId, const OLinkContent& value)
 {
     static const std::string handlePropertyChangedlog = "ClientNode.handlePropertyChange: ";
     emitLogWithPayload(LogLevel::Info, value, handlePropertyChangedlog, propertyId);
@@ -113,7 +143,7 @@ void ClientNode::handlePropertyChange(const std::string& propertyId, const nlohm
     }
 }
 
-void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, const nlohmann::json& value)
+void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, const OLinkContent& value)
 {
     static const std::string handleInvokeLog = "ClientNode.handleInvokeReply: ";
     emitLogWithPayload(LogLevel::Info, value, handleInvokeLog, methodId);
@@ -135,7 +165,7 @@ void ClientNode::handleInvokeReply(int requestId, const std::string& methodId, c
     }
 }
 
-void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json& args)
+void ClientNode::handleSignal(const std::string& signalId, const OLinkContent& args)
 {
     static const std::string handleSignalLog ="ClientNode.handleSignal: ";
     emitLog(LogLevel::Info, handleSignalLog, signalId);
@@ -148,10 +178,10 @@ void ClientNode::handleSignal(const std::string& signalId, const nlohmann::json&
     }
 }
 
-void ClientNode::handleError(int msgType, int requestId, const std::string& error)
+void ClientNode::handleError(MsgType msgType, int requestId, const std::string& error)
 {
     static const std::string errorLog = "ClientNode.handleError: ";
-    emitLog(LogLevel::Info, errorLog, std::to_string(msgType), std::to_string(requestId), error);
+    emitLog(LogLevel::Info, errorLog, toString(msgType), std::to_string(requestId), error);
 }
 
 int ClientNode::nextRequestId()

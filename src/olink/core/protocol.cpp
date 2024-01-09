@@ -29,136 +29,158 @@
 
 namespace ApiGear { namespace ObjectLink {
 
-nlohmann::json Protocol::linkMessage(const std::string& objectId)
+
+
+OLinkMessage& Protocol::linkMessage(IMessageWriter& serializer, const std::string& objectId)
 {
-    return nlohmann::json::array(
-                { MsgType::Link, objectId }
-                );
+    serializer.writeNext(MsgType::Link);
+    return serializer.writeNext(objectId);
 }
 
-nlohmann::json Protocol::unlinkMessage(const std::string& objectId)
+OLinkMessage& Protocol::unlinkMessage(IMessageWriter& serializer, const std::string& objectId)
 {
-    return nlohmann::json::array(
-                { MsgType::Unlink, objectId }
-                );
+    serializer.writeNext(MsgType::Unlink);
+    return serializer.writeNext(objectId);
 }
 
-nlohmann::json Protocol::initMessage(const std::string& objectId, const nlohmann::json& props)
+OLinkMessage& Protocol::initMessage(IMessageWriter& serializer, const std::string& objectId, const OLinkContent& props)
 {
-    return nlohmann::json::array(
-                { MsgType::Init, objectId, props }
-                );
+    serializer.writeNext(MsgType::Init);
+    serializer.writeNext(objectId);
+    return serializer.writeNext(props);
 }
 
-nlohmann::json Protocol::setPropertyMessage(const std::string& propertyId, const nlohmann::json& value)
+OLinkMessage& Protocol::setPropertyMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::SetProperty, propertyId, value }
-                );
-
+    serializer.writeNext(MsgType::SetProperty);
+    serializer.writeNext(propertyId);
+    return serializer.writeNext(value);
 }
 
-nlohmann::json Protocol::propertyChangeMessage(const std::string& propertyId, const nlohmann::json& value)
+OLinkMessage& Protocol::propertyChangeMessage(IMessageWriter& serializer, const std::string& propertyId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::PropertyChange, propertyId, value }
-                );
+    serializer.writeNext(MsgType::PropertyChange);
+    serializer.writeNext(propertyId);
+    return serializer.writeNext(value);
 }
 
-nlohmann::json Protocol::invokeMessage(int requestId, const std::string& methodId, const nlohmann::json& args)
+OLinkMessage& Protocol::invokeMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& args)
 {
-    return nlohmann::json::array(
-                { MsgType::Invoke, requestId, methodId, args }
-                );
+    serializer.writeNext(MsgType::Invoke);
+    serializer.writeNext(requestId);
+    serializer.writeNext(methodId);
+    return serializer.writeNext(args);
 }
 
-nlohmann::json Protocol::invokeReplyMessage(int requestId, const std::string& methodId, const nlohmann::json& value)
+OLinkMessage& Protocol::invokeReplyMessage(IMessageWriter& serializer, int requestId, const std::string& methodId, const OLinkContent& value)
 {
-    return nlohmann::json::array(
-                { MsgType::InvokeReply, requestId, methodId, value }
-                );
+    serializer.writeNext(MsgType::InvokeReply);
+    serializer.writeNext(requestId);
+    serializer.writeNext(methodId);
+    return serializer.writeNext(value);
 }
 
-nlohmann::json Protocol::signalMessage(const std::string& signalId , const nlohmann::json& args)
+OLinkMessage& Protocol::signalMessage(IMessageWriter& serializer, const std::string& signalId , const OLinkContent& args)
 {
-    return nlohmann::json::array(
-                { MsgType::Signal, signalId, args }
-                );
+    serializer.writeNext(MsgType::Signal);
+    serializer.writeNext(signalId);
+    return serializer.writeNext(args);
 }
 
-nlohmann::json Protocol::errorMessage(MsgType msgType, int requestId, const std::string& error)
+OLinkMessage& Protocol::errorMessage(IMessageWriter& serializer, MsgType msgType, int requestId, const std::string& error)
 {
-    return nlohmann::json::array(
-                { MsgType::Error, msgType, requestId, error }
-                );
+    serializer.writeNext(msgType);
+    serializer.writeNext(requestId);
+    return serializer.writeNext(error);
 }
 
-bool Protocol::handleMessage(const nlohmann::json& msg, IProtocolListener& listener) {
-
+bool Protocol::handleMessage(IMessageReader& deserializer, IProtocolListener& listener)
+{
     m_lastError = "";
-    if(!msg.is_array()) {
-        m_lastError = "message must be array";
+    auto isValid = deserializer.validate(m_lastError);
+    if(!isValid) {
         return false;
     }
-    const int msgType = msg[0].get<int>();
+    MsgType msgType;
+    deserializer.readNext(msgType);
     switch(msgType) {
-    case int(MsgType::Link): {
-        const auto& objectId = msg[1].get<std::string>();
+    case MsgType::Link: {
+        std::string objectId = "";
+        deserializer.readNext(objectId);
         listener.handleLink(objectId);
         break;
     }
-    case int(MsgType::Init): {
-        const auto& objectId = msg[1].get<std::string>();
-        const auto& props = msg[2].get<nlohmann::json>();
+    case MsgType::Init: {
+        std::string objectId = "";
+        OLinkContent props = {};
+        deserializer.readNext(objectId);
+        deserializer.readNext(props);
         listener.handleInit(objectId, props);
         break;
     }
-    case int(MsgType::Unlink): {
-        const auto& objectId = msg[1].get<std::string>();
+    case MsgType::Unlink: {
+        std::string objectId = "";
+        deserializer.readNext(objectId);
         listener.handleUnlink(objectId);
         break;
     }
-    case int(MsgType::SetProperty): {
-        const auto& propertyId = msg[1].get<std::string>();
-        const auto& value = msg[2].get<nlohmann::json>();
+    case MsgType::SetProperty: {
+        std::string propertyId = "";
+        OLinkContent value = {};
+        deserializer.readNext(propertyId);
+        deserializer.readNext(value);
         listener.handleSetProperty(propertyId, value);
         break;
     }
-    case int(MsgType::PropertyChange): {
-        const auto& propertyId = msg[1].get<std::string>();
-        const auto& value = msg[2].get<nlohmann::json>();
+    case MsgType::PropertyChange: {
+        std::string propertyId = "";
+        OLinkContent value = {};
+        deserializer.readNext(propertyId);
+        deserializer.readNext(value);
         listener.handlePropertyChange(propertyId, value);
         break;
     }
-    case int(MsgType::Invoke): {
-        const auto& id = msg[1].get<int>();
-        const auto& methodId = msg[2].get<std::string>();
-        const auto& args = msg[3].get<nlohmann::json>();
-        listener.handleInvoke(id, methodId, args);
+    case MsgType::Invoke: {
+        int callId = 0;
+        std::string methodId = "";
+        OLinkContent args = {};
+        //TODO DOROTA
+        deserializer.readNext(callId);
+        deserializer.readNext(methodId);
+        deserializer.readNext(args);
+        listener.handleInvoke(callId, methodId, args);
         break;
     }
-    case int(MsgType::InvokeReply): {
-        const auto& id = msg[1].get<int>();
-        const auto& methodId = msg[2].get<std::string>();
-        const auto& value = msg[3].get<nlohmann::json>();
-        listener.handleInvokeReply(id, methodId, value);
+    case MsgType::InvokeReply: {
+        int callId = 0;
+        std::string methodId = "";
+        OLinkContent value = {};
+        deserializer.readNext(callId);
+        deserializer.readNext(methodId);
+        deserializer.readNext(value);
+        listener.handleInvokeReply(callId, methodId, value);
         break;
     }
-    case int(MsgType::Signal): {
-        const auto& signalId = msg[1].get<std::string>();
-        const auto& args = msg[2].get<nlohmann::json>();
+    case MsgType::Signal: {
+        std::string signalId = "";
+        OLinkContent args = {};
+        deserializer.readNext(signalId);
+        deserializer.readNext(args);
         listener.handleSignal(signalId, args);
         break;
     }
-    case int(MsgType::Error): {
-        const auto& msgTypeErr = msg[1].get<int>();
-        const auto& requestId = msg[2].get<int>();
-        const auto& error = msg[3].get<std::string>();
+    case MsgType::Error: {
+        MsgType msgTypeErr = MsgType::Error;
+        int requestId = 0;
+        std::string error = "";
+        deserializer.readNext(msgTypeErr);
+        deserializer.readNext(requestId);
+        deserializer.readNext(error);
         listener.handleError(msgTypeErr, requestId, error);
         break;
     }
     default:
-        m_lastError = "message not supported: " + msg.dump();
+        m_lastError = "message not supported: " + deserializer.getAsString();
         return false;
     }
     return true;

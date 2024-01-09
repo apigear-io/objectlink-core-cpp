@@ -25,6 +25,7 @@
 
 #include "olink_common.h"
 #include "nlohmann/json.hpp"
+#include "olinkcontent.h"
 #include <string>
 
 namespace ApiGear { namespace ObjectLink {
@@ -47,21 +48,18 @@ enum class MsgType : int
     Error = 99
 };
 
+
+struct OLinkMessage
+{
+    //std::string message;
+    nlohmann::json message;
+};
+
 /**
 * Use this function to convert message type to string with the message name.
 */
 std::string toString(MsgType type);
 
-/**
-* Choose one of the available message formats for object link protocol messages.
-*/
-enum MessageFormat
-{
-    JSON = 1,
-    BSON = 2,
-    MSGPACK = 3,
-    CBOR = 4
-};
 
 /**
 * Logging levels for logs across the application.
@@ -98,37 +96,6 @@ public:
 };
 
 /**
-* 
-*/
-class OLINK_EXPORT MessageConverter {
-public:
-    /**ctor
-    * @param format network message format used for packing messages
-    */
-    MessageConverter(MessageFormat format);
-    /**
-    * Change network format used for message packing.
-    * @param format Requested message format.
-    */
-    void setMessageFormat(MessageFormat format);
-    /**
-    * Unpacks message received from network according to selected message format.
-    * @param message A message received from network.
-    * @return Unpacked message in json format.
-    */
-    nlohmann::json fromString(const std::string& message);
-    /**
-    * Formats message to selected network message format.
-    * @param j message Message to send, not formated.
-    * @return message in network message format.
-    */
-    std::string toString(const nlohmann::json& j);
-private:
-    /**Currently used network message format*/
-    MessageFormat m_format;
-};
-
-/**
 * Interface for handling network messages.
 */
 class OLINK_EXPORT IMessageHandler
@@ -151,7 +118,7 @@ public:
     /**Consists of invoked method name and objectId of an object it was invoked on*/
     std::string methodId;
     /** Result of the method invocation. */
-    nlohmann::json value;
+    OLinkContent value;
 };
 
 /** A type of function for handling invokeReply message*/
@@ -205,17 +172,34 @@ public:
 
     /**
     * Use this function to log message with payload that needs to be converted to string.
-    * @param payload a message to be converted to a string, which is a high cost operation.
+    * @param payload a payload to be converted to a string, which is a high cost operation.
     *        Payload is put at the end of the created log message.
     *        Conversion is performed only if message will be logged:
     *        the log function is set and log level is not lower than a set log level.
     * Have in mind that this operation has a high cost and should not be use often.
     */
     template<typename ... Parameters>
-    void emitLogWithPayload(LogLevel level, const nlohmann::json& payload, const Parameters&  ...params)
+    void emitLogWithPayload(LogLevel level, const OLinkContent& payload, const Parameters&  ...params)
     {
         if (m_logFunc && level >= m_Loglevel) {
-            emitLog(level, params..., payload.dump());
+            emitLog(level, params..., payload.content.dump());
+        }
+    }
+
+    /**
+    * Use this function to log message with payload that needs to be converted to string.
+    * @param message a message to be converted to a string, which is a high cost operation.
+    *        Payload is put at the end of the created log message.
+    *        Conversion is performed only if message will be logged:
+    *        the log function is set and log level is not lower than a set log level.
+    * @param logMessage a log message to log.
+    * Have in mind that this operation has a high cost and should not be use often.
+    */
+    template<typename ... Parameters>
+    void emitLogWithPayload(LogLevel level, const OLinkMessage& message, const Parameters&  ...params)
+    {
+        if (m_logFunc && level >= m_Loglevel) {
+            emitLog(level, params..., message.message.dump());
         }
     }
 

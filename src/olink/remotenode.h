@@ -79,14 +79,14 @@ public:
     /** IProtocolListener::handleUnlink implementation.*/
     void handleUnlink(const std::string& objectId) override;
     /** IProtocolListener::handleSetProperty implementation. */
-    void handleSetProperty(const std::string& propertyId, const nlohmann::json& value) override;
+    void handleSetProperty(const std::string& propertyId, const OLinkContent& value) override;
     /** IProtocolListener::handleInvoke implementation. */
-    void handleInvoke(int requestId, const std::string& methodId, const nlohmann::json& args) override;
+    void handleInvoke(int requestId, const std::string& methodId, const OLinkContent& args) override;
 
     /** IRemoteNode::notifyPropertyChange implementation. */
-    void notifyPropertyChange(const std::string& propertyId, const nlohmann::json& value) override;
+    void notifyPropertyChange(const std::string& propertyId, const OLinkContent& value) override;
     /** IRemoteNode::notifySignal implementation. */
-    void notifySignal(const std::string& signalId, const nlohmann::json& args) override;
+    void notifySignal(const std::string& signalId, const OLinkContent& args) override;
 
     /* 
     * The id that registry assigned to a node. 
