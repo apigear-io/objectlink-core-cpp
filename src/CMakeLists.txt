@@ -42,17 +42,22 @@ else()
   target_compile_options(olink_core PRIVATE /W4 /WX PUBLIC /wd4251)
 endif()
 
-# install binary files
-install(TARGETS olink_core
-        EXPORT olink_coreConfig)
 # install includes
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/olink DESTINATION include FILES_MATCHING PATTERN "*.h")
 include(CMakePackageConfigHelpers)
-export(TARGETS
-    olink_core
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/olink_coreConfig.cmake"
+install(TARGETS olink_core
+        EXPORT olink_coreTargets)
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfig.cmake
+    INSTALL_DESTINATION ${InstallDir}
 )
-install(EXPORT
-    olink_coreConfig
-    DESTINATION ${InstallDir}
+install(EXPORT olink_coreTargets
+        FILE olink_coreTargets.cmake
+        DESTINATION ${InstallDir})
+install(
+    FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfig.cmake
+    DESTINATION
+        ${InstallDir}
 )
