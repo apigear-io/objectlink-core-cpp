@@ -57,7 +57,7 @@ configure_package_config_file(
 )
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfigVersion.cmake
-  VERSION 0.2.8
+  VERSION 0.2.9
   COMPATIBILITY SameMinorVersion)
 install(EXPORT olink_coreTargets
         FILE olink_coreTargets.cmake
