@@ -47,6 +47,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/olink DESTINATION include FILES_MA
 include(CMakePackageConfigHelpers)
 install(TARGETS olink_core
         EXPORT olink_coreTargets)
+export(EXPORT olink_coreTargets)
 configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfig.cmake
