@@ -22,6 +22,7 @@ set(OLINK_SOURCES
     )
 
 add_library (olink_core STATIC ${OLINK_SOURCES} )
+add_library(olink_core::olink_core ALIAS olink_core)
 set_property(TARGET olink_core PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories (olink_core 
@@ -47,7 +48,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/olink DESTINATION include FILES_MA
 include(CMakePackageConfigHelpers)
 install(TARGETS olink_core
         EXPORT olink_coreTargets)
-export(EXPORT olink_coreTargets)
+export(EXPORT olink_coreTargets
+       NAMESPACE olink_core::)
 configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfig.cmake
@@ -59,7 +61,8 @@ write_basic_package_version_file(
   COMPATIBILITY SameMinorVersion)
 install(EXPORT olink_coreTargets
         FILE olink_coreTargets.cmake
-        DESTINATION ${InstallDir})
+        DESTINATION ${InstallDir}
+        NAMESPACE olink_core::)
 install(
     FILES
       ${CMAKE_CURRENT_BINARY_DIR}/olink_coreConfig.cmake
