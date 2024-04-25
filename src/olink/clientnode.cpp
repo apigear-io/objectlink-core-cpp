@@ -49,8 +49,8 @@ void ClientNode::invokeRemote(const std::string& methodId, const nlohmann::json&
 {
     static const std::string invokeRemoteLog = "ClientNode.invokeRemote: ";
     emitLog(LogLevel::Info, invokeRemoteLog, methodId);
-    int requestId = nextRequestId();
     std::unique_lock<std::mutex> lock(m_pendingInvokesMutex);
+    int requestId = nextRequestId();
     m_invokesPending[requestId] = func;
     lock.unlock();
     nlohmann::json msg = Protocol::invokeMessage(requestId, methodId, args);
