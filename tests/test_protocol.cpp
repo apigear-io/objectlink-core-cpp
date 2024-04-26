@@ -16,7 +16,7 @@ TEST_CASE("protocol")
     json props = {{ "count", 0 }};
     int value = 1;
     json args = {1, 2};
-    int requestId = 1;
+    unsigned int requestId = 1;
     MsgType msgType = MsgType::Invoke;
     std::string error = "failed";
 
