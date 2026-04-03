@@ -144,4 +144,35 @@ TEST_CASE("client registry")
     {
         clientRegistry.removeSink("some otherId");
     }
+
+    SECTION("setNode without prior addSink stores nodeId correctly")
+    {
+        // Create a dummy node first to consume ID 0, so the real node gets a non-zero ID.
+        // This ensures the test catches the bug where nodeId defaults to 0 after
+        // value-initialization of SinkToClientEntry.
+        auto dummyNode = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
+        (void)dummyNode;
+
+        std::string unknownObjectId = "tests.unknownObject";
+        auto node1 = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
+        auto nodeId1 = node1->getNodeId();
+
+        clientRegistry.setNode(nodeId1, unknownObjectId);
+
+        auto retrievedNode = clientRegistry.getNode(unknownObjectId).lock();
+        REQUIRE(retrievedNode == node1);
+    }
+
+    SECTION("registerNode with expired node returns invalidId")
+    {
+        std::weak_ptr<ApiGear::ObjectLink::IClientNode> expiredWeak;
+        {
+            auto tempNode = ApiGear::ObjectLink::ClientNode::create(clientRegistry);
+            expiredWeak = tempNode;
+        }
+        // expiredWeak is now expired
+        auto result = clientRegistry.registerNode(expiredWeak);
+        // Should return invalidId since the node is expired
+        REQUIRE(result == 0xFFFFFFFFu);
+    }
 }

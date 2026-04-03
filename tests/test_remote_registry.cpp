@@ -138,4 +138,17 @@ TEST_CASE("server registry simple tests without threads")
     {
         registry.removeSource("some otherId");
     }
+
+    SECTION("registerNode with expired node returns invalidId")
+    {
+        std::weak_ptr<ApiGear::ObjectLink::IRemoteNode> expiredWeak;
+        {
+            auto tempNode = ApiGear::ObjectLink::RemoteNode::createRemoteNode(registry);
+            expiredWeak = tempNode;
+        }
+        // expiredWeak is now expired
+        auto result = registry.registerNode(expiredWeak);
+        // Should return invalidId since the node is expired
+        REQUIRE(result == 0xFFFFFFFFu);
+    }
 }
