@@ -423,6 +423,116 @@ TEST_CASE("Client Node")
         testedNode.reset();
     }
 
+    SECTION("handling error message for pending invoke - callback called with empty value and pending entry removed")
+    {
+        registry.addSink(sink1);
+
+        const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
+
+        auto notSetRequestValue = 999999999;
+        auto requestId = notSetRequestValue;
+
+        // Invoke a remote method, capture the requestId assigned by the node.
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+            .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
+
+        bool callbackCalled = false;
+        nlohmann::json receivedValue;
+        std::string receivedMethodId;
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&](auto args){
+            callbackCalled = true;
+            receivedMethodId = args.methodId;
+            receivedValue = args.value;
+        });
+        REQUIRE(requestId != notSetRequestValue);
+
+        // Send an Error message referencing the Invoke msgType and the same requestId.
+        const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
+            ApiGear::ObjectLink::MsgType::Invoke, requestId, "test error");
+        testedNode->handleMessage(converter.toString(errorMessage));
+
+        // Verify the callback was called with empty/null json value.
+        REQUIRE(callbackCalled);
+        REQUIRE(receivedValue == nlohmann::json());
+
+        // Verify the pending invoke was cleaned up by sending an InvokeReply for the same requestId.
+        // The callback should NOT be called again since it was already removed.
+        callbackCalled = false;
+        nlohmann::json functionResult = {{ 17 }};
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, functionResult);
+        testedNode->handleMessage(converter.toString(invokeReplyMessage));
+        REQUIRE_FALSE(callbackCalled);
+
+        // test clean up
+        testedNode.reset();
+    }
+
+    SECTION("handling error message for InvokeReply msgType - callback called with empty value")
+    {
+        registry.addSink(sink1);
+
+        const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
+
+        auto notSetRequestValue = 999999999;
+        auto requestId = notSetRequestValue;
+
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+            .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
+
+        bool callbackCalled = false;
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&](auto /*args*/){
+            callbackCalled = true;
+        });
+        REQUIRE(requestId != notSetRequestValue);
+
+        // Send an Error message with InvokeReply msgType.
+        const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
+            ApiGear::ObjectLink::MsgType::InvokeReply, requestId, "reply error");
+        testedNode->handleMessage(converter.toString(errorMessage));
+
+        REQUIRE(callbackCalled);
+
+        // test clean up
+        testedNode.reset();
+    }
+
+    SECTION("handling error message for non-invoke msgType - no pending invoke cleanup")
+    {
+        registry.addSink(sink1);
+
+        const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
+
+        auto notSetRequestValue = 999999999;
+        auto requestId = notSetRequestValue;
+
+        REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
+            .LR_SIDE_EFFECT(requestId = retrieveRequestId(_1));
+
+        bool callbackCalled = false;
+        testedNode->invokeRemote(methodIdSink1, exampleArguments, [&](auto /*args*/){
+            callbackCalled = true;
+        });
+        REQUIRE(requestId != notSetRequestValue);
+
+        // Send an Error message with a non-invoke msgType (e.g. SetProperty).
+        // The pending invoke should NOT be cleaned up.
+        const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
+            ApiGear::ObjectLink::MsgType::SetProperty, requestId, "property error");
+        testedNode->handleMessage(converter.toString(errorMessage));
+
+        REQUIRE_FALSE(callbackCalled);
+
+        // The pending invoke should still be there - verify by sending the real reply.
+        callbackCalled = false;
+        nlohmann::json functionResult = {{ 17 }};
+        const auto& invokeReplyMessage = ApiGear::ObjectLink::Protocol::invokeReplyMessage(requestId, methodIdSink1, functionResult);
+        testedNode->handleMessage(converter.toString(invokeReplyMessage));
+        REQUIRE(callbackCalled);
+
+        // test clean up
+        testedNode.reset();
+    }
+
     SECTION("Messages are not sent if the write function is not set.")
     {
         // keep as ptr to destroy before going out of scope of test. The mock does not do well with expectations left in tests for test tear down.
