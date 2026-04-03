@@ -114,7 +114,7 @@ public:
     /**
     * Unpacks message received from network according to selected message format.
     * @param message A message received from network.
-    * @return Unpacked message in json format.
+    * @return Unpacked message in json format. Returns empty json on parse error or if message exceeds size limit.
     */
     nlohmann::json fromString(const std::string& message);
     /**
@@ -123,9 +123,17 @@ public:
     * @return message in network message format.
     */
     std::string toString(const nlohmann::json& j);
+    /**
+    * Set the maximum allowed message size in bytes.
+    * Messages exceeding this limit will be rejected and an empty json will be returned.
+    * @param size Maximum message size in bytes. Default is 64MB.
+    */
+    void setMaxMessageSize(size_t size);
 private:
     /**Currently used network message format*/
     MessageFormat m_format;
+    /**Maximum allowed message size in bytes (default 64MB)*/
+    size_t m_maxMessageSize = 64 * 1024 * 1024;
 };
 
 /**

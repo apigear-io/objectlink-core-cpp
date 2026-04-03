@@ -34,6 +34,13 @@ public:
     */
     void setMessageFormat(MessageFormat format);
 
+    /**
+    * Use to set the maximum allowed incoming message size in bytes.
+    * Messages exceeding this limit are rejected before parsing.
+    * Default is 64MB.
+    */
+    void setMaxMessageSize(size_t size);
+
     // Implementation::IMessageHandler
     void handleMessage(const std::string& data) override;
 
