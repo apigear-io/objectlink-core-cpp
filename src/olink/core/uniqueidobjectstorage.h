@@ -38,7 +38,10 @@ public:
 
         std::unique_lock<std::mutex> lock(m_mutex);
 
-        if (m_objects.size() == m_maxCount) return invalidId;
+        if (m_objects.size() == m_maxCount) {
+            purgeExpiredLocked();
+            if (m_objects.size() == m_maxCount) return invalidId;
+        }
 
         auto alreadyAddedId = std::find_if(m_objects.begin(), m_objects.end(),
             [lockedObject](const std::pair<const unsigned long, std::weak_ptr<ObjectType>>& current)
@@ -84,7 +87,33 @@ public:
     * @return An id that is considered as invalid in this storage. It is the maximum value of unsigned long.
     */
     unsigned long getInvalidId() const {return invalidId;}
+
+    /*
+    * Removes all expired weak_ptrs from storage, freeing their slots for reuse.
+    * Thread-safe: acquires the internal mutex.
+    */
+    void purgeExpired()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        purgeExpiredLocked();
+    }
+
 private:
+
+    /**
+    * Removes all expired weak_ptrs from the storage. Must be called with m_mutex held.
+    */
+    void purgeExpiredLocked()
+    {
+        auto it = m_objects.begin();
+        while (it != m_objects.end()) {
+            if (it->second.expired()) {
+                it = m_objects.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
 
     /**
     * Generates a unique id. Must be called with m_mutex held.

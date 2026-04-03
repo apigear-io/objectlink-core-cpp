@@ -108,6 +108,84 @@ TEST_CASE("storage")
         REQUIRE(storage.get(id4).expired() == true);
     }
 
+    SECTION("purgeExpired removes expired weak_ptrs")
+    {
+        auto id1 = storage.add(obj1);
+        auto id2 = storage.add(obj2);
+        auto id3 = storage.add(obj3);
+        REQUIRE(id1 != storage.getInvalidId());
+        REQUIRE(id2 != storage.getInvalidId());
+        REQUIRE(id3 != storage.getInvalidId());
+
+        // Storage has 3 of 5 slots used. Let obj2 expire.
+        obj2.reset();
+        REQUIRE(storage.get(id2).expired());
+
+        // purgeExpired should remove the expired entry.
+        storage.purgeExpired();
+
+        // The expired entry is gone, but the valid ones remain.
+        REQUIRE(storage.get(id1).lock() == obj1);
+        REQUIRE(storage.get(id2).expired());
+        REQUIRE(storage.get(id3).lock() == obj3);
+    }
+
+    SECTION("purgeExpired allows adding to previously full storage")
+    {
+        unsigned long smallMax = 3;
+        UniqueIdObjectStorage<MyTestObject> smallStorage(smallMax);
+
+        auto a = std::make_shared<MyTestObject>();
+        auto b = std::make_shared<MyTestObject>();
+        auto c = std::make_shared<MyTestObject>();
+        auto d = std::make_shared<MyTestObject>();
+
+        auto idA = smallStorage.add(a);
+        auto idB = smallStorage.add(b);
+        auto idC = smallStorage.add(c);
+        REQUIRE(idA != smallStorage.getInvalidId());
+        REQUIRE(idB != smallStorage.getInvalidId());
+        REQUIRE(idC != smallStorage.getInvalidId());
+
+        // Storage is full - adding should fail.
+        auto idFail = smallStorage.add(d);
+        REQUIRE(idFail == smallStorage.getInvalidId());
+
+        // Let one expire.
+        b.reset();
+        REQUIRE(smallStorage.get(idB).expired());
+
+        // Explicit purge, then add.
+        smallStorage.purgeExpired();
+        auto idD = smallStorage.add(d);
+        REQUIRE(idD != smallStorage.getInvalidId());
+        REQUIRE(smallStorage.get(idD).lock() == d);
+    }
+
+    SECTION("add lazily purges expired entries when storage is full")
+    {
+        unsigned long smallMax = 3;
+        UniqueIdObjectStorage<MyTestObject> smallStorage(smallMax);
+
+        auto a = std::make_shared<MyTestObject>();
+        auto b = std::make_shared<MyTestObject>();
+        auto c = std::make_shared<MyTestObject>();
+        auto d = std::make_shared<MyTestObject>();
+
+        smallStorage.add(a);
+        smallStorage.add(b);
+        smallStorage.add(c);
+
+        // Storage is full. Let two expire.
+        a.reset();
+        b.reset();
+
+        // add() should lazily purge and succeed without explicit purgeExpired().
+        auto idD = smallStorage.add(d);
+        REQUIRE(idD != smallStorage.getInvalidId());
+        REQUIRE(smallStorage.get(idD).lock() == d);
+    }
+
     SECTION("Multithreaded adding and remove")
     {
         auto id1 = storage.add(obj1);
