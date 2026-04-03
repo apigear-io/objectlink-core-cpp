@@ -44,3 +44,51 @@ jobs:
 
     - name: Install
       run: cmake --install ${{github.workspace}}/build --prefix tmp
+
+  sanitize-thread:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake with ThreadSanitizer
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_FLAGS="-fsanitize=thread"
+        -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=thread"
+        -DOLINK_CORE_FETCH_DEPS=ON
+        -DOLINK_CORE_BUILD_TESTS=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      env:
+        CTEST_OUTPUT_ON_FAILURE: 1
+        TSAN_OPTIONS: halt_on_error=1
+      run: ctest
+
+  sanitize-address:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure CMake with AddressSanitizer
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=Debug
+        -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer"
+        -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address"
+        -DOLINK_CORE_FETCH_DEPS=ON
+        -DOLINK_CORE_BUILD_TESTS=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      env:
+        CTEST_OUTPUT_ON_FAILURE: 1
+        ASAN_OPTIONS: halt_on_error=1
+      run: ctest
