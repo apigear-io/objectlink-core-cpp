@@ -20,7 +20,7 @@ if(NOT nlohmann_json_FOUND)
   include(FetchContent)
   set(JSON_Install ON)
   FetchContent_Declare(nlohmann_json
-  URL https://github.com/nlohmann/json/releases/download/v3.10.5/json.tar.xz
+  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
   OVERRIDE_FIND_PACKAGE)
   FetchContent_MakeAvailable(nlohmann_json)
 endif()
