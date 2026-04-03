@@ -5,6 +5,7 @@
 #include "olink_common.h"
 #include "nlohmann/json.hpp"
 #include <cstring>
+#include <mutex>
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -63,6 +64,8 @@ public:
     // Empty, logging only implementation of IProtocolListener::handleError, should be overwritten on both client and server side.
     void handleError(int msgType, int requestId, const std::string& error) override;
 private:
+    /** Mutex protecting m_writeFunc and m_converter */
+    mutable std::mutex m_nodeMutex;
     /** Function with which messages are sent through network after translation to chosen network format */
     WriteMessageFunc m_writeFunc = nullptr;
     /** A message converter, translates messages to and from chosen network format*/
