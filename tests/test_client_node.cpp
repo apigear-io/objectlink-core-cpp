@@ -25,11 +25,11 @@ namespace {
     ApiGear::ObjectLink::MessageConverter converter(ApiGear::ObjectLink::MessageFormat::JSON);
 
     // Helper function which gets from a InvokeMessage a requestId given by clientNode.
-    int retrieveRequestId(const std::string& networkMessage)
+    unsigned int retrieveRequestId(const std::string& networkMessage)
     {
         const auto& requestMessage = converter.fromString(networkMessage);
         REQUIRE(requestMessage[0].get<int>() == static_cast<int>(ApiGear::ObjectLink::MsgType::Invoke));
-        int result = requestMessage[1].get<int>();
+        unsigned int result = requestMessage[1].get<unsigned int>();
         return result;
     };
 
@@ -162,7 +162,7 @@ TEST_CASE("Client Node")
         const auto methodIdSink2 = ApiGear::ObjectLink::Name::createMemberId(sink2Id, methodName);
 
         // Init to some value we know for sure the first requestId won't have;
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto firstRequestId = notSetRequestValue;
         auto secondRequestId = notSetRequestValue;
 
@@ -214,7 +214,7 @@ TEST_CASE("Client Node")
         const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
 
         // Init to some value we know for sure the first requestId won't have;
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto requestId = notSetRequestValue;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
@@ -246,9 +246,9 @@ TEST_CASE("Client Node")
         const auto methodIdSink2 = ApiGear::ObjectLink::Name::createMemberId(sink2Id, methodName);
 
         // Init to some value we know for sure the first requestId won't have;
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto requestId = notSetRequestValue;
-        auto otherRequestId = 157;
+        unsigned int otherRequestId = 157u;
 
         // Prepare node to be waiting for invoke reply with requestId it creates on sending and for methodIdSink1.
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
@@ -429,7 +429,7 @@ TEST_CASE("Client Node")
 
         const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
 
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto requestId = notSetRequestValue;
 
         // Invoke a remote method, capture the requestId assigned by the node.
@@ -448,7 +448,7 @@ TEST_CASE("Client Node")
 
         // Send an Error message referencing the Invoke msgType and the same requestId.
         const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
-            ApiGear::ObjectLink::MsgType::Invoke, requestId, "test error");
+            ApiGear::ObjectLink::MsgType::Invoke, static_cast<int>(requestId), "test error");
         testedNode->handleMessage(converter.toString(errorMessage));
 
         // Verify the callback was called with empty/null json value.
@@ -473,7 +473,7 @@ TEST_CASE("Client Node")
 
         const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
 
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto requestId = notSetRequestValue;
 
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
@@ -487,7 +487,7 @@ TEST_CASE("Client Node")
 
         // Send an Error message with InvokeReply msgType.
         const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
-            ApiGear::ObjectLink::MsgType::InvokeReply, requestId, "reply error");
+            ApiGear::ObjectLink::MsgType::InvokeReply, static_cast<int>(requestId), "reply error");
         testedNode->handleMessage(converter.toString(errorMessage));
 
         REQUIRE(callbackCalled);
@@ -502,7 +502,7 @@ TEST_CASE("Client Node")
 
         const auto methodIdSink1 = ApiGear::ObjectLink::Name::createMemberId(sink1Id, methodName);
 
-        auto notSetRequestValue = 999999999;
+        unsigned int notSetRequestValue = 999999999u;
         auto requestId = notSetRequestValue;
 
         REQUIRE_CALL(outputMock, writeMessage(network_message_contains_keywords({ methodIdSink1, exampleArguments.dump() }, converter)))
@@ -517,7 +517,7 @@ TEST_CASE("Client Node")
         // Send an Error message with a non-invoke msgType (e.g. SetProperty).
         // The pending invoke should NOT be cleaned up.
         const auto& errorMessage = ApiGear::ObjectLink::Protocol::errorMessage(
-            ApiGear::ObjectLink::MsgType::SetProperty, requestId, "property error");
+            ApiGear::ObjectLink::MsgType::SetProperty, static_cast<int>(requestId), "property error");
         testedNode->handleMessage(converter.toString(errorMessage));
 
         REQUIRE_FALSE(callbackCalled);

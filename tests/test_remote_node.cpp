@@ -153,8 +153,8 @@ TEST_CASE("Remote Node")
         auto methodId1 = ApiGear::ObjectLink::Name::createMemberId(source1Id, methodName);
         auto methodId2 = ApiGear::ObjectLink::Name::createMemberId(source2Id, methodName);
 
-        int requestId1 = 189;
-        int requestId2 = 32;
+        unsigned int requestId1 = 189u;
+        unsigned int requestId2 = 32u;
 
         auto invokeMethod1 = converter.toString(ApiGear::ObjectLink::Protocol::invokeMessage(requestId1, methodId1, exampleArguments));
         auto invokeMethod2 = converter.toString(ApiGear::ObjectLink::Protocol::invokeMessage(requestId2, methodId2, exampleArguments));

@@ -70,7 +70,7 @@ TEST_CASE("protocol")
         REQUIRE(msg[2] == args);
     }
     SECTION("error") {
-        json msg = Protocol::errorMessage(msgType, requestId, error);
+        json msg = Protocol::errorMessage(msgType, static_cast<int>(requestId), error);
         REQUIRE(msg[0] == MsgType::Error);
         REQUIRE(msg[1] == msgType);
         REQUIRE(msg[2] == requestId);

@@ -23,22 +23,22 @@ class StorageTestObject {};
 TEST_CASE("UniqueIdObjectStorage concurrent add/remove/get", "[ThreadSafety][UniqueIdObjectStorage]")
 {
     UniqueIdObjectStorage<StorageTestObject> storage(100);
-    constexpr int numThreads = 8;
-    constexpr int opsPerThread = 50;
+    constexpr std::size_t numThreads = 8;
+    constexpr std::size_t opsPerThread = 50;
 
     // Create shared objects to add
     std::vector<std::shared_ptr<StorageTestObject>> objects;
-    for (int i = 0; i < numThreads * opsPerThread; ++i) {
+    for (std::size_t i = 0; i < numThreads * opsPerThread; ++i) {
         objects.push_back(std::make_shared<StorageTestObject>());
     }
 
     SECTION("concurrent adds produce unique, valid ids")
     {
         std::vector<std::future<std::vector<unsigned long>>> futures;
-        for (int t = 0; t < numThreads; ++t) {
+        for (std::size_t t = 0; t < numThreads; ++t) {
             futures.push_back(std::async(std::launch::async, [&, t]() {
                 std::vector<unsigned long> ids;
-                for (int i = 0; i < opsPerThread; ++i) {
+                for (std::size_t i = 0; i < opsPerThread; ++i) {
                     auto id = storage.add(objects[t * opsPerThread + i]);
                     ids.push_back(id);
                 }
@@ -65,13 +65,13 @@ TEST_CASE("UniqueIdObjectStorage concurrent add/remove/get", "[ThreadSafety][Uni
     {
         // Pre-add some objects
         std::vector<unsigned long> preAddedIds;
-        for (int i = 0; i < 20; ++i) {
+        for (std::size_t i = 0; i < 20; ++i) {
             preAddedIds.push_back(storage.add(objects[i]));
         }
 
         // Concurrently add new objects and remove existing ones
         auto adderFuture = std::async(std::launch::async, [&]() {
-            for (int i = 20; i < 60; ++i) {
+            for (std::size_t i = 20; i < 60; ++i) {
                 storage.add(objects[i]);
             }
         });

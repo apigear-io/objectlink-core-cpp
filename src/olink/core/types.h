@@ -204,7 +204,7 @@ public:
             if (!m_logFunc || logLevel < m_Loglevel) return;
             logFuncCopy = m_logFunc;
         }
-        const int size = sizeof...(params);
+        constexpr std::size_t size = sizeof...(params);
         std::string arg_list[size] = { params...};
         std::string full_message = "";
         for (const auto& element : arg_list)
