@@ -154,11 +154,13 @@ std::string toString(MsgType type) {
 // ********************************************************************
 
 void LoggerBase::onLog(WriteLogFunc func){
+    std::unique_lock<std::mutex> lock(m_logMutex);
     m_logFunc = func;
 }
 
 void LoggerBase::setLogLevel(LogLevel level)
 {
+    std::unique_lock<std::mutex> lock(m_logMutex);
     m_Loglevel = level;
 }
 

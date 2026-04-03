@@ -15,6 +15,7 @@ set(TEST_OLINK_SOURCES
     test_remote_registry.cpp
     test_uniqueidstorage.cpp
     test_remote_node.cpp
+    test_thread_safety.cpp
     sinkobject.hpp
     sourceobject.hpp
     mocks.h

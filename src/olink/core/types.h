@@ -26,6 +26,7 @@
 #include "olink_common.h"
 #include "nlohmann/json.hpp"
 #include <string>
+#include <mutex>
 
 namespace ApiGear { namespace ObjectLink {
 
@@ -197,18 +198,20 @@ public:
     template<typename ... Parameters>
     void emitLog(LogLevel logLevel, const Parameters&  ...params)
     {
-        if (m_logFunc && logLevel >= m_Loglevel)
+        WriteLogFunc logFuncCopy;
         {
-            const int size = sizeof...(params);
-            std::string arg_list[size] = { params...};
-            std::string full_message = "";
-            for (const auto& element : arg_list)
-            {
-                full_message += element;
-            }
-
-            m_logFunc(logLevel, full_message);
+            std::unique_lock<std::mutex> lock(m_logMutex);
+            if (!m_logFunc || logLevel < m_Loglevel) return;
+            logFuncCopy = m_logFunc;
         }
+        const int size = sizeof...(params);
+        std::string arg_list[size] = { params...};
+        std::string full_message = "";
+        for (const auto& element : arg_list)
+        {
+            full_message += element;
+        }
+        logFuncCopy(logLevel, full_message);
     }
 
     /**
@@ -222,9 +225,11 @@ public:
     template<typename ... Parameters>
     void emitLogWithPayload(LogLevel level, const nlohmann::json& payload, const Parameters&  ...params)
     {
-        if (m_logFunc && level >= m_Loglevel) {
-            emitLog(level, params..., payload.dump());
+        {
+            std::unique_lock<std::mutex> lock(m_logMutex);
+            if (!m_logFunc || level < m_Loglevel) return;
         }
+        emitLog(level, params..., payload.dump());
     }
 
     /*
@@ -233,6 +238,8 @@ public:
     */
     void setLogLevel(LogLevel level);
 private:
+    /** Mutex protecting m_logFunc and m_Loglevel */
+    mutable std::mutex m_logMutex;
     /**
     * User provided function that writes a log into user defined endpoint.
     */
