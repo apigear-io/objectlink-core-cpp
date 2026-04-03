@@ -12,9 +12,9 @@
 inline auto contains_keywords(std::vector<std::string> keywords)
 {
     return trompeloeil::make_matcher<const std::string&>(
-        [](const std::string& value, std::vector<std::string> keywords)
+        [](const std::string& value, const std::vector<std::string>& kw)
         {
-            for (auto& keyword : keywords)
+            for (const auto& keyword : kw)
             {
                 if (value.find(keyword) == std::string::npos)
                     return false;
@@ -23,10 +23,10 @@ inline auto contains_keywords(std::vector<std::string> keywords)
         },
 
         // print lambda for error message
-            [](std::ostream& os, std::vector<std::string> keywords)
+            [](std::ostream& os, const std::vector<std::string>& kw)
         {
             os << " matching contains_keywords( ";
-            for (auto& keyword : keywords)
+            for (const auto& keyword : kw)
             {
                 os << keyword << " ";
             }
@@ -34,7 +34,7 @@ inline auto contains_keywords(std::vector<std::string> keywords)
         },
 
             // stored keywords
-            std::vector<std::string>(keywords)
+            keywords
             );
 }
 
@@ -46,10 +46,10 @@ inline auto contains_keywords(std::vector<std::string> keywords)
 inline auto network_message_contains_keywords(std::vector<std::string> keywords, ApiGear::ObjectLink::MessageConverter& converter)
 {
     return trompeloeil::make_matcher<const std::string&>(
-        [&converter](const std::string& networkMessage, std::vector<std::string> keywords)
+        [&converter](const std::string& networkMessage, const std::vector<std::string>& kw)
         {
             auto translatedMessage = converter.fromString(networkMessage).dump();
-            for (auto& keyword : keywords)
+            for (const auto& keyword : kw)
             {
                 if (translatedMessage.find(keyword) == std::string::npos)
                     return false;
@@ -58,10 +58,10 @@ inline auto network_message_contains_keywords(std::vector<std::string> keywords,
         },
 
         // print lambda for error message
-            [](std::ostream& os, std::vector<std::string> keywords)
+            [](std::ostream& os, const std::vector<std::string>& kw)
         {
             os << " matching contains_keywords( ";
-            for (auto& keyword : keywords)
+            for (const auto& keyword : kw)
             {
                 os << keyword << " ";
             }
@@ -69,6 +69,6 @@ inline auto network_message_contains_keywords(std::vector<std::string> keywords,
         },
 
             // stored keywords
-            std::vector<std::string>(keywords)
+            keywords
             );
 }
