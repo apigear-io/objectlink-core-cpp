@@ -29,9 +29,22 @@ void BaseNode::setMessageFormat(MessageFormat format)
     m_converter.setMessageFormat(format);
 }
 
+void BaseNode::setMaxMessageSize(size_t size)
+{
+    m_converter.setMaxMessageSize(size);
+}
+
 void BaseNode::handleMessage(const std::string& data)
 {
-    m_protocol.handleMessage(m_converter.fromString(data), *this);
+    try {
+        m_protocol.handleMessage(m_converter.fromString(data), *this);
+    } catch (const nlohmann::json::exception& e) {
+        static const std::string handleMessageErrorLog = "handleMessage json exception: ";
+        emitLog(LogLevel::Error, handleMessageErrorLog, std::string(e.what()));
+    } catch (const std::exception& e) {
+        static const std::string handleMessageErrorLog = "handleMessage exception: ";
+        emitLog(LogLevel::Error, handleMessageErrorLog, std::string(e.what()));
+    }
 }
 
 void BaseNode::handleLink(const std::string& objectId)
