@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14...3.31)
-project(objectlink-core-cpp LANGUAGES CXX)
+project(objectlink-core-cpp VERSION 0.2.11 LANGUAGES CXX)
 
 include(CTest)
 option(BUILD_EXAMPLES "Build examples" FALSE)
