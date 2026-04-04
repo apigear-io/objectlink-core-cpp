@@ -59,3 +59,31 @@ else()
   target_compile_options(tst_olink PRIVATE /W4 /WX /w14242 /w14254 /w14263 /w14265 /w14287 /w14296 /w14311 /w14545 /w14546 /w14547 /w14549 /w14555 /w14619 /w14640 /w14826 /w14905 /w14906 /w14928 PUBLIC /wd4251)
 endif()
 
+# No-exceptions test: recompile library with -fno-exceptions to verify
+# the code compiles and runs without C++ exception support (e.g. Unreal Engine).
+# Only on GCC/Clang — MSVC equivalent (/EHs-c-) has STL header quirks.
+if(NOT MSVC)
+  set(OLINK_CORE_SOURCES
+      ${CMAKE_SOURCE_DIR}/src/olink/core/basenode.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/core/protocol.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/core/types.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/clientnode.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/clientregistry.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/remotenode.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/remoteregistry.cpp
+      ${CMAKE_SOURCE_DIR}/src/olink/consolelogger.cpp
+  )
+
+  add_library(olink_core_noexcept STATIC ${OLINK_CORE_SOURCES})
+  target_include_directories(olink_core_noexcept PUBLIC ${CMAKE_SOURCE_DIR}/src)
+  target_link_libraries(olink_core_noexcept PUBLIC nlohmann_json::nlohmann_json)
+  target_compile_options(olink_core_noexcept PRIVATE -fno-exceptions)
+  target_compile_definitions(olink_core_noexcept PUBLIC JSON_NOEXCEPTION=1)
+
+  add_executable(tst_olink_noexcept test_noexcept.cpp)
+  target_link_libraries(tst_olink_noexcept PRIVATE olink_core_noexcept)
+  target_compile_options(tst_olink_noexcept PRIVATE -fno-exceptions)
+  target_compile_definitions(tst_olink_noexcept PRIVATE JSON_NOEXCEPTION=1)
+  add_test(NAME tst_olink_noexcept COMMAND tst_olink_noexcept)
+endif()
+
