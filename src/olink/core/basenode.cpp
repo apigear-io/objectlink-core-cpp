@@ -1,4 +1,5 @@
 #include "basenode.h"
+#include "nothrow.h"
 #include <iostream>
 
 namespace ApiGear { namespace ObjectLink {
@@ -54,6 +55,7 @@ void BaseNode::handleMessage(const std::string& data)
     std::string convertError;
     {
         std::unique_lock<std::mutex> lock(m_nodeMutex);
+#if OLINK_HAS_EXCEPTIONS
         try {
             parsed = m_converter.fromString(data);
         } catch (const nlohmann::json::exception& e) {
@@ -61,6 +63,9 @@ void BaseNode::handleMessage(const std::string& data)
         } catch (const std::exception& e) {
             convertError = e.what();
         }
+#else
+        parsed = m_converter.fromString(data);
+#endif
     }
     // Log outside the lock to avoid ABBA deadlock with m_logMutex
     if (!convertError.empty()) {
@@ -69,6 +74,7 @@ void BaseNode::handleMessage(const std::string& data)
         return;
     }
     // Protocol dispatch does not need the node mutex - it calls virtual handler methods
+#if OLINK_HAS_EXCEPTIONS
     try {
         m_protocol.handleMessage(parsed, *this);
     } catch (const nlohmann::json::exception& e) {
@@ -78,6 +84,9 @@ void BaseNode::handleMessage(const std::string& data)
         static const std::string handleMessageErrorLog = "handleMessage exception: ";
         emitLog(LogLevel::Error, handleMessageErrorLog, std::string(e.what()));
     }
+#else
+    m_protocol.handleMessage(parsed, *this);
+#endif
 }
 
 void BaseNode::handleLink(const std::string& objectId)
