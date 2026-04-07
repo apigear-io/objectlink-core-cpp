@@ -59,21 +59,22 @@ else()
   target_compile_options(tst_olink PRIVATE /W4 /WX /w14242 /w14254 /w14263 /w14265 /w14287 /w14296 /w14311 /w14545 /w14546 /w14547 /w14549 /w14555 /w14619 /w14640 /w14826 /w14905 /w14906 /w14928 PUBLIC /wd4251)
 endif()
 
+# Sources for recompiled library variants (noexcept, static)
+set(OLINK_CORE_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/olink/core/basenode.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/core/protocol.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/core/types.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/clientnode.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/clientregistry.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/remotenode.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/remoteregistry.cpp
+    ${CMAKE_SOURCE_DIR}/src/olink/consolelogger.cpp
+)
+
 # No-exceptions test: recompile library with -fno-exceptions to verify
 # the code compiles and runs without C++ exception support (e.g. Unreal Engine).
 # Only on GCC/Clang — MSVC equivalent (/EHs-c-) has STL header quirks.
 if(NOT MSVC)
-  set(OLINK_CORE_SOURCES
-      ${CMAKE_SOURCE_DIR}/src/olink/core/basenode.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/core/protocol.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/core/types.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/clientnode.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/clientregistry.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/remotenode.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/remoteregistry.cpp
-      ${CMAKE_SOURCE_DIR}/src/olink/consolelogger.cpp
-  )
-
   add_library(olink_core_noexcept STATIC ${OLINK_CORE_SOURCES})
   target_include_directories(olink_core_noexcept PUBLIC ${CMAKE_SOURCE_DIR}/src)
   target_link_libraries(olink_core_noexcept PUBLIC nlohmann_json::nlohmann_json)
@@ -86,4 +87,17 @@ if(NOT MSVC)
   target_compile_definitions(tst_olink_noexcept PRIVATE JSON_NOEXCEPTION=1)
   add_test(NAME tst_olink_noexcept COMMAND tst_olink_noexcept)
 endif()
+
+# Static-build test: recompile library with OLINK_STATIC to verify the
+# OLINK_EXPORT macro resolves to empty (no dllexport/dllimport), as used
+# in monolithic builds (e.g. Unreal Engine Shipping configuration).
+add_library(olink_core_static STATIC ${OLINK_CORE_SOURCES})
+target_include_directories(olink_core_static PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(olink_core_static PUBLIC nlohmann_json::nlohmann_json)
+target_compile_definitions(olink_core_static PUBLIC OLINK_STATIC=1)
+
+add_executable(tst_olink_static test_static.cpp)
+target_link_libraries(tst_olink_static PRIVATE olink_core_static)
+target_compile_definitions(tst_olink_static PRIVATE OLINK_STATIC=1)
+add_test(NAME tst_olink_static COMMAND tst_olink_static)
 
