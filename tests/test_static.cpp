@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2021-2022 ApiGear UG (haftungsbeschränkt)
+// Copyright (c) 2022-2026 Epic Games, Inc.
+
 // Standalone test compiled with OLINK_STATIC to verify the library
 // compiles and links correctly without dllexport/dllimport decorations,
 // as used in monolithic/static-only builds (e.g. Unreal Engine Shipping).

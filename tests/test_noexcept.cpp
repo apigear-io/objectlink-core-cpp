@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2021-2022 ApiGear UG (haftungsbeschränkt)
+// Copyright (c) 2022-2026 Epic Games, Inc.
+
 // Standalone test compiled with -fno-exceptions to verify the library
 // compiles and works correctly without C++ exceptions.
 // Does NOT use Catch2 (which requires exceptions).
