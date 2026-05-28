@@ -15,3 +15,7 @@ Unit tests on Windows, MacOS, Linux: ![Unit test results](https://github.com/api
 
 * **We generally assume that this library is built from source.**
 * Otherwise, it has to be ensured that for each build configuration the compiler version etc. matches the one which originally built the library.
+
+## License
+
+Licensed under the [MIT License](./LICENSE). See [LICENSE](./LICENSE) for details.
